@@ -1,0 +1,559 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Scenario D – Frame Player</title>
+
+  <!-- Inter (Medium=500) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { background:#111; color:#eee; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .wrap { width: 1000px; margin: 20px auto; }
+    .row { margin-top: 10px; display:flex; gap:8px; align-items:center; }
+    button { padding:6px 10px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; opacity:.85; }
+
+    /* stage */
+    .stage{
+      position: relative;
+      width: 1000px;
+      margin: 12px auto;
+      aspect-ratio: 1240 / 407;
+      background:#000;
+      border-radius: 8px;
+      overflow:hidden;
+      visibility:hidden;            /* hidden until preload done */
+    }
+    .stage.ready{ visibility:visible; }
+
+    /* IMPORTANT: no opacity transitions (avoids blinking in fast loops) */
+    .bg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border-radius:8px;
+      display:block;
+      opacity:0;
+    }
+    .bg.show{ opacity:1; }
+
+    .overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    /* animated flow */
+    .flow{
+      stroke:#fff;
+      stroke-width:6;
+      stroke-linecap:round;
+      stroke-dasharray:18 18;
+      animation: dash 0.7s linear infinite;
+      opacity:0;
+    }
+    .flow.on{ opacity:0.95; }
+    @keyframes dash { to { stroke-dashoffset:-36; } }
+
+    /* Number overlays */
+    .nums{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+    }
+    .nums.on{ opacity:1; }
+
+    /* HPC number column (left) */
+    .hpcBox{
+      position:absolute;
+      left: 2.2%;
+      top: 25.5%;
+      width: 26.5%;
+      height: 60%;
+    }
+    /* QPU number column (right) */
+    .qpuBox{
+      position:absolute;
+      left: 71.5%;
+      top: 31.0%;
+      width: 26.5%;
+      height: 55%;
+    }
+
+    .num{
+      position:absolute;
+      right: 7%;
+      font-weight: 500;
+      color:#fff;
+      font-size: 30px;
+      line-height:1;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+    }
+
+    /* HPC rows */
+    #nWorking { top: 13%; }
+    #nIdle    { top: 44%; }
+    #nBlocked { top: 75%; }
+
+    /* QPU rows (we only overlay Queue) */
+    #nQueue   { top: 10%; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="mono" id="status"></div>
+
+    <div class="stage" id="stage">
+      <!-- stable placeholders; stage hidden until preload finishes -->
+      <img id="frameA" class="bg show" src="about:blank" alt="">
+      <img id="frameB" class="bg"      src="about:blank" alt="">
+
+      <!-- NUMBER OVERLAYS -->
+      <div id="nums" class="nums">
+        <div class="hpcBox">
+          <div class="num" id="nWorking"></div>
+          <div class="num" id="nIdle"></div>
+          <div class="num" id="nBlocked"></div>
+        </div>
+        <div class="qpuBox">
+          <div class="num" id="nQueue"></div>
+        </div>
+      </div>
+
+      <!-- FLOW OVERLAYS (same geometry as B/C) -->
+      <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
+        <!-- TOP (send) segments -->
+        <line id="sendL" x1="380" y1="182" x2="500" y2="182" class="flow" />
+        <line id="sendR" x1="740" y1="182" x2="800" y2="182" class="flow" />
+
+        <!-- BOTTOM (return) segments -->
+        <line id="retL"  x1="500" y1="348" x2="430" y2="348" class="flow" />
+        <line id="retR"  x1="1030" y1="348" x2="745" y2="348" class="flow" />
+      </svg>
+    </div>
+
+    <div class="row">
+      <button id="play">Pause</button>
+      <button id="step">Step</button>
+
+      <button onclick="setSpeed(0.5)">0.5×</button>
+      <button onclick="setSpeed(1)">1×</button>
+      <button onclick="setSpeed(2)">2×</button>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Scenario D
+    // ----------------------------
+    const PATH = "../../assets/states-static/scenarioD";
+
+    // timing defaults (you will likely tweak later)
+    const DT_STATIC = 900;
+    const DT_D3_PHASE = 40;  // D3 triple-update loop: per phase
+    const DT_D4_LOOP  = 12;  // D4 loop: per tick
+    const DT_D5_STEP  = 18;  // D5a..d loop: per substep
+    const DT_D6_STEP  = 25;  // D6/D6a loop: per substep
+
+    // ---------------------------------------
+    // Program: static blocks + loop blocks
+    // ---------------------------------------
+    // send/ret are set from the *actual frame artwork* you provided.
+    const program = [
+      // 1) Single frames
+      { kind:"frame", frame:"D1",  dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame", frame:"D1a", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D1b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D2",  dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame", frame:"D2a", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D2b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D2c", dt:DT_STATIC, send:false, ret:false, showNums:false },
+
+      // 2) D3 loop (3 renders per iteration)
+      { kind:"loopD3", frame:"D3", dt:DT_D3_PHASE, send:true, ret:false, showNums:true },
+
+      // 3) Single frames
+      { kind:"frame", frame:"D3a", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D3b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"D3c", dt:DT_STATIC, send:false, ret:false, showNums:false },
+
+      // 4) D4 loop (Working down, Idle up)
+      { kind:"loopD4", frame:"D4", dt:DT_D4_LOOP, send:false, ret:false, showNums:true },
+
+      // 5) Single frame
+      { kind:"frame", frame:"D5",  dt:DT_STATIC, send:false, ret:false, showNums:false },
+
+      // 6) D5a..d loop (sequence every iteration)
+      { kind:"loopD5", frame:"D5a", dt:DT_D5_STEP, send:true,  ret:true,  showNums:true }, // D5a artwork: both transfers green
+      // (D5b/c/d are rendered by the loop stepper; send/ret are set per subframe)
+
+      // 7) D6/D6a loop
+      { kind:"loopD6", frame:"D6", dt:DT_D6_STEP, send:false, ret:true,  showNums:true }, // D6 artwork: bottom transfer green
+      // (D6a is rendered by the loop stepper)
+
+      // 8) Ending single frames
+      { kind:"frame", frame:"D7",  dt:DT_STATIC, send:false, ret:true,  showNums:false }, // D7: bottom transfer green
+      { kind:"frame", frame:"D8",  dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame", frame:"D9",  dt:DT_STATIC, send:false, ret:true,  showNums:false }, // D9: bottom transfer green
+      { kind:"frame", frame:"D10", dt:DT_STATIC, send:false, ret:false, showNums:false },
+    ];
+
+    // ---------------------------------------
+    // Player state
+    // ---------------------------------------
+    let idx = 0;
+    let speed = 1.0;
+    let playing = true;
+    let timer = null;
+
+    // shared counters for overlays
+    let W = null, I = null, B = null, Q = null;
+
+    // loop-specific phase state
+    // D3 loop: 3 renders per iteration
+    let d3_phase = 0;  // 0,1,2
+    // D4 loop: simple tick
+    // D5 loop: 4 subframes per iteration
+    let d5_phase = 0;  // 0..3
+    // D6 loop: 2 subframes per iteration
+    let d6_phase = 0;  // 0..1
+
+    // ---------------------------------------
+    // UI helpers
+    // ---------------------------------------
+    function setFlow(sendOn, retOn) {
+      for (const id of ["sendL", "sendR"]) document.getElementById(id).classList.toggle("on", !!sendOn);
+      for (const id of ["retL", "retR"])   document.getElementById(id).classList.toggle("on", !!retOn);
+    }
+
+    function setNumsVisible(on) {
+      document.getElementById("nums").classList.toggle("on", !!on);
+    }
+
+    function setNums(w,i,b,q) {
+      // show blanks if null
+      document.getElementById("nWorking").textContent = (w===null || w===undefined) ? "" : String(w);
+      document.getElementById("nIdle").textContent    = (i===null || i===undefined) ? "" : String(i);
+      document.getElementById("nBlocked").textContent = (b===null || b===undefined) ? "" : String(b);
+      document.getElementById("nQueue").textContent   = (q===null || q===undefined) ? "" : String(q);
+    }
+
+    // ---------------------------------------
+    // Background: HARD, synchronous swap
+    // ---------------------------------------
+    let front = "A";
+    function hardSwap(frameName) {
+      const src = `${PATH}/${frameName}.png`;
+      const A = document.getElementById("frameA");
+      const Bimg = document.getElementById("frameB");
+      const frontEl = (front === "A") ? A : Bimg;
+      const backEl  = (front === "A") ? Bimg : A;
+
+      frontEl.src = src;
+      frontEl.classList.add("show");
+      backEl.classList.remove("show");
+    }
+
+    function label(step){
+      if (step.kind === "loopD3") return `loopD3 phase=${d3_phase} W=${W} B=${B} Q=${Q}`;
+      if (step.kind === "loopD4") return `loopD4 W=${W} I=${I}`;
+      if (step.kind === "loopD5") return `loopD5 phase=${d5_phase} W=${W} I=${I}`;
+      if (step.kind === "loopD6") return `loopD6 phase=${d6_phase} W=${W} B=${B} Q=${Q}`;
+      return `${step.kind}:${step.frame}`;
+    }
+
+    // ---------------------------------------
+    // Render current step (including loop subframes)
+    // ---------------------------------------
+    function render() {
+      const step = program[idx];
+
+      if (step.kind === "frame") {
+        hardSwap(step.frame);
+        setFlow(step.send, step.ret);
+        setNumsVisible(step.showNums);
+        setNums(null,null,null,null);
+      }
+
+      else if (step.kind === "loopD3") {
+        // Always render D3 artwork (same PNG), only numbers change
+        hardSwap("D3");
+        setFlow(true, false);
+        setNumsVisible(true);
+        // D3 shows Working, Blocked, Queue (Idle stays 0 in this part)
+        setNums(W, 0, B, Q);
+      }
+
+      else if (step.kind === "loopD4") {
+        hardSwap("D4");
+        setFlow(false, false);
+        setNumsVisible(true);
+        // D4 shows Working + Idle (Blocked/Queue irrelevant)
+        setNums(W, I, null, null);
+      }
+
+      else if (step.kind === "loopD5") {
+        // subframe depends on d5_phase -> D5a/b/c/d
+        const frames = ["D5a","D5b","D5c","D5d"];
+        const f = frames[d5_phase];
+        hardSwap(f);
+
+        // flows per artwork you provided:
+        // D5a: send+ret ON, D5b: send ON, D5c: send ON, D5d: none
+        const sendOn = (f === "D5a" || f === "D5b" || f === "D5c");
+        const retOn  = (f === "D5a");
+        setFlow(sendOn, retOn);
+
+        setNumsVisible(true);
+        // D5* focuses on Working + Idle (Blocked/Queue irrelevant)
+        setNums(W, I, null, null);
+      }
+
+      else if (step.kind === "loopD6") {
+        // subframe depends on d6_phase -> D6 then D6a
+        const f = (d6_phase === 0) ? "D6" : "D6a";
+        hardSwap(f);
+
+        // flows per artwork:
+        // D6: ret ON, D6a: none
+        setFlow(false, (f === "D6"));
+
+        setNumsVisible(true);
+        // D6* uses Working + Blocked + Queue (Idle stays 0 here)
+        setNums(W, 0, B, Q);
+      }
+
+      document.getElementById("status").textContent =
+        `step=${idx+1}/${program.length} | ${label(step)} | dt=${step.dt}ms | speed=${speed}x`;
+    }
+
+    // ---------------------------------------
+    // Enter a step: initialize loop counters once
+    // ---------------------------------------
+    function enterStep() {
+      const step = program[idx];
+
+      if (step.kind === "loopD3") {
+        // Start of D3 loop per spec:
+        // Start with Working 998, Blocked 2, Queue 1
+        W = 998; B = 2; Q = 1; I = 0;
+        d3_phase = 0;
+      }
+      else if (step.kind === "loopD4") {
+        // D4 loop per spec:
+        // Working 949 -> 1; Idle 1 -> 949
+        W = 949; I = 1;
+      }
+      else if (step.kind === "loopD5") {
+        // D5a..d loop per spec:
+        // before loop: Working 0, Idle 950
+        W = 0; I = 950;
+        d5_phase = 0;
+      }
+      else if (step.kind === "loopD6") {
+        // D6/D6a loop per spec:
+        // before loop: Working 950, Blocked 50, Queue 49
+        W = 950; B = 50; Q = 49; I = 0;
+        d6_phase = 0;
+      }
+      else {
+        // normal frame: clear loop-specific phases
+        d3_phase = 0;
+        d5_phase = 0;
+        d6_phase = 0;
+      }
+
+      render();
+    }
+
+    // ---------------------------------------
+    // Advance logic (handles loops and their termination conditions)
+    // ---------------------------------------
+    function advanceOne() {
+      const step = program[idx];
+
+      // -------- loopD3: 3 renders per iteration --------
+      if (step.kind === "loopD3") {
+        // phase meanings:
+        // 0) show D3 with current W/B/Q
+        // 1) update W--, B++ then show D3
+        // 2) update Q++ then show D3 (end of iteration)
+        if (d3_phase === 0) {
+          d3_phase = 1;
+          render();
+          return;
+        }
+        if (d3_phase === 1) {
+          W = W - 1;
+          B = B + 1;
+          d3_phase = 2;
+          render();
+          return;
+        }
+        // d3_phase === 2
+        Q = Q + 1;
+        d3_phase = 0;
+
+        // stop condition per spec:
+        // "Do this until Working is 951, Blocked is 49 and Queue is 48"
+        if (W === 951 && B === 49 && Q === 48) {
+          idx = (idx + 1) % program.length;
+          enterStep();
+          return;
+        }
+
+        render();
+        return;
+      }
+
+      // -------- loopD4: D4 once per tick --------
+      if (step.kind === "loopD4") {
+        // show current W/I, then tick
+        if (W > 1) {
+          W = W - 1;
+          I = I + 1;
+          render();
+          return;
+        }
+        // when W === 1 and I === 949, loop ends -> next step
+        idx = (idx + 1) % program.length;
+        enterStep();
+        return;
+      }
+
+      // -------- loopD5: D5a,b,c,d per iteration --------
+      if (step.kind === "loopD5") {
+        // phases:
+        // 0) D5a: W++, I--
+        // 1) D5b: W++
+        // 2) D5c: W--
+        // 3) D5d: no-op (end iteration)
+        if (d5_phase === 0) { W = W + 1; I = I - 1; d5_phase = 1; render(); return; }
+        if (d5_phase === 1) { W = W + 1;            d5_phase = 2; render(); return; }
+        if (d5_phase === 2) { W = W - 1;            d5_phase = 3; render(); return; }
+
+        // d5_phase === 3: end-of-iteration
+        d5_phase = 0;
+
+        // stop when Working==950 and Idle==0 (after D5d)
+        if (W === 950 && I === 0) {
+          idx = (idx + 1) % program.length;
+          enterStep();
+          return;
+        }
+
+        render();
+        return;
+      }
+
+      // -------- loopD6: D6 then D6a per iteration --------
+      if (step.kind === "loopD6") {
+        // phases:
+        // 0) D6: Q--
+        // 1) D6a: B--, W++
+        if (d6_phase === 0) {
+          Q = Q - 1;
+          d6_phase = 1;
+          render();
+          return;
+        }
+
+        // d6_phase === 1
+        B = B - 1;
+        W = W + 1;
+        d6_phase = 0;
+
+        // stop when Queue==1, Blocked==2, Working==998 (after D6a)
+        if (Q === 1 && B === 2 && W === 998) {
+          idx = (idx + 1) % program.length;
+          enterStep();
+          return;
+        }
+
+        render();
+        return;
+      }
+
+      // -------- normal frames --------
+      idx = (idx + 1) % program.length;
+      enterStep();
+    }
+
+    function scheduleNext() {
+      if (!playing) return;
+      const step = program[idx];
+      const dt = Math.max(2, Math.round(step.dt / speed));
+      timer = setTimeout(() => {
+        advanceOne();
+        scheduleNext();
+      }, dt);
+    }
+
+    // Buttons
+    document.getElementById("step").onclick = () => advanceOne();
+
+    document.getElementById("play").onclick = () => {
+      playing = !playing;
+      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+    };
+
+    function setSpeed(s) {
+      speed = s;
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+      render();
+    }
+    window.setSpeed = setSpeed;
+
+    // ---------------------------------------
+    // Startup: preload all frames once, then start
+    // ---------------------------------------
+    (function boot(){
+      const stage = document.getElementById("stage");
+      const uniqueFrames = new Set();
+
+      // include all direct frames
+      for (const s of program) {
+        if (s.kind === "frame") uniqueFrames.add(s.frame);
+        if (s.kind === "loopD3") uniqueFrames.add("D3");
+        if (s.kind === "loopD4") uniqueFrames.add("D4");
+        if (s.kind === "loopD5") { uniqueFrames.add("D5a"); uniqueFrames.add("D5b"); uniqueFrames.add("D5c"); uniqueFrames.add("D5d"); }
+        if (s.kind === "loopD6") { uniqueFrames.add("D6"); uniqueFrames.add("D6a"); }
+      }
+
+      const frames = [...uniqueFrames];
+      let remaining = frames.length;
+
+      function doneOne(){
+        remaining -= 1;
+        if (remaining <= 0) start();
+      }
+
+      for (const f of frames) {
+        const img = new Image();
+        img.onload = doneOne;
+        img.onerror = doneOne; // don't deadlock
+        img.src = `${PATH}/${f}.png`;
+      }
+
+      function start(){
+        stage.classList.add("ready");
+
+        // first frame
+        const A = document.getElementById("frameA");
+        A.src = `${PATH}/${program[0].frame}.png`;
+        A.classList.add("show");
+        document.getElementById("frameB").classList.remove("show");
+        front = "A";
+
+        enterStep();
+        scheduleNext();
+      }
+    })();
+  </script>
+</body>
+</html>
