@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Workflow Animations</title>
+  <style>
+    body{background:#111;color:#eee;font-family:sans-serif}
+    .wrap{max-width:980px;margin:30px auto}
+    a{color:#9ad}
+    .card{border:1px solid #333;border-radius:10px;padding:14px;margin:12px 0}
+    .small{opacity:.8}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Workflow Animations</h1>
+    <p class="small">HPC–QC orchestration scenarios (prototype).</p>
+
+    <div class="card">
+      <h2><a href="scenarios/scenarioA.html">Scenario A — basic submit / transfer</a></h2>
+      <div class="small">Static states + overlay “flow” lines. (Work in progress)</div>
+    </div>
+
+    <div class="card">
+        <h2><a href="scenarios/scenarioB.html">Scenario B — global barrier (blocking cascade)</a></h2>
+        <div class="small">Pipeline fill + fast barrier buildup (live counters) with transfer flow overlays.</div>
+    </div>
+
+    <div class="card">
+        <h2><a href="scenarios/scenarioC.html">Scenario C — latency wall</a></h2>
+        <div class="small">Latency-dominated execution with continuous backlog growth (live counters).</div>
+    </div>
+
+    <div class="card">
+      <h2>Scenario D</h2>
+      <div class="small">Coming next</div>
+    </div>
+  </div>
+</body>
+</html>
