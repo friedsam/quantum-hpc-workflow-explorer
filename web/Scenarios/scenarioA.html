@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Scenario A – Frame Player</title>
+
+  <style>
+    body { background:#111; color:#eee; font-family:sans-serif; }
+    .wrap { width: 1000px; margin: 20px auto; }
+    .row { margin-top: 10px; display:flex; gap:8px; align-items:center; }
+    button { padding:6px 10px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; opacity:.85; }
+
+    /* stage + overlay */
+    .stage { position: relative; width: 1000px; margin: 12px auto; aspect-ratio: 1240 / 407; }
+    .stage img { width: 100%; border-radius: 8px; display:block; }
+    .overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    /* animated flow (default OFF) */
+    .flow{
+      stroke:#fff;
+      stroke-width:6;
+      stroke-linecap:round;
+      stroke-dasharray:18 18;
+      animation: dash 0.7s linear infinite;
+      opacity:0;
+    }
+    .flow.on{ opacity:0.95; }
+    @keyframes dash { to { stroke-dashoffset:-36; } }
+    #frame{
+        transition: opacity 220ms ease;
+        opacity: 1;
+    }
+    #frame.fade{
+        opacity: 0;
+    }
+    .bg{
+        position:absolute;
+        inset:0;
+        width:100%;
+        height:100%;
+        border-radius:8px;
+        opacity:0;
+        transition: opacity 260ms ease;
+        display:block;
+    }
+    .bg.show{ opacity:1; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="mono" id="status"></div>
+
+    <div class="stage">
+      <img id="frameA" class="bg show" src="../../assets/states-static/scenarioA/A1.png?v=0" />
+      <img id="frameB" class="bg"      src="../../assets/states-static/scenarioA/A1.png?v=0" />      
+      <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
+        <!-- TOP (send) segments -->
+        <line id="sendL" x1="380" y1="183" x2="500" y2="183" class="flow" />
+        <line id="sendR" x1="740" y1="183" x2="800" y2="183" class="flow" />
+
+        <!-- BOTTOM (return) segments -->
+        <line id="retL"  x1="500" y1="342" x2="430" y2="342" class="flow" />
+        <line id="retR"  x1="1030" y1="342" x2="745" y2="342" class="flow" />
+      </svg>
+    </div>
+
+    <div class="row">
+      <button id="play">Pause</button>
+      <button id="step">Step</button>
+
+      <button onclick="setSpeed(0.5)">0.5×</button>
+      <button onclick="setSpeed(1)">1×</button>
+      <button onclick="setSpeed(2)">2×</button>
+    </div>
+  </div>
+
+  <script>
+    // --- frames + per-frame overlay plan (edit these booleans) ---
+    const timeline = [
+      { frame: "A1", dt: 900,  send: false, ret: false, xfade:false },
+      { frame: "A2", dt: 1200, send: true,  ret: false, xfade:false }, // send active
+      { frame: "A3", dt: 900,  send: false, ret: false, xfade:false },
+      { frame: "A4", dt: 1200, send: false, ret: false, xfade:false  }, 
+      { frame: "A5", dt: 900,  send: false, ret: true,  xfade:false }, // return active
+      { frame: "A6", dt: 1200, send: false, ret: false, xfade:false},
+    ];
+
+    let i = 0;
+    let cur = timeline[0].frame;
+    let speed = 1.0;
+    let playing = true;
+    let timer = null;
+
+    function setFlow(sendOn, retOn) {
+      for (const id of ["sendL", "sendR"]) {
+        document.getElementById(id).classList.toggle("on", sendOn);
+      }
+      for (const id of ["retL", "retR"]) {
+        document.getElementById(id).classList.toggle("on", retOn);
+      }
+    }
+
+    let front = "A"; // A is visible first
+
+    function render() {
+  const src = `../../assets/states-static/scenarioA/${cur}.png?v=${Date.now()}`;
+  const t = timeline[i];
+
+  const A = document.getElementById("frameA");
+  const B = document.getElementById("frameB");
+
+  const doXfade = !!t.xfade;
+
+  if (!doXfade) {
+    // HARD SWAP (no blinking)
+    const frontEl = (front === "A") ? A : B;
+    const backEl  = (front === "A") ? B : A;
+
+    frontEl.src = src;
+    frontEl.classList.add("show");
+    backEl.classList.remove("show");
+  } else {
+    // CROSSFADE (only when you set xfade:true in the timeline entry)
+    const frontEl = (front === "A") ? A : B;
+    const backEl  = (front === "A") ? B : A;
+
+    backEl.src = src;
+    backEl.classList.add("show");
+    frontEl.classList.remove("show");
+
+    front = (front === "A") ? "B" : "A";
+  }
+
+  document.getElementById("status").textContent =
+    `frame=${cur} | send=${t.send} ret=${t.ret} | dt=${t.dt}ms | speed=${speed}x`;
+}
+    function advance() {
+      i = (i + 1) % timeline.length;
+      cur = timeline[i].frame;
+      setFlow(timeline[i].send, timeline[i].ret);
+      render();
+    }
+
+    function scheduleNext() {
+      if (!playing) return;
+      const dt = Math.max(100, Math.round(timeline[i].dt / speed));
+      timer = setTimeout(() => {
+        advance();
+        scheduleNext();
+      }, dt);
+    }
+
+    // Buttons
+    document.getElementById("step").onclick = () => {
+      advance();
+    };
+
+    document.getElementById("play").onclick = () => {
+      playing = !playing;
+      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+    };
+
+    function setSpeed(s) {
+      speed = s;
+      // reschedule so speed changes take effect immediately
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+      render();
+    }
+    window.setSpeed = setSpeed; // keep your existing inline onclicks working
+
+    // init
+    setFlow(timeline[0].send, timeline[0].ret);
+    render();
+    scheduleNext();
+  </script>
+</body>
+</html>
