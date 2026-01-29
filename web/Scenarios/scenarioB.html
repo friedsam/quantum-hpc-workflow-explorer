@@ -1,0 +1,310 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Scenario B – Frame Player</title>
+
+  <!-- Inter (Medium=500) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { background:#111; color:#eee; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .wrap { width: 1000px; margin: 20px auto; }
+    .row { margin-top: 10px; display:flex; gap:8px; align-items:center; }
+    button { padding:6px 10px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; opacity:.85; }
+
+    /* stage + overlay */
+    .stage {
+      position: relative;
+      width: 1000px;
+      margin: 12px auto;
+      aspect-ratio: 1240 / 407;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+
+      /* hidden until first frame is ready (prevents broken icon & placeholders) */
+      visibility: hidden;
+    }
+    .stage.ready { visibility: visible; }
+
+    /* IMPORTANT: no opacity transitions for the images.
+       This avoids "blink" during fast loop. */
+    .bg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border-radius:8px;
+      display:block;
+      opacity: 0;
+    }
+    .bg.show{ opacity:1; }
+
+    .overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    /* animated flow (default OFF) */
+    .flow{
+      stroke:#fff;
+      stroke-width:6;
+      stroke-linecap:round;
+      stroke-dasharray:18 18;
+      animation: dash 0.7s linear infinite;
+      opacity:0;
+    }
+    .flow.on{ opacity:0.95; }
+    @keyframes dash { to { stroke-dashoffset:-36; } }
+
+    /* Number overlays (only used in B2c loop by default) */
+    .nums {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+    }
+    .nums.on { opacity:1; }
+
+    .hpcBox {
+      position:absolute;
+      left: 2.2%;
+      top: 25.5%;
+      width: 26.5%;
+      height: 60%;
+    }
+    .num {
+      position:absolute;
+      right: 7%;
+      font-weight: 500;
+      color: #fff;
+      font-size: 30px;
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+    }
+    #nWorking { top: 13%; }
+    #nBlocked { top: 75%; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="mono" id="status"></div>
+
+    <div class="stage" id="stage">
+      <!-- NO src placeholders => no broken icon, no white flash -->
+      <!--<img id="frameA" class="bg" alt="" />
+      <img id="frameB" class="bg" alt="" />-->
+      <img id="frameA" class="bg show" src="about:blank" alt="">
+      <img id="frameB" class="bg"      src="about:blank" alt="">
+      <!-- NUMBER OVERLAYS -->
+      <div id="nums" class="nums">
+        <div class="hpcBox">
+          <div class="num" id="nWorking"></div>
+          <div class="num" id="nBlocked"></div>
+        </div>
+      </div>
+
+      <!-- FLOW OVERLAYS -->
+      <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
+        <!-- TOP (send) segments -->
+        <line id="sendL" x1="380" y1="182" x2="500" y2="182" class="flow" />
+        <line id="sendR" x1="740" y1="182" x2="800" y2="182" class="flow" />
+
+        <!-- BOTTOM (return) segments -->
+        <line id="retL"  x1="500" y1="348" x2="430" y2="348" class="flow" />
+        <line id="retR"  x1="1030" y1="348" x2="745" y2="348" class="flow" />
+      </svg>
+    </div>
+
+    <div class="row">
+      <button id="play">Pause</button>
+      <button id="step">Step</button>
+      <button onclick="setSpeed(0.5)">0.5×</button>
+      <button onclick="setSpeed(1)">1×</button>
+      <button onclick="setSpeed(2)">2×</button>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Scenario B: steps + one loop
+    // ----------------------------
+    const LOOP_DT = 40; // fast count segment
+
+    const steps = [
+      { kind:"frame", frame:"B1",  dt: 1200, send:false, ret:false, showNums:false },
+      { kind:"frame", frame:"B2",  dt: 900,  send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"B2a", dt: 700,  send:true,  ret:false, showNums:false },
+      { kind:"frame", frame:"B2b", dt: 700,  send:true,  ret:false, showNums:false },
+
+      { kind:"loop",  frame:"B2c", dt: LOOP_DT, send:true,  ret:true,  showNums:true,
+        kStart: 4, kEnd: 199 },
+
+      { kind:"frame", frame:"B3",  dt: 1200, send:true,  ret:true,  showNums:false },
+      { kind:"frame", frame:"B4",  dt: 900,  send:true,  ret:true,  showNums:false },
+      { kind:"frame", frame:"B4a", dt: 900,  send:false, ret:true,  showNums:false },
+      { kind:"frame", frame:"B5",  dt: 1200, send:false, ret:true,  showNums:false },
+      { kind:"frame", frame:"B6",  dt: 1200, send:false, ret:false, showNums:false },
+    ];
+
+    let idx = 0;
+    let speed = 1.0;
+    let playing = true;
+    let timer = null;
+
+    // loop state
+    let loopK = null;
+
+    function setFlow(sendOn, retOn) {
+      for (const id of ["sendL", "sendR"]) document.getElementById(id).classList.toggle("on", !!sendOn);
+      for (const id of ["retL", "retR"])   document.getElementById(id).classList.toggle("on", !!retOn);
+    }
+
+    function setNumsVisible(on) {
+      document.getElementById("nums").classList.toggle("on", !!on);
+    }
+
+    function setNums(working, blocked) {
+      document.getElementById("nWorking").textContent = String(working);
+      document.getElementById("nBlocked").textContent = String(blocked);
+    }
+
+    // ---------------------------------------
+    // Background swap: HARD, synchronous, safe
+    // ---------------------------------------
+    let front = "A"; // which <img> is visible
+
+    function hardSwap(frameName) {
+      const src = `../../assets/states-static/scenarioB/${frameName}.png`;
+
+      const A = document.getElementById("frameA");
+      const B = document.getElementById("frameB");
+      const frontEl = (front === "A") ? A : B;
+      const backEl  = (front === "A") ? B : A;
+
+      // Update the visible element only (stable, no transitions)
+      frontEl.src = src;
+      frontEl.classList.add("show");
+      backEl.classList.remove("show");
+    }
+
+    function currentStateLabel(step, extra="") {
+      return `${step.kind}:${step.frame}${extra ? " " + extra : ""}`;
+    }
+
+    function render() {
+      const step = steps[idx];
+
+      hardSwap(step.frame);
+      setFlow(step.send, step.ret);
+      setNumsVisible(step.showNums);
+
+      if (step.kind === "loop") {
+        const blocked = loopK;
+        const working = 200 - blocked; // 196..1
+        setNums(working, blocked);
+      }
+
+      document.getElementById("status").textContent =
+        `step=${idx+1}/${steps.length} | ${currentStateLabel(step, step.kind==="loop" ? `k=${loopK}` : "")} | send=${step.send} ret=${step.ret} | dt=${step.dt}ms | speed=${speed}x`;
+    }
+
+    function enterStep() {
+      const step = steps[idx];
+      if (step.kind === "loop") loopK = step.kStart;
+      else loopK = null;
+      render();
+    }
+
+    function advanceOne() {
+      const step = steps[idx];
+
+      if (step.kind === "loop") {
+        if (loopK < step.kEnd) {
+          loopK += 1;
+          render();
+          return;
+        }
+        // done with loop
+        loopK = null;
+        idx = (idx + 1) % steps.length;
+        enterStep();
+        return;
+      }
+
+      idx = (idx + 1) % steps.length;
+      enterStep();
+    }
+
+    function scheduleNext() {
+      if (!playing) return;
+      const step = steps[idx];
+      const dt = Math.max(60, Math.round(step.dt / speed));
+      timer = setTimeout(() => {
+        advanceOne();
+        scheduleNext();
+      }, dt);
+    }
+
+    // Buttons
+    document.getElementById("step").onclick = () => advanceOne();
+
+    document.getElementById("play").onclick = () => {
+      playing = !playing;
+      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+    };
+
+    function setSpeed(s) {
+      speed = s;
+      if (timer) clearTimeout(timer);
+      if (playing) scheduleNext();
+      render();
+    }
+    window.setSpeed = setSpeed;
+
+    // ----------------------------
+    // Startup: preload once, then start
+    // ----------------------------
+    (function boot(){
+      const stage = document.getElementById("stage");
+
+      // preload all unique frames once -> no broken icon, no per-frame onload races
+      const uniqueFrames = [...new Set(steps.map(s => s.frame))];
+      const cache = new Map();
+      let remaining = uniqueFrames.length;
+
+      function doneOne(){
+        remaining -= 1;
+        if (remaining <= 0) start();
+      }
+
+      for (const f of uniqueFrames) {
+        const img = new Image();
+        img.onload = doneOne;
+        img.onerror = doneOne; // don't deadlock
+        img.src = `../../assets/states-static/scenarioB/${f}.png`;
+        cache.set(f, img);
+      }
+
+      function start(){
+        // show stage only when at least preload completed
+        stage.classList.add("ready");
+
+        // put first frame into visible img
+        const A = document.getElementById("frameA");
+        A.src = `../../assets/states-static/scenarioB/${steps[0].frame}.png`;
+        A.classList.add("show");
+        document.getElementById("frameB").classList.remove("show");
+        front = "A";
+
+        enterStep();
+        scheduleNext();
+      }
+    })();
+  </script>
+</body>
+</html>
