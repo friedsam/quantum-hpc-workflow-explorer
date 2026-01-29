@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Build • Quantum–HPC Workflow Explorer</title>
+  <link rel="stylesheet" href="../assets/site.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Build</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="pill" href="../index.html">Home</a>
+        <a href="simulations.html">Simulations</a>
+        <a href="run.html">Run</a>
+        <a href="references.html">References</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1 class="page-title">Build your application (template → parameter profile)</h1>
+    <p class="muted">
+      This page is intentionally “spacious” so it can grow into a full parameter editor (VQE, SQD, etc.).
+      For now it shows the intended interaction.
+    </p>
+
+    <div class="two-col">
+      <section class="panel">
+        <h2>Choose a template</h2>
+        <div class="muted">Examples: VQE, SQD, QAOA, variational classifier, shadow tomography…</div>
+        <hr class="sep" />
+
+        <label class="muted">Template</label><br/>
+        <select style="margin-top:6px;padding:10px;border-radius:10px;border:1px solid #23314a;background:#0c0f14;color:#e7eefc;min-width:260px">
+          <option>VQE (variational energy minimization)</option>
+          <option>SQD (sample-based quantum diagonalization)</option>
+          <option>QAOA (hybrid optimization)</option>
+          <option disabled>— more coming —</option>
+        </select>
+
+        <hr class="sep" />
+        <h3>Parameter groups (placeholder)</h3>
+        <ul class="muted">
+          <li>Problem size / circuit depth</li>
+          <li>Shots / batching strategy</li>
+          <li>Queue / session assumptions</li>
+          <li>HPC parallelism + synchronization model</li>
+          <li>Data transfer + serialization overheads</li>
+          <li>Cost rates (HPC, QPU)</li>
+        </ul>
+
+        <a class="btn primary" href="run.html">Send to Runner</a>
+      </section>
+
+      <aside class="panel">
+        <h2>Saved profiles</h2>
+        <p class="muted">Later: store JSON profiles in localStorage (or repo) and load them into Runner.</p>
+        <hr class="sep" />
+        <div class="muted">Example profiles (future):</div>
+        <ul class="muted">
+          <li>“VQE small molecule (toy)”</li>
+          <li>“SQD chemistry demo (HPC-heavy)”</li>
+          <li>“Latency wall stress test”</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

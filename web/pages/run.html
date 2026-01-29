@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Run • Quantum–HPC Workflow Explorer</title>
+  <link rel="stylesheet" href="../assets/site.css" />
+  <style>
+    .dash{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    .counters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .counter{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(15,20,31,.75)}
+    .counter .k{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+    .counter .v{margin-top:6px;font-weight:800;font-size:18px}
+    .iconbtn{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:2px 8px;cursor:pointer}
+    .leds{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .ledpanel{padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(15,20,31,.75)}
+    .ledrow{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+    .led{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);background:#0b0f16}
+    .led.green{background:var(--good)}
+    .led.yellow{background:var(--warn)}
+    .led.red{background:var(--bad)}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+    .modal{max-width:760px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+    .modal h3{margin:0 0 8px 0}
+    .formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .field label{font-size:12px;color:var(--muted)}
+    .field input{margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0c0f14;color:var(--text)}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    @media (max-width:900px){ .dash{grid-template-columns:1fr} .counters{grid-template-columns:1fr} .formgrid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Runner</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="pill" href="../index.html">Home</a>
+        <a href="simulations.html">Simulations</a>
+        <a href="builder.html">Build</a>
+        <a href="references.html">References</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1 class="page-title">Run a workflow model</h1>
+    <p class="muted">Prototype dashboard: LEDs + counters + parameter popup. (Model is intentionally simple right now.)</p>
+
+    <div class="dash">
+      <section class="panel">
+        <h2>Workflow diagram (placeholder)</h2>
+        <p class="muted">
+          Replace this box with your “simple diagram” equivalent (like your scenario visuals).
+          For now it acts as the visual focal area.
+        </p>
+        <div style="height:260px;border:1px dashed var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--muted)">
+          Diagram goes here
+        </div>
+
+        <div class="leds">
+          <div class="ledpanel">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+              <h3 style="margin:0">HPC</h3>
+              <span class="muted">Run / Idle / Blocked</span>
+            </div>
+            <div class="ledrow">
+              <span class="led" id="hpc-run"></span><span class="muted">Run</span>
+              <span class="led" id="hpc-idle"></span><span class="muted">Idle</span>
+              <span class="led" id="hpc-blocked"></span><span class="muted">Blocked</span>
+            </div>
+          </div>
+
+          <div class="ledpanel">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+              <h3 style="margin:0">QPU</h3>
+              <span class="muted">Run / Queued / Not running</span>
+            </div>
+            <div class="ledrow">
+              <span class="led" id="qpu-run"></span><span class="muted">Run</span>
+              <span class="led" id="qpu-queued"></span><span class="muted">Queued</span>
+              <span class="led" id="qpu-blocked"></span><span class="muted">Not running</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h2 style="margin:0">Counters</h2>
+          <button class="btn primary" id="openParams">Edit parameters</button>
+        </div>
+        <hr class="sep" />
+
+        <div class="counters" id="counterGrid"></div>
+
+        <hr class="sep" />
+        <div class="muted" style="font-size:12px">
+          Note: this runner uses a minimal deterministic accounting model to make the UI real now.
+          Swap in the real scenario simulator later.
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <h3>Parameters</h3>
+        <button class="iconbtn" id="closeParams">✕</button>
+      </div>
+
+      <div class="formgrid" id="form"></div>
+
+      <div class="modal-actions">
+        <button class="btn" id="resetBtn">Reset</button>
+        <button class="btn primary" id="applyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { compute, fmtSeconds, fmtMoney, ledState } from "../assets/site.js";
+
+    const defaults = {
+      iters: 50,
+      hpc_work_s: 2.0,
+      qpu_exec_s: 1.2,
+      qpu_queue_s: 4.0,
+      transfer_s: 0.6,
+      sync_penalty_s: 0.8,
+      hpc_cost_per_s: 0.03,
+      qpu_cost_per_s: 0.20
+    };
+
+    const fields = [
+      ["iters","Iterations"],
+      ["hpc_work_s","HPC work per iter (s)"],
+      ["qpu_exec_s","QPU run per iter (s)"],
+      ["qpu_queue_s","QPU queue per iter (s)"],
+      ["transfer_s","Transfer per iter (s)"],
+      ["sync_penalty_s","Sync penalty per iter (s)"],
+      ["hpc_cost_per_s","HPC cost ($/s)"],
+      ["qpu_cost_per_s","QPU cost ($/s)"],
+    ];
+
+    const metrics = [
+      ["total_s","Total time"],
+      ["hpc_run_s","Total HPC run time"],
+      ["qpu_run_s","Total QPU run time"],
+      ["hpc_non_s","HPC non-utilized time"],
+      ["qpu_non_s","QPU non-utilized time"],
+      ["hpc_cost","HPC costs"],
+      ["qpu_cost","QPU costs"],
+      ["total_cost","Total costs"],
+    ];
+
+    let params = {...defaults};
+
+    const grid = document.getElementById("counterGrid");
+    const form = document.getElementById("form");
+    const backdrop = document.getElementById("backdrop");
+
+    function setLed(el, state){
+      el.classList.remove("green","yellow","red");
+      if(state==="green") el.classList.add("green");
+      if(state==="yellow") el.classList.add("yellow");
+      if(state==="red") el.classList.add("red");
+    }
+
+    function renderCounters(){
+      const out = compute(params);
+
+      grid.innerHTML = "";
+      for(const [k,label] of metrics){
+        const isMoney = k.includes("cost");
+        const v = isMoney ? fmtMoney(out[k]) : fmtSeconds(out[k]);
+        const div = document.createElement("div");
+        div.className = "counter";
+        div.innerHTML = `
+          <div class="k"><span>${label}</span><span><button class="iconbtn" title="Edit parameters">⚙</button></span></div>
+          <div class="v">${v}</div>
+        `;
+        div.querySelector("button").onclick = () => openModal();
+        grid.appendChild(div);
+      }
+
+      // LEDs: HPC run vs non-util, QPU run vs queued
+      const hpcState = ledState(out.hpc_run_s, out.hpc_non_s);
+      const qpuState = ledState(out.qpu_run_s, out.qpu_non_s);
+
+      setLed(document.getElementById("hpc-run"), hpcState==="green" ? "green" : "");
+      setLed(document.getElementById("hpc-idle"), hpcState==="yellow" ? "yellow" : "");
+      setLed(document.getElementById("hpc-blocked"), hpcState==="red" ? "red" : "");
+
+      setLed(document.getElementById("qpu-run"), qpuState==="green" ? "green" : "");
+      setLed(document.getElementById("qpu-queued"), qpuState==="yellow" ? "yellow" : "");
+      setLed(document.getElementById("qpu-blocked"), qpuState==="red" ? "red" : "");
+    }
+
+    function buildForm(){
+      form.innerHTML = "";
+      for(const [key,label] of fields){
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+        wrap.innerHTML = `
+          <label for="${key}">${label}</label>
+          <input id="${key}" type="number" step="any" value="${params[key]}">
+        `;
+        form.appendChild(wrap);
+      }
+    }
+
+    function openModal(){
+      buildForm();
+      backdrop.style.display = "flex";
+    }
+    function closeModal(){ backdrop.style.display = "none"; }
+
+    document.getElementById("openParams").onclick = openModal;
+    document.getElementById("closeParams").onclick = closeModal;
+    backdrop.addEventListener("click", (e)=>{ if(e.target===backdrop) closeModal(); });
+
+    document.getElementById("resetBtn").onclick = ()=>{
+      params = {...defaults};
+      closeModal();
+      renderCounters();
+    };
+
+    document.getElementById("applyBtn").onclick = ()=>{
+      for(const [key] of fields){
+        const v = parseFloat(document.getElementById(key).value);
+        params[key] = isFinite(v) ? v : params[key];
+      }
+      closeModal();
+      renderCounters();
+    };
+
+    renderCounters();
+  </script>
+</body>
+</html>

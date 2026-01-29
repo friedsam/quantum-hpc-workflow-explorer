@@ -1,40 +1,91 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Workflow Animations</title>
-  <style>
-    body{background:#111;color:#eee;font-family:sans-serif}
-    .wrap{max-width:980px;margin:30px auto}
-    a{color:#9ad}
-    .card{border:1px solid #333;border-radius:10px;padding:14px;margin:12px 0}
-    .small{opacity:.8}
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quantum–HPC Workflow Explorer</title>
+  <link rel="stylesheet" href="assets/site.css" />
 </head>
 <body>
-  <div class="wrap">
-    <h1>Workflow Animations</h1>
-    <p class="small">HPC–QC orchestration scenarios (prototype).</p>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Hybrid orchestration patterns • costs • bottlenecks</div>
+        </div>
+      </div>
 
-    <div class="card">
-      <h2><a href="scenarios/scenarioA.html">Scenario A — basic submit / transfer</a></h2>
-      <div class="small">Static states + overlay “flow” lines. (Work in progress)</div>
+      <nav class="nav">
+        <a href="pages/simulations.html">Simulations</a>
+        <a href="pages/builder.html">Build</a>
+        <a href="pages/run.html" class="pill">Run</a>
+        <a href="pages/references.html">References</a>
+      </nav>
     </div>
+  </header>
 
-    <div class="card">
-        <h2><a href="scenarios/scenarioB.html">Scenario B — global barrier (blocking cascade)</a></h2>
-        <div class="small">Pipeline fill + fast barrier buildup (live counters) with transfer flow overlays.</div>
-    </div>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Explore how hybrid HPC↔QPU workflows behave under real bottlenecks</h1>
+      <p class="muted">
+        The near-term reality: classical work scales; QPU access is typically serialized/queued.
+        This site is a prototype entry point: learn via simulations, then parameterize and “run” a model.
+      </p>
 
-    <div class="card">
-        <h2><a href="scenarios/scenarioC.html">Scenario C — latency wall</a></h2>
-        <div class="small">Latency-dominated execution with continuous backlog growth (live counters).</div>
-    </div>
+      <div class="cta-row">
+        <a class="btn primary" href="pages/run.html">Open Runner</a>
+        <a class="btn" href="pages/simulations.html">View Scenario Simulations</a>
+      </div>
 
-    <div class="card">
-      <h2>Scenario D</h2>
-      <div class="small">Coming next</div>
-    </div>
-  </div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-title">What you’ll see</div>
+          <div class="kpi-body">Queueing, barriers, latency walls, idle/blocked time</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">What you’ll tweak</div>
+          <div class="kpi-body">job size, batching, latency, queue time, sync frequency</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">What you’ll estimate</div>
+          <div class="kpi-body">total time, utilization, and costs (HPC + QPU)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1) Simulations</h2>
+        <p class="muted">Guided examples for common orchestration failure modes and patterns.</p>
+        <a class="btn" href="pages/simulations.html">Open simulations</a>
+      </article>
+
+      <article class="card">
+        <h2>2) Build your application</h2>
+        <p class="muted">Choose a template (e.g., VQE / SQD) and define a parameter profile.</p>
+        <a class="btn" href="pages/builder.html">Open builder</a>
+      </article>
+
+      <article class="card">
+        <h2>3) Run (model + dashboard)</h2>
+        <p class="muted">Diagram + LEDs + counters. Edit parameters and see outcomes change.</p>
+        <a class="btn primary" href="pages/run.html">Open runner</a>
+      </article>
+
+      <article class="card">
+        <h2>4) References</h2>
+        <p class="muted">Docs, tutorials, IBM/Qiskit resources, and articles.</p>
+        <a class="btn" href="pages/references.html">Open references</a>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div class="muted">
+        Prototype site • QAMP “Hello HPC” related work • focus: practical bottlenecks and orchestration tradeoffs
+      </div>
+    </footer>
+  </main>
 </body>
 </html>
