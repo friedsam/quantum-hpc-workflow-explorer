@@ -53,8 +53,8 @@
     <div class="mono" id="status"></div>
 
     <div class="stage">
-      <img id="frameA" class="bg show" src="../../assets/states-static/scenarioA/A1.png?v=0" />
-      <img id="frameB" class="bg"      src="../../assets/states-static/scenarioA/A1.png?v=0" />      
+      <img id="frameA" class="bg show" src="../assets/states-static/scenarioA/A1.png?v=0" />
+      <img id="frameB" class="bg"      src="../assets/states-static/scenarioA/A1.png?v=0" />      
       <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
         <!-- TOP (send) segments -->
         <line id="sendL" x1="380" y1="183" x2="500" y2="183" class="flow" />
@@ -105,7 +105,7 @@
     let front = "A"; // A is visible first
 
     function render() {
-  const src = `../../assets/states-static/scenarioA/${cur}.png?v=${Date.now()}`;
+  const src = `../assets/states-static/scenarioA/${cur}.png?v=${Date.now()}`;
   const t = timeline[i];
 
   const A = document.getElementById("frameA");

@@ -177,7 +177,7 @@
     let front = "A"; // which <img> is visible
 
     function hardSwap(frameName) {
-      const src = `../../assets/states-static/scenarioB/${frameName}.png`;
+      const src = `../assets/states-static/scenarioB/${frameName}.png`;
 
       const A = document.getElementById("frameA");
       const B = document.getElementById("frameB");
@@ -286,7 +286,7 @@
         const img = new Image();
         img.onload = doneOne;
         img.onerror = doneOne; // don't deadlock
-        img.src = `../../assets/states-static/scenarioB/${f}.png`;
+        img.src = `../assets/states-static/scenarioB/${f}.png`;
         cache.set(f, img);
       }
 
@@ -296,7 +296,7 @@
 
         // put first frame into visible img
         const A = document.getElementById("frameA");
-        A.src = `../../assets/states-static/scenarioB/${steps[0].frame}.png`;
+        A.src = `../assets/states-static/scenarioB/${steps[0].frame}.png`;
         A.classList.add("show");
         document.getElementById("frameB").classList.remove("show");
         front = "A";
