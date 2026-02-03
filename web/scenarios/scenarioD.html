@@ -1,49 +1,87 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Scenario D – Frame Player</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scenario D • Quantum–HPC Workflow Explorer</title>
 
-  <!-- Inter (Medium=500) -->
+  <!-- Site-wide styling (matches the other pages) -->
+  <link rel="stylesheet" href="../assets/site.css" />
+
+  <!-- Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body { background:#111; color:#eee; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .wrap { width: 1000px; margin: 20px auto; }
-    .row { margin-top: 10px; display:flex; gap:8px; align-items:center; }
-    button { padding:6px 10px; }
-    .mono { font-family: ui-monospace, Menlo, monospace; opacity:.85; }
+    /* Slightly larger than site defaults for readability during talks */
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .page-title { font-size: 28px; margin-top: 18px; }
+    .muted { font-size: 16px; line-height: 1.5; }
 
-    /* stage */
+    .scenario-lead{
+      margin: 8px 0 14px 0;
+      max-width: 920px;
+    }
+
+    .assump{
+      margin: 12px 0 14px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      font-size: 15px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.88);
+    }
+    .assump strong{ color:#fff; font-weight:600; }
+
+    .subtitle{
+      margin: 12px 0 8px 0;
+      font-size: 16px;
+      color: rgba(255,255,255,0.92);
+      display:flex;
+      align-items: center;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+    .tag{
+      display:inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      color:#eee;
+    }
+
+    /* Stage */
     .stage{
       position: relative;
       width: 1000px;
-      margin: 12px auto;
+      margin: 10px 0 0 0;
       aspect-ratio: 1240 / 407;
       background:#000;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow:hidden;
-      visibility:hidden;            /* hidden until preload done */
+      visibility:hidden; /* hidden until preload finishes */
     }
-    .stage.ready{ visibility:visible; }
+    .stage.ready{ visibility: visible; }
 
-    /* IMPORTANT: no opacity transitions (avoids blinking in fast loops) */
     .bg{
       position:absolute;
       inset:0;
       width:100%;
       height:100%;
-      border-radius:8px;
+      border-radius:12px;
       display:block;
       opacity:0;
     }
     .bg.show{ opacity:1; }
 
-    .overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    .overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 
-    /* animated flow */
+    /* Flow lines */
     .flow{
       stroke:#fff;
       stroke-width:6;
@@ -56,17 +94,11 @@
     @keyframes dash { to { stroke-dashoffset:-36; } }
 
     /* Number overlays */
-    .nums{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      opacity:0;
-    }
+    .nums{ position:absolute; inset:0; pointer-events:none; opacity:0; }
     .nums.on{ opacity:1; }
 
-    /* make these ALWAYS black */
-    #nIdle,
-    #nBlocked{
+    /* make these ALWAYS black (matches your D artwork choice for these rows) */
+    #nIdle, #nBlocked{
       color:#000;
       text-shadow:none;
     }
@@ -93,7 +125,7 @@
       right: 7%;
       font-weight: 500;
       color:#fff;
-      font-size: 30px;
+      font-size: 26px;  /* <-- overlay size (you already adjusted this once) */
       line-height:1;
       text-shadow: 0 1px 2px rgba(0,0,0,0.55);
     }
@@ -105,15 +137,100 @@
 
     /* QPU rows */
     #nQueue   { top: 4%; }
+
+    /* Controls */
+    .controls{
+      margin-top: 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-left, .ctrl-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-label{
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      margin-right: 4px;
+    }
+
+    .btn{
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color:#eee;
+      font-size: 14px;
+      cursor:pointer;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.10); }
+    .btn.primary{ background: rgba(255,255,255,0.16); }
+    .btn:disabled{
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .backlink{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="mono" id="status"></div>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Scenario D</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a class="pill" href="../pages/simulations.html">Simulations</a>
+        <a href="../pages/builder.html">Build</a>
+        <a href="../pages/run.html">Run</a>
+        <a href="../pages/references.html">References</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="backlink">
+      <a href="../pages/simulations.html">← Back to simulations</a>
+    </div>
+
+    <h1 class="page-title">Scenario D — Serial bottleneck with throttling (no global barrier)</h1>
+
+    <p class="muted scenario-lead">
+      Ranks progress independently (no collective quantum dependency), but overall throughput is capped by a
+      single-lane QPU. Throttling limits how many jobs can be outstanding to prevent unbounded queue growth.
+    </p>
+
+    <div class="assump">
+      <strong>Assumptions:</strong> 1000 ranks total. The QPU executes serially (Run = 1). A queue is allowed but
+      intentionally bounded by a throttling policy (idle-by-policy can appear even when work exists).
+    </div>
+
+    <div class="subtitle" id="subtitle">
+      <span id="subtitleText">Ready.</span>
+      <span class="tag" id="phaseTag">paused</span>
+    </div>
 
     <div class="stage" id="stage">
-      <!-- stable placeholders; stage hidden until preload finishes -->
       <img id="frameA" class="bg show" src="about:blank" alt="">
       <img id="frameB" class="bg"      src="about:blank" alt="">
 
@@ -131,25 +248,31 @@
 
       <!-- FLOW OVERLAYS -->
       <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
-        <!-- TOP (send) segments -->
         <line id="sendL" x1="380" y1="182" x2="500" y2="182" class="flow" />
         <line id="sendR" x1="740" y1="182" x2="800" y2="182" class="flow" />
-
-        <!-- BOTTOM (return) segments -->
         <line id="retL"  x1="500" y1="348" x2="430" y2="348" class="flow" />
         <line id="retR"  x1="1030" y1="348" x2="745" y2="348" class="flow" />
       </svg>
     </div>
 
-    <div class="row">
-      <button id="play">Pause</button>
-      <button id="step">Step</button>
+    <div class="controls">
+      <div class="ctrl-left">
+        <button id="play" class="btn primary">Play</button>
+        <button id="restart" class="btn">Restart</button>
+      </div>
 
-      <button onclick="setSpeed(0.5)">0.5×</button>
-      <button onclick="setSpeed(1)">1×</button>
-      <button onclick="setSpeed(2)">2×</button>
+      <div class="ctrl-right">
+        <span class="ctrl-label">Step</span>
+        <button id="back" class="btn">←</button>
+        <button id="forward" class="btn">→</button>
+
+        <span class="ctrl-label" style="margin-left:10px;">Speed</span>
+        <button class="btn" onclick="setSpeed(0.5)">0.5×</button>
+        <button class="btn" onclick="setSpeed(1)">1×</button>
+        <button class="btn" onclick="setSpeed(2)">2×</button>
+      </div>
     </div>
-  </div>
+  </main>
 
   <script>
     // ----------------------------
@@ -160,47 +283,113 @@
     // timing defaults
     const DT_STATIC   = 900;
     const DT_D3_PHASE = 30;  // D3 triple-update loop: per phase
-    const DT_D4_LOOP  = 8;  // D4 loop: per tick
-    const DT_D5_STEP  = 8;  // D5a..d loop: per substep (base)
-    const DT_D6_STEP  = 30;  // D6/D6a loop: per substep
+    const DT_D4_LOOP  = 8;   // D4 loop: per tick
+    const DT_D5_STEP  = 8;   // D5 loops: base
+    const DT_D6_STEP  = 30;  // D6 loop: per substep
 
     // ---------------------------------------
     // Program: static blocks + loop blocks
     // ---------------------------------------
     const program = [
-      { kind:"frame", frame:"D1",  dt:DT_STATIC, send:false, ret:false, showNums:false },
-      { kind:"frame", frame:"D1b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
-      { kind:"frame", frame:"D2",  dt:DT_STATIC, send:false, ret:false, showNums:false },
-      { kind:"frame", frame:"D2b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
-      { kind:"frame", frame:"D2c", dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D1",  dt:DT_STATIC,   send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D1b", dt:DT_STATIC,   send:true,  ret:false, showNums:false },
+      { kind:"frame",  frame:"D2",  dt:DT_STATIC,   send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D2b", dt:DT_STATIC,   send:true,  ret:false, showNums:false },
+      { kind:"frame",  frame:"D2c", dt:DT_STATIC,   send:false, ret:false, showNums:false },
 
-      { kind:"loopD3", frame:"D3", dt:DT_D3_PHASE, send:true, ret:false, showNums:true },
+      { kind:"loopD3", frame:"D3",  dt:DT_D3_PHASE, send:true,  ret:false, showNums:true },
 
-      { kind:"frame", frame:"D3a", dt:DT_STATIC, send:true,  ret:false, showNums:false },
-      { kind:"frame", frame:"D3b", dt:DT_STATIC, send:true,  ret:false, showNums:false },
-      { kind:"frame", frame:"D3c", dt:DT_STATIC, send:false, ret:false, showNums:false },
+      //{ kind:"frame",  frame:"D3a", dt:DT_STATIC,   send:true,  ret:false, showNums:false },
+      //{ kind:"frame",  frame:"D3b", dt:DT_STATIC,   send:true,  ret:false, showNums:false },
+      { kind:"frame",  frame:"D3c", dt:DT_STATIC,   send:false, ret:false, showNums:false },
 
-      { kind:"loopD4", frame:"D4", dt:DT_D4_LOOP, send:false, ret:false, showNums:true },
+      { kind:"loopD4", frame:"D4",  dt:DT_D4_LOOP,  send:false, ret:false, showNums:true },
 
-      { kind:"frame", frame:"D5",  dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D5",  dt:DT_STATIC,   send:false, ret:false, showNums:false },
 
-      { kind:"loopD5", frame:"D5a", dt:DT_D5_STEP, send:true,  ret:true,  showNums:true },
+      { kind:"loopD5", frame:"D5a", dt:DT_D5_STEP,  send:true,  ret:true,  showNums:true },
 
-      { kind:"loopD6", frame:"D6", dt:DT_D6_STEP, send:false, ret:true,  showNums:true },
+      { kind:"loopD6", frame:"D6",  dt:DT_D6_STEP,  send:false, ret:true,  showNums:true },
 
-      { kind:"frame", frame:"D7",  dt:DT_STATIC, send:false, ret:true,  showNums:false },
-      { kind:"frame", frame:"D8",  dt:DT_STATIC, send:false, ret:false, showNums:false },
-      { kind:"frame", frame:"D9",  dt:DT_STATIC, send:false, ret:true,  showNums:false },
-      { kind:"frame", frame:"D10", dt:DT_STATIC, send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D7",  dt:DT_STATIC,   send:false, ret:true,  showNums:false },
+      { kind:"frame",  frame:"D8",  dt:DT_STATIC,   send:false, ret:false, showNums:false },
+      { kind:"frame",  frame:"D9",  dt:DT_STATIC,   send:false, ret:true,  showNums:false },
+      { kind:"frame",  frame:"D10", dt:DT_STATIC,   send:false, ret:false, showNums:false },
     ];
 
-    // ---------------------------------------
-    // Player state
-    // ---------------------------------------
+    // ----------------------------
+    // Subtitles (frame-level; describe what user sees)
+    // ----------------------------
+    const subtitles = {
+      D1:  { text:"All-classical baseline: everyone is working (no queue, no run).", tag:"baseline" },
+      D1b: { text:"First off-load begins: a rank starts transferring a quantum job and blocks (blocking is local).", tag:"transfer (off-load)" },
+
+      D2:  { text:"Transfer complete, quantum job starts running", tag:"transfer complete" },
+      D2b: { text:"Second off-load, submitting rank blocks.", tag:"transfer (off-load)" },
+      D2c: { text:"Second Transfer complete, queue starts", tag:"transfer complete"  },
+
+      D3:  { text:"Backlog forms: throughput is capped by QPU service rate (Run=1), not by synchronization.", tag:"capacity wall" },
+      //D3a: { text:"Queue reaches critical limit.", tag:"ramp-up" },
+      //D3b: { text:"Admission control: some ranks become idle-by-policy even though work exists.", tag:"idle by policy" },
+      D3c: { text:"Controlled steady pipeline: bottleneck remains, but queue growth is contained.", tag:"stable pipeline" },
+
+      D4:  { text:"Throttling active: idle + blocked + working coexist under bounded queue.", tag:"throttled steady state" },
+
+      D5:  { text:"Policy-held steady state: throttling dominates visible behavior.", tag:"throttling" },
+      D5a: { text:"Pipeline step: a completion frees capacity and a new job is allowed to enter.", tag:"pipeline advances" },
+      D5b: { text:"Off-load phase: submitting rank is working while data transfers.", tag:"transfer (off-load)" },
+      D5c: { text:"In-flight/on-load phases: submission finishes; rank transitions to blocked.", tag:"transfer → blocked" },
+      D5d: { text:"Cohort stabilizes: bounded backlog is restored (queue stays near its cap).", tag:"bounded queue" },
+      D5e: { text:"Fast middle iterations: only the net effect is shown (working up, idle down).", tag:"fast-forward" },
+
+      D6:  { text:"Result returns: a blocked rank becomes working again (local unblocking).", tag:"return" },
+      D6a: { text:"Queue shortens → throttling releases one idle rank to submit next job.", tag:"admission control" },
+
+      D7:  { text:"Off-load completes: the submitting rank becomes blocked; backlog returns to steady size.", tag:"restore backlog" },
+      D8:  { text:"Late in the drain: most ranks are working again, but throughput is still QPU-capped.", tag:"late drain" },
+      D9:  { text:"Final result returns: queue clears and all ranks are working.", tag:"drained" },
+      D10: { text:"Iteration complete (end of animation).", tag:"done" },
+    };
+
+      /*
+      D1:  { text:"All-classical baseline: everyone is working (no queue, no run).", tag:"baseline" },
+      D1b: { text:"First off-load begins: a rank starts transferring a quantum job (still working during off-load).", tag:"transfer (off-load)" },
+
+      D2:  { text:"First local stall: one rank blocks on its own quantum result (blocking is local, not global).", tag:"local dependency" },
+      D2b: { text:"More independent submissions: the QPU remains serial; blocked ranks can accumulate.", tag:"ramp-up" },
+      D2c: { text:"Backlog forms: throughput is capped by QPU service rate (Run=1), not by synchronization.", tag:"capacity wall" },
+
+      D3:  { text:"Bounded backlog regime: QPU drains serially while classical work continues.", tag:"throughput-limited" },
+      D3a: { text:"Queue reaches the policy limit: throttling will prevent further submissions.", tag:"throttling" },
+      D3b: { text:"Admission control: some ranks become idle-by-policy even though work exists.", tag:"idle by policy" },
+      D3c: { text:"Controlled steady pipeline: bottleneck remains, but queue growth is contained.", tag:"stable pipeline" },
+
+      D4:  { text:"Throttling active: idle + blocked + working coexist under bounded queue.", tag:"throttled steady state" },
+
+      D5:  { text:"Policy-held steady state: throttling dominates visible behavior.", tag:"throttling" },
+      D5a: { text:"Pipeline step: a completion frees capacity and a new job is allowed to enter.", tag:"pipeline advances" },
+      D5b: { text:"Off-load phase: submitting rank is working while data transfers.", tag:"transfer (off-load)" },
+      D5c: { text:"In-flight/on-load phases: submission finishes; rank transitions to blocked.", tag:"transfer → blocked" },
+      D5d: { text:"Cohort stabilizes: bounded backlog is restored (queue stays near its cap).", tag:"bounded queue" },
+      D5e: { text:"Fast middle iterations: only the net effect is shown (working up, idle down).", tag:"fast-forward" },
+
+      D6:  { text:"Result returns: a blocked rank becomes working again (local unblocking).", tag:"return" },
+      D6a: { text:"Queue shortens → throttling releases one idle rank to submit next job.", tag:"admission control" },
+
+      D7:  { text:"Off-load completes: the submitting rank becomes blocked; backlog returns to steady size.", tag:"restore backlog" },
+      D8:  { text:"Late in the drain: most ranks are working again, but throughput is still QPU-capped.", tag:"late drain" },
+      D9:  { text:"Final result returns: queue clears and all ranks are working.", tag:"drained" },
+      D10: { text:"Iteration complete (end of animation).", tag:"done" },*/
+
+    // ----------------------------
+    // State
+    // ----------------------------
     let idx = 0;
+    let loopK = null;   // (unused in D, but kept for parity)
     let speed = 1.0;
-    let playing = true;
+    let playing = false;   // <-- NO AUTOPLAY
     let timer = null;
+    let front = "A";
 
     // shared counters for overlays
     let W = null, I = null, B = null, Q = null;
@@ -210,13 +399,12 @@
     let d5_phase = 0;  // 0..3
     let d6_phase = 0;  // 0..1
 
-    // IMPORTANT: dedicated iteration counter for D5 timing
-    // counts COMPLETED iterations (0..950)
+    // counts COMPLETED iterations (0..950-ish)
     let d5_iter = 0;
 
-    // ---------------------------------------
-    // UI helpers
-    // ---------------------------------------
+    // ----------------------------
+    // DOM helpers
+    // ----------------------------
     function setFlow(sendOn, retOn) {
       for (const id of ["sendL", "sendR"]) document.getElementById(id).classList.toggle("on", !!sendOn);
       for (const id of ["retL", "retR"])   document.getElementById(id).classList.toggle("on", !!retOn);
@@ -233,10 +421,20 @@
       document.getElementById("nQueue").textContent   = (q==null) ? "" : String(q);
     }
 
-    // ---------------------------------------
-    // Background: HARD, synchronous swap
-    // ---------------------------------------
-    let front = "A";
+    function setSubtitle(frameName) {
+      const s = subtitles[frameName] || { text:"", tag:"phase" };
+      document.getElementById("subtitleText").textContent = s.text || "";
+      const tag = document.getElementById("phaseTag");
+      tag.textContent = playing ? `${s.tag || "phase"} • playing` : `${s.tag || "phase"} • paused`;
+    }
+
+    function updateButtons() {
+      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      document.getElementById("back").disabled = (idx === 0);
+      document.getElementById("forward").disabled = (idx >= program.length - 1);
+    }
+
+    // HARD swap (no fade)
     function hardSwap(frameName) {
       const src = `${PATH}/${frameName}.png`;
       const A = document.getElementById("frameA");
@@ -249,17 +447,6 @@
       backEl.classList.remove("show");
     }
 
-    function label(step){
-      if (step.kind === "loopD3") return `loopD3 phase=${d3_phase} W=${W} B=${B} Q=${Q}`;
-      if (step.kind === "loopD4") return `loopD4 W=${W} I=${I}`;
-      if (step.kind === "loopD5") return `loopD5 iter=${d5_iter} phase=${d5_phase} W=${W} I=${I}`;
-      if (step.kind === "loopD6") return `loopD6 phase=${d6_phase} W=${W} B=${B} Q=${Q}`;
-      return `${step.kind}:${step.frame}`;
-    }
-
-    // ---------------------------------------
-    // Render current step (including loop subframes)
-    // ---------------------------------------
     function render() {
       const step = program[idx];
 
@@ -268,78 +455,73 @@
         setFlow(step.send, step.ret);
         setNumsVisible(step.showNums);
         setNums(null,null,null,null);
+        setSubtitle(step.frame);
+        updateButtons();
+        return;
       }
 
-      else if (step.kind === "loopD3") {
+      if (step.kind === "loopD3") {
         hardSwap("D3");
         setFlow(true, false);
         setNumsVisible(true);
         // D3: Working, Blocked, Queue; NO Idle overlay
         setNums(W, null, B, Q);
+        setSubtitle("D3");
+        updateButtons();
+        return;
       }
 
-      else if (step.kind === "loopD4") {
+      if (step.kind === "loopD4") {
         hardSwap("D4");
         setFlow(false, false);
         setNumsVisible(true);
         setNums(W, I, null, null);
+        setSubtitle("D4");
+        updateButtons();
+        return;
       }
 
-      /*else if (step.kind === "loopD5") {
-        const frames = ["D5a","D5b","D5c","D5d"];
-        const f = frames[d5_phase];
-        hardSwap(f);
-
-        // flows per artwork:
-        // D5a: send+ret ON, D5b: send ON, D5c: send ON, D5d: none
-        const sendOn = (f === "D5a" || f === "D5b" || f === "D5c");
-        const retOn  = (f === "D5a");
-        setFlow(sendOn, retOn);
-
-        setNumsVisible(true);
-        setNums(W, I, null, null);
-      }*/
-      
-      else if (step.kind === "loopD5") {
+      if (step.kind === "loopD5") {
         const isFirstIter = (d5_iter === 0);
         const isLastIter  = (d5_iter === 949);
 
         if (isFirstIter || isLastIter) {
-            // SLOW DETAIL: D5a -> D5b -> D5c -> D5d
-            const frames = ["D5a","D5b","D5c","D5d"];
-            const f = frames[d5_phase];
-            hardSwap(f);
+          // slow detailed subframes
+          const frames = ["D5a","D5b","D5c","D5d"];
+          const f = frames[d5_phase];
+          hardSwap(f);
 
-            // flows per artwork:
-            // D5a: send+ret ON, D5b: send ON, D5c: send ON, D5d: none
-            const sendOn = (f === "D5a" || f === "D5b" || f === "D5c");
-            const retOn  = (f === "D5a");
-            setFlow(sendOn, retOn);
+          const sendOn = (f === "D5a" || f === "D5b" || f === "D5c");
+          const retOn  = (f === "D5a");
+          setFlow(sendOn, retOn);
 
-            setNumsVisible(true);
-            setNums(W, I, null, null);
-        } else {
-            // FAST MIDDLE: single simplified frame D5e
-            hardSwap("D5e");
-
-            // Your spec: "both transfers are constantly on" during fast middle
-            setFlow(true, true);
-
-            setNumsVisible(true);
-            setNums(W, I, null, null);
+          setNumsVisible(true);
+          setNums(W, I, null, null);
+          setSubtitle(f);
+          updateButtons();
+          return;
         }
+
+        // fast middle: single simplified frame
+        hardSwap("D5e");
+        setFlow(true, true);
+        setNumsVisible(true);
+        setNums(W, I, null, null);
+        setSubtitle("D5e");
+        updateButtons();
+        return;
       }
 
-      else if (step.kind === "loopD6") {
+      if (step.kind === "loopD6") {
         const f = (d6_phase === 0) ? "D6" : "D6a";
         hardSwap(f);
         setFlow(false, (f === "D6"));
         setNumsVisible(true);
         setNums(W, null, B, Q);
-    }
-
-      document.getElementById("status").textContent =
-        `step=${idx+1}/${program.length} | ${label(step)} | dt=${step.dt}ms | speed=${speed}x`;
+        setSubtitle(f);
+        updateButtons();
+        return;
+      }
     }
 
     // ---------------------------------------
@@ -358,7 +540,7 @@
       else if (step.kind === "loopD5") {
         W = 0; I = 950;
         d5_phase = 0;
-        d5_iter = 0;   // <-- key: completed-iteration counter
+        d5_iter = 0;
       }
       else if (step.kind === "loopD6") {
         W = 950; B = 50; Q = 49; I = 0;
@@ -374,7 +556,7 @@
     }
 
     // ---------------------------------------
-    // Advance logic
+    // Advance logic (unchanged behavior)
     // ---------------------------------------
     function advanceOne() {
       const step = program[idx];
@@ -385,7 +567,7 @@
         Q = Q + 1; d3_phase = 0;
 
         if (W === 951 && B === 49 && Q === 48) {
-          idx = (idx + 1) % program.length;
+          idx += 1;
           enterStep();
           return;
         }
@@ -394,65 +576,42 @@
 
       if (step.kind === "loopD4") {
         if (W > 1) { W = W - 1; I = I + 1; render(); return; }
-        idx = (idx + 1) % program.length;
+        idx += 1;
         enterStep();
         return;
       }
-
-      /*if (step.kind === "loopD5") {
-        if (d5_phase === 0) { W = W + 1; I = I - 1; d5_phase = 1; render(); return; }
-        if (d5_phase === 1) { W = W + 1;            d5_phase = 2; render(); return; }
-        if (d5_phase === 2) { W = W - 1;            d5_phase = 3; render(); return; }
-
-        // end-of-iteration (after D5d)
-        d5_phase = 0;
-        d5_iter += 1;   // <-- key: increment ONLY here
-
-        if (W === 950 && I === 0) {
-          idx = (idx + 1) % program.length;
-          enterStep();
-          return;
-        }
-        render(); return;
-      }*/
 
       if (step.kind === "loopD5") {
         const isFirstIter = (d5_iter === 0);
         const isLastIter  = (d5_iter === 949);
 
         if (isFirstIter || isLastIter) {
-            // SLOW DETAIL iteration: 4 subframes (your existing exact behavior)
-            if (d5_phase === 0) { W = W + 1; I = I - 1; d5_phase = 1; render(); return; }
-            if (d5_phase === 1) { W = W + 1;            d5_phase = 2; render(); return; }
-            if (d5_phase === 2) { W = W - 1;            d5_phase = 3; render(); return; }
+          if (d5_phase === 0) { W = W + 1; I = I - 1; d5_phase = 1; render(); return; }
+          if (d5_phase === 1) { W = W + 1;            d5_phase = 2; render(); return; }
+          if (d5_phase === 2) { W = W - 1;            d5_phase = 3; render(); return; }
 
-            // d5_phase === 3: end-of-iteration
-            d5_phase = 0;
-            d5_iter += 1;
+          d5_phase = 0;
+          d5_iter += 1;
 
-            if (W === 950 && I === 0) {
-            idx = (idx + 1) % program.length;
+          if (W === 950 && I === 0) {
+            idx += 1;
             enterStep();
             return;
-            }
-
-            render();
-            return;
+          }
+          render();
+          return;
         }
 
-        // FAST MIDDLE iteration: one frame per iteration
-        // Net effect per your description: Working++, Idle--
+        // FAST MIDDLE: one frame per iteration (net effect)
         W = W + 1;
         I = I - 1;
-
         d5_iter += 1;
 
         if (W === 950 && I === 0) {
-            idx = (idx + 1) % program.length;
-            enterStep();
-            return;
+          idx += 1;
+          enterStep();
+          return;
         }
-
         render();
         return;
       }
@@ -462,20 +621,19 @@
         B = B - 1; W = W + 1; d6_phase = 0;
 
         if (Q === 1 && B === 2 && W === 998) {
-          idx = (idx + 1) % program.length;
+          idx += 1;
           enterStep();
           return;
         }
         render(); return;
       }
 
-      idx = (idx + 1) % program.length;
+      idx += 1;
       enterStep();
     }
 
     // ---------------------------------------
-    // Scheduler with D5 dynamic timing:
-    // first + last iteration slow, middle fast
+    // Scheduler with D5 dynamic timing
     // ---------------------------------------
     function scheduleNext() {
       if (!playing) return;
@@ -485,28 +643,104 @@
 
       if (step.kind === "loopD5") {
         const isFirstIter = (d5_iter === 0);
-        const isLastIter  = (d5_iter === 949); // about to run the final iteration
-
-        if (isFirstIter || isLastIter) dt = 900;  // slow
-        else dt = 8;                              // fast middle
+        const isLastIter  = (d5_iter === 949);
+        dt = (isFirstIter || isLastIter) ? 900 : 8;
       }
 
-      dt = Math.max(2, Math.round(dt / speed));
+      dt = Math.max(40, Math.round(dt / speed));
       timer = setTimeout(() => {
-        advanceOne();
+        advanceForPlay();
         scheduleNext();
       }, dt);
     }
 
-    // Buttons
-    document.getElementById("step").onclick = () => advanceOne();
+    function stopPlayback() {
+      playing = false;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      updateButtons();
+      setSubtitle(currentVisibleFrameName());
+    }
 
+    function resetToStart() {
+      stopPlayback();
+      idx = 0;
+      loopK = null;
+      enterStep();
+    }
+
+    function currentVisibleFrameName() {
+      const step = program[idx];
+      if (step.kind === "frame") return step.frame;
+      if (step.kind === "loopD3") return "D3";
+      if (step.kind === "loopD4") return "D4";
+      if (step.kind === "loopD6") return (d6_phase === 0) ? "D6" : "D6a";
+      if (step.kind === "loopD5") {
+        const isFirstIter = (d5_iter === 0);
+        const isLastIter  = (d5_iter === 949);
+        if (isFirstIter || isLastIter) return ["D5a","D5b","D5c","D5d"][d5_phase] || "D5a";
+        return "D5e";
+      }
+      return step.frame;
+    }
+
+    function advanceForPlay() {
+      // stop at end (no endless loop)
+      if (idx >= program.length - 1) {
+        stopPlayback();
+        return;
+      }
+      advanceOne();
+    }
+
+    // ----------------------------
+    // Step behavior (always steps + stops)
+    // Loop blocks are treated as ONE block in step mode:
+    // - stepping ONTO a loop shows its start state (enterStep)
+    // - next step skips past it to next non-loop frame
+    // ----------------------------
+    function stepForward() {
+      stopPlayback();
+      if (idx >= program.length - 1) return;
+
+      const cur = program[idx];
+      if (cur.kind.startsWith("loop")) {
+        idx += 1;   // skip loop block in step mode
+        enterStep();
+        return;
+      }
+
+      idx += 1;
+      enterStep();
+    }
+
+    function stepBack() {
+      stopPlayback();
+      if (idx <= 0) return;
+      idx -= 1;
+      enterStep();
+    }
+
+    // ----------------------------
+    // Controls
+    // ----------------------------
     document.getElementById("play").onclick = () => {
+      // If we are at the end and user hits Play: restart
+      if (!playing && idx >= program.length - 1) {
+        resetToStart();
+      }
+
       playing = !playing;
-      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      updateButtons();
+      setSubtitle(currentVisibleFrameName());
+
       if (timer) clearTimeout(timer);
       if (playing) scheduleNext();
     };
+
+    document.getElementById("restart").onclick = () => resetToStart();
+    document.getElementById("forward").onclick = () => stepForward();
+    document.getElementById("back").onclick = () => stepBack();
 
     function setSpeed(s) {
       speed = s;
@@ -555,8 +789,8 @@
         document.getElementById("frameB").classList.remove("show");
         front = "A";
 
-        enterStep();
-        scheduleNext();
+        enterStep();   // paused by default
+        stopPlayback();
       }
     })();
   </script>

@@ -1,52 +1,87 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Scenario B – Frame Player</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scenario B • Quantum–HPC Workflow Explorer</title>
 
-  <!-- Inter (Medium=500) -->
+  <!-- Site-wide styling (matches the other pages) -->
+  <link rel="stylesheet" href="../assets/site.css" />
+
+  <!-- Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body { background:#111; color:#eee; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .wrap { width: 1000px; margin: 20px auto; }
-    .row { margin-top: 10px; display:flex; gap:8px; align-items:center; }
-    button { padding:6px 10px; }
-    .mono { font-family: ui-monospace, Menlo, monospace; opacity:.85; }
+    /* Slightly larger than site defaults for readability during talks */
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .page-title { font-size: 28px; margin-top: 18px; }
+    .muted { font-size: 16px; line-height: 1.5; }
 
-    /* stage + overlay */
-    .stage {
+    .scenario-lead{
+      margin: 8px 0 14px 0;
+      max-width: 920px;
+    }
+
+    .assump{
+      margin: 12px 0 14px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      font-size: 15px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.88);
+    }
+    .assump strong{ color:#fff; font-weight:600; }
+
+    .subtitle{
+      margin: 12px 0 8px 0;
+      font-size: 16px;
+      color: rgba(255,255,255,0.92);
+      display:flex;
+      align-items: center;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+    .tag{
+      display:inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      color:#eee;
+    }
+
+    /* Stage */
+    .stage{
       position: relative;
       width: 1000px;
-      margin: 12px auto;
+      margin: 10px 0 0 0;
       aspect-ratio: 1240 / 407;
-      background: #000;
-      border-radius: 8px;
-      overflow: hidden;
-
-      /* hidden until first frame is ready (prevents broken icon & placeholders) */
-      visibility: hidden;
+      background:#000;
+      border-radius: 12px;
+      overflow:hidden;
+      visibility:hidden; /* hidden until preload finishes */
     }
-    .stage.ready { visibility: visible; }
+    .stage.ready{ visibility: visible; }
 
-    /* IMPORTANT: no opacity transitions for the images.
-       This avoids "blink" during fast loop. */
     .bg{
       position:absolute;
       inset:0;
       width:100%;
       height:100%;
-      border-radius:8px;
+      border-radius:12px;
       display:block;
-      opacity: 0;
+      opacity:0;
     }
     .bg.show{ opacity:1; }
 
-    .overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    .overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 
-    /* animated flow (default OFF) */
+    /* Flow lines */
     .flow{
       stroke:#fff;
       stroke-width:6;
@@ -58,96 +93,169 @@
     .flow.on{ opacity:0.95; }
     @keyframes dash { to { stroke-dashoffset:-36; } }
 
-    /* Number overlays (only used in B2c loop by default) */
-    .nums {
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      opacity:0;
-    }
-    .nums.on { opacity:1; }
+    /* Number overlays (loop only) */
+    .nums{ position:absolute; inset:0; pointer-events:none; opacity:0; }
+    .nums.on{ opacity:1; }
 
-    /* make these ALWAYS black */
-    #nIdle,
-    #nBlocked{
-      color:#000;
-      text-shadow:none;
-    }
+    #nBlocked{ color:#000; text-shadow:none; } /* always black for this art */
 
-    .hpcBox {
+    .hpcBox{
       position:absolute;
       left: 2.2%;
       top: 25.5%;
       width: 26.5%;
       height: 60%;
     }
-    .num {
+    .num{
       position:absolute;
       right: 7%;
       font-weight: 500;
-      color: #fff;
-      font-size: 30px;
-      line-height: 1;
+      color:#fff;
+      font-size: 30px;     
+      line-height:1;
       text-shadow: 0 1px 2px rgba(0,0,0,0.55);
     }
-    .num2 {
-      position:absolute;
-      right: 7%;
-      font-weight: 500;
-      color: #000;
-      font-size: 30px;
-      line-height: 1;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+    #nWorking{ top: 13%; }
+    #nBlocked{ top: 77.5%; }
+
+    /* Controls */
+    .controls{
+      margin-top: 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
     }
-    #nWorking { top: 13%; }
-    #nBlocked { top: 77.5%; }
+
+    .ctrl-left, .ctrl-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-label{
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      margin-right: 4px;
+    }
+
+    .btn{
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color:#eee;
+      font-size: 14px;
+      cursor:pointer;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.10); }
+    .btn.primary{ background: rgba(255,255,255,0.16); }
+    .btn:disabled{
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .backlink{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="mono" id="status"></div>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Scenario B</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a class="pill" href="../pages/simulations.html">Simulations</a>
+        <a href="../pages/builder.html">Build</a>
+        <a href="../pages/run.html">Run</a>
+        <a href="../pages/references.html">References</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="backlink">
+      <a href="../pages/simulations.html">← Back to simulations</a>
+    </div>
+
+    <h1 class="page-title">Scenario B — Global barrier (blocking cascade)</h1>
+
+    <p class="muted scenario-lead">
+      This animation shows a globally coupled hybrid iteration: a subset of ranks submits quantum jobs and blocks,
+      and the entire workflow becomes gated by a single “all results required” synchronization point.
+    </p>
+
+    <div class="assump">
+      <strong>Assumptions:</strong> 1000 total ranks; ~200 ranks participate in circuit preparation/submission.
+      The quantum phase is shown as a serialized evaluation segment (no queue buildup) to isolate the barrier effect.
+    </div>
+
+    <div class="subtitle" id="subtitle">
+      <span id="subtitleText">Ready.</span>
+      <span class="tag" id="phaseTag">paused</span>
+    </div>
 
     <div class="stage" id="stage">
-      <!-- NO src placeholders => no broken icon, no white flash -->
-      <!--<img id="frameA" class="bg" alt="" />
-      <img id="frameB" class="bg" alt="" />-->
       <img id="frameA" class="bg show" src="about:blank" alt="">
       <img id="frameB" class="bg"      src="about:blank" alt="">
+
       <!-- NUMBER OVERLAYS -->
       <div id="nums" class="nums">
         <div class="hpcBox">
           <div class="num" id="nWorking"></div>
-          <div class="num2" id="nBlocked"></div>
+          <div class="num" id="nBlocked"></div>
         </div>
       </div>
 
       <!-- FLOW OVERLAYS -->
       <svg class="overlay" viewBox="0 0 1240 407" preserveAspectRatio="none">
-        <!-- TOP (send) segments -->
         <line id="sendL" x1="380" y1="182" x2="500" y2="182" class="flow" />
         <line id="sendR" x1="740" y1="182" x2="800" y2="182" class="flow" />
-
-        <!-- BOTTOM (return) segments -->
         <line id="retL"  x1="500" y1="348" x2="430" y2="348" class="flow" />
         <line id="retR"  x1="1030" y1="348" x2="745" y2="348" class="flow" />
       </svg>
     </div>
 
-    <div class="row">
-      <button id="play">Pause</button>
-      <button id="step">Step</button>
-      <button onclick="setSpeed(0.5)">0.5×</button>
-      <button onclick="setSpeed(1)">1×</button>
-      <button onclick="setSpeed(2)">2×</button>
+    <div class="controls">
+      <div class="ctrl-left">
+        <button id="play" class="btn primary">Play</button>
+        <button id="restart" class="btn">Restart</button>
+      </div>
+
+      <div class="ctrl-right">
+        <span class="ctrl-label">Step</span>
+        <button id="back" class="btn">←</button>
+        <button id="forward" class="btn">→</button>
+
+        <span class="ctrl-label" style="margin-left:10px;">Speed</span>
+        <button class="btn" onclick="setSpeed(0.5)">0.5×</button>
+        <button class="btn" onclick="setSpeed(1)">1×</button>
+        <button class="btn" onclick="setSpeed(2)">2×</button>
+      </div>
     </div>
-  </div>
+  </main>
 
   <script>
     // ----------------------------
     // Scenario B: steps + one loop
     // ----------------------------
-    const LOOP_DT = 40; // fast count segment
+    const PATH = "../assets/states-static/scenarioB";
+    const LOOP_DT = 40;
 
     const steps = [
       { kind:"frame", frame:"B1",  dt: 1200, send:false, ret:false, showNums:false },
@@ -155,6 +263,7 @@
       { kind:"frame", frame:"B2a", dt: 700,  send:true,  ret:false, showNums:false },
       { kind:"frame", frame:"B2b", dt: 700,  send:true,  ret:false, showNums:false },
 
+      // loop: serialized quantum evaluation (fast)
       { kind:"loop",  frame:"B2c", dt: LOOP_DT, send:true,  ret:true,  showNums:true,
         kStart: 4, kEnd: 199 },
 
@@ -165,14 +274,34 @@
       { kind:"frame", frame:"B6",  dt: 1200, send:false, ret:false, showNums:false },
     ];
 
+    // User-facing subtitles that describe what is visible
+    const subtitles = {
+      B1:  { text:"Classical work begins; only a subset prepares circuits.", tag:"setup" },
+      B2:  { text:"Circuit submission starts; submitter blocks.", tag:"submission" },
+      B2a: { text:"Circuit submission starts; submitter blocks.", tag:"submission" },
+      B2b: { text:"Circuit submission starts; submitter blocks.", tag:"submission"  },
+      B2c: { text:"More ranks submit; blocked count rises.", tag:"blocking cascade" },
+      B3:  { text:"All participating ranks have submitted and are waiting.", tag:"pre-barrier"  },
+      B4:  { text:"Global barrier: iteration cannot proceed until all results are available.", tag:"global barrier" },
+      B4a: { text:"Global barrier: iteration cannot proceed until all results are available.", tag:"global barrier"  },
+      B5:  { text:"Final returns arrive; barrier is about to release.", tag:"release"},
+      B6:  { text:"Full classical phase resumes with all ranks active.", tag:"all ranks working" }
+    };
+      
+
+    // ----------------------------
+    // State
+    // ----------------------------
     let idx = 0;
-    let speed = 1.0;
-    let playing = true;
-    let timer = null;
-
-    // loop state
     let loopK = null;
+    let speed = 1.0;
+    let playing = false;
+    let timer = null;
+    let front = "A";
 
+    // ----------------------------
+    // DOM helpers
+    // ----------------------------
     function setFlow(sendOn, retOn) {
       for (const id of ["sendL", "sendR"]) document.getElementById(id).classList.toggle("on", !!sendOn);
       for (const id of ["retL", "retR"])   document.getElementById(id).classList.toggle("on", !!retOn);
@@ -187,27 +316,31 @@
       document.getElementById("nBlocked").textContent = String(blocked);
     }
 
-    // ---------------------------------------
-    // Background swap: HARD, synchronous, safe
-    // ---------------------------------------
-    let front = "A"; // which <img> is visible
+    function setSubtitle(frameName) {
+      const s = subtitles[frameName] || { text:"", tag:"" };
+      document.getElementById("subtitleText").textContent = s.text || "";
+      const tag = document.getElementById("phaseTag");
+      tag.textContent = playing ? `${s.tag || "phase"} • playing` : `${s.tag || "phase"} • paused`;
+    }
 
+    function updateButtons() {
+      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      document.getElementById("back").disabled = (idx === 0);
+      // forward disabled only if at absolute end
+      document.getElementById("forward").disabled = (idx >= steps.length - 1);
+    }
+
+    // HARD swap (no fade)
     function hardSwap(frameName) {
-      const src = `../assets/states-static/scenarioB/${frameName}.png`;
-
+      const src = `${PATH}/${frameName}.png`;
       const A = document.getElementById("frameA");
       const B = document.getElementById("frameB");
       const frontEl = (front === "A") ? A : B;
       const backEl  = (front === "A") ? B : A;
 
-      // Update the visible element only (stable, no transitions)
       frontEl.src = src;
       frontEl.classList.add("show");
       backEl.classList.remove("show");
-    }
-
-    function currentStateLabel(step, extra="") {
-      return `${step.kind}:${step.frame}${extra ? " " + extra : ""}`;
     }
 
     function render() {
@@ -218,64 +351,134 @@
       setNumsVisible(step.showNums);
 
       if (step.kind === "loop") {
-        const blocked = loopK;
-        const working = 200 - blocked; // 196..1
+        const blocked = loopK ?? step.kStart;
+        const working = 200 - blocked;
         setNums(working, blocked);
       }
 
-      document.getElementById("status").textContent =
-        `step=${idx+1}/${steps.length} | ${currentStateLabel(step, step.kind==="loop" ? `k=${loopK}` : "")} | send=${step.send} ret=${step.ret} | dt=${step.dt}ms | speed=${speed}x`;
+      setSubtitle(step.frame);
+      updateButtons();
     }
 
     function enterStep() {
       const step = steps[idx];
-      if (step.kind === "loop") loopK = step.kStart;
-      else loopK = null;
+      loopK = (step.kind === "loop") ? step.kStart : null;
       render();
     }
 
-    function advanceOne() {
+    // ----------------------------
+    // Playback
+    // ----------------------------
+    function stopPlayback() {
+      playing = false;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      updateButtons();
+      // keep subtitle in sync
+      setSubtitle(steps[idx].frame);
+    }
+
+    function resetToStart() {
+      stopPlayback();
+      idx = 0;
+      loopK = null;
+      enterStep();
+    }
+
+    function advanceForPlay() {
       const step = steps[idx];
 
+      // stop at end (no endless loop)
+      if (idx >= steps.length - 1) {
+        stopPlayback();
+        return;
+      }
+
       if (step.kind === "loop") {
+        // animate loop quickly
         if (loopK < step.kEnd) {
           loopK += 1;
           render();
           return;
         }
-        // done with loop
-        loopK = null;
-        idx = (idx + 1) % steps.length;
+        // loop finished -> next step
+        idx += 1;
         enterStep();
         return;
       }
 
-      idx = (idx + 1) % steps.length;
+      idx += 1;
       enterStep();
     }
 
     function scheduleNext() {
       if (!playing) return;
       const step = steps[idx];
-      const dt = Math.max(60, Math.round(step.dt / speed));
+      const base = step.dt;
+      const dt = Math.max(40, Math.round(base / speed));
       timer = setTimeout(() => {
-        advanceOne();
+        advanceForPlay();
         scheduleNext();
       }, dt);
     }
 
-    // Buttons
-    document.getElementById("step").onclick = () => advanceOne();
+    // ----------------------------
+    // Step behavior (always steps + stops)
+    // ----------------------------
+    function stepForward() {
+      // stepping should always stop playback immediately
+      stopPlayback();
 
+      if (idx >= steps.length - 1) return;
+
+      // Treat loop as one block in step mode:
+      // - stepping onto B2c shows its start frame (via enterStep)
+      // - next step skips past the loop to B3
+      const cur = steps[idx];
+      if (cur.kind === "loop") {
+        idx += 1;      // skip loop block in step mode
+        enterStep();
+        return;
+      }
+
+      idx += 1;
+      enterStep();
+    }
+
+    function stepBack() {
+      stopPlayback();
+      if (idx <= 0) return;
+
+      // Simple "one block" semantics:
+      // going back lands you on the previous step's start state.
+      idx -= 1;
+      enterStep();
+    }
+
+    // ----------------------------
+    // Controls
+    // ----------------------------
     document.getElementById("play").onclick = () => {
+      // If we are at the end and user hits Play: restart
+      if (!playing && idx >= steps.length - 1) {
+        resetToStart();
+      }
+
       playing = !playing;
-      document.getElementById("play").textContent = playing ? "Pause" : "Play";
+      updateButtons();
+      setSubtitle(steps[idx].frame);
+
       if (timer) clearTimeout(timer);
       if (playing) scheduleNext();
     };
 
+    document.getElementById("restart").onclick = () => resetToStart();
+    document.getElementById("forward").onclick = () => stepForward();
+    document.getElementById("back").onclick = () => stepBack();
+
     function setSpeed(s) {
       speed = s;
+      // speed only matters during play; reschedule if currently playing
       if (timer) clearTimeout(timer);
       if (playing) scheduleNext();
       render();
@@ -283,14 +486,11 @@
     window.setSpeed = setSpeed;
 
     // ----------------------------
-    // Startup: preload once, then start
+    // Startup: preload frames, then show stage
     // ----------------------------
     (function boot(){
       const stage = document.getElementById("stage");
-
-      // preload all unique frames once -> no broken icon, no per-frame onload races
       const uniqueFrames = [...new Set(steps.map(s => s.frame))];
-      const cache = new Map();
       let remaining = uniqueFrames.length;
 
       function doneOne(){
@@ -301,24 +501,21 @@
       for (const f of uniqueFrames) {
         const img = new Image();
         img.onload = doneOne;
-        img.onerror = doneOne; // don't deadlock
-        img.src = `../assets/states-static/scenarioB/${f}.png`;
-        cache.set(f, img);
+        img.onerror = doneOne;
+        img.src = `${PATH}/${f}.png`;
       }
 
       function start(){
-        // show stage only when at least preload completed
         stage.classList.add("ready");
-
-        // put first frame into visible img
+        // place first frame
         const A = document.getElementById("frameA");
-        A.src = `../assets/states-static/scenarioB/${steps[0].frame}.png`;
+        A.src = `${PATH}/${steps[0].frame}.png`;
         A.classList.add("show");
         document.getElementById("frameB").classList.remove("show");
         front = "A";
 
-        enterStep();
-        scheduleNext();
+        enterStep();   // paused by default
+        stopPlayback();
       }
     })();
   </script>
