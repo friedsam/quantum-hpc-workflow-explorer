@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Build • Quantum–HPC Workflow Explorer</title>
+  <link rel="stylesheet" href="../assets/site.css" />
+  <style>
+    .builder-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    .layer-list{display:grid;gap:10px;margin-top:12px}
+    .layer-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(15,20,31,.75);color:var(--text);cursor:pointer}
+    .layer-btn:hover{border-color:#36507b}
+    .layer-btn .top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .layer-btn .title{font-weight:700}
+    .layer-btn .meta{font-size:12px;color:var(--muted);margin-top:6px}
+    .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+    .summary-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(15,20,31,.75)}
+    .summary-card .k{font-size:12px;color:var(--muted)}
+    .summary-card .v{margin-top:6px;font-weight:700}
+    .toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+    .modal{max-width:760px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+    .formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .field label{font-size:12px;color:var(--muted)}
+    .field input,.field select{margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0c0f14;color:var(--text)}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    @media (max-width:900px){ .builder-grid{grid-template-columns:1fr} .formgrid{grid-template-columns:1fr} .summary-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Build prototype</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="pill" href="../index.html">Home</a>
+        <a href="simulations.html">Simulations</a>
+        <a href="run-prototype.html">Run prototype</a>
+        <a href="references.html">References</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <h1 class="page-title">Layer-based workflow builder prototype</h1>
+    <p class="muted">Prebuilt VQE workflow with editable layers and defaults chosen for fast testing.</p>
+    <div class="builder-grid">
+      <section class="panel">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0">Template</h2>
+            <div class="muted">Prebuilt workflow structure with editable layer parameters</div>
+          </div>
+          <div>
+            <label class="muted" for="templateSelect" style="font-size:12px">Workflow template</label><br />
+            <select id="templateSelect" style="margin-top:6px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0c0f14;color:#e7eefc;min-width:260px">
+              <option value="vqe">VQE (minimal prototype)</option>
+            </select>
+          </div>
+        </div>
+        <hr class="sep" />
+        <h2 style="margin:0">Layers</h2>
+        <div class="muted">Click a layer to edit its parameters</div>
+        <div id="layerList" class="layer-list"></div>
+        <div class="btn-row">
+          <button class="btn" id="resetTemplateBtn">Reset template</button>
+          <button class="btn primary" id="sendToRunnerBtn">Send to Runner</button>
+        </div>
+      </section>
+      <aside class="panel">
+        <h2 style="margin:0">Workflow summary</h2>
+        <div class="muted">Current blueprint summary before execution</div>
+        <div class="summary-grid">
+          <div class="summary-card"><div class="k">Template</div><div class="v" id="summaryTemplate">VQE</div></div>
+          <div class="summary-card"><div class="k">Loop iterations</div><div class="v" id="summaryIterations">25</div></div>
+          <div class="summary-card"><div class="k">Total HPC ranks</div><div class="v" id="summaryRanks">128</div></div>
+          <div class="summary-card"><div class="k">QPUs</div><div class="v" id="summaryQpus">1</div></div>
+        </div>
+        <hr class="sep" />
+        <div class="muted">Current layers</div>
+        <div id="layerMiniList" style="display:grid;gap:8px;margin-top:10px"></div>
+      </aside>
+    </div>
+  </main>
+  <div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div>
+          <h3 id="modalTitle">Layer</h3>
+          <div class="muted" id="modalSubtitle"></div>
+        </div>
+        <button class="btn" id="closeModalBtn">Close</button>
+      </div>
+      <div id="form" class="formgrid" style="margin-top:12px"></div>
+      <div class="modal-actions">
+        <button class="btn" id="resetLayerBtn">Reset layer</button>
+        <button class="btn primary" id="applyLayerBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { defaultVqeWorkflow, getStoredWorkflow, storeWorkflow, getLayerFormSpec, formatLayerSummary } from "../assets/workflow-prototype.js";
+    let workflow = getStoredWorkflow() || defaultVqeWorkflow();
+    let editingLayerId = null;
+    let draftParams = null;
+    const layerList = document.getElementById("layerList");
+    const layerMiniList = document.getElementById("layerMiniList");
+    const backdrop = document.getElementById("backdrop");
+    const form = document.getElementById("form");
+    function getLayerById(id){ return workflow.layers.find(layer => layer.id === id); }
+    function renderSummary(){
+      document.getElementById("summaryTemplate").textContent = workflow.name;
+      document.getElementById("summaryIterations").textContent = workflow.global.max_iterations;
+      document.getElementById("summaryRanks").textContent = workflow.global.total_hpc_ranks;
+      document.getElementById("summaryQpus").textContent = workflow.global.total_qpus;
+      layerMiniList.innerHTML = "";
+      workflow.layers.forEach((layer, idx) => {
+        const div = document.createElement("div");
+        div.className = "summary-card";
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>Layer ${idx+1}</strong> — ${layer.name}</div><span class="badge">${layer.scope}</span></div><div style="margin-top:6px;color:var(--muted);font-size:12px">${formatLayerSummary(layer)}</div>`;
+        layerMiniList.appendChild(div);
+      });
+    }
+    function renderLayers(){
+      layerList.innerHTML = "";
+      workflow.layers.forEach((layer, idx) => {
+        const button = document.createElement("button");
+        button.className = "layer-btn";
+        button.innerHTML = `<div class="top"><div class="title">Layer ${idx+1} — ${layer.name}</div><span class="badge">${layer.scope}</span></div><div class="meta">${formatLayerSummary(layer)}</div>`;
+        button.onclick = () => openLayerModal(layer.id);
+        layerList.appendChild(button);
+      });
+      renderSummary();
+    }
+    function buildForm(layer){
+      const spec = getLayerFormSpec(layer);
+      form.innerHTML = "";
+      spec.forEach(field => {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+        if(field.type === "select"){
+          const options = field.options.map(opt => `<option value="${opt.value}" ${String(draftParams[field.key]) === String(opt.value) ? "selected" : ""}>${opt.label}</option>`).join("");
+          wrap.innerHTML = `<label for="${field.key}">${field.label}</label><select id="${field.key}">${options}</select>`;
+        } else {
+          const step = field.step || "any";
+          const min = field.min !== undefined ? `min="${field.min}"` : "";
+          wrap.innerHTML = `<label for="${field.key}">${field.label}</label><input id="${field.key}" type="number" step="${step}" ${min} value="${draftParams[field.key]}">`;
+        }
+        form.appendChild(wrap);
+      });
+    }
+    function openLayerModal(layerId){ const layer = getLayerById(layerId); editingLayerId = layerId; draftParams = { ...layer.params }; document.getElementById("modalTitle").textContent = layer.name; document.getElementById("modalSubtitle").textContent = `${layer.scope} layer • ${layer.type}`; buildForm(layer); backdrop.style.display = "flex"; }
+    function closeLayerModal(){ editingLayerId = null; draftParams = null; backdrop.style.display = "none"; }
+    function applyLayerChanges(){
+      const layer = getLayerById(editingLayerId);
+      const spec = getLayerFormSpec(layer);
+      spec.forEach(field => {
+        const el = document.getElementById(field.key);
+        const value = field.type === "select" ? el.value : parseFloat(el.value);
+        if(field.type === "select") layer.params[field.key] = value; else if(Number.isFinite(value)) layer.params[field.key] = value;
+      });
+      if(layer.type === "resource_setup"){
+        workflow.global.total_hpc_ranks = layer.params.total_hpc_ranks;
+        workflow.global.total_qpus = layer.params.total_qpus;
+        workflow.global.max_iterations = layer.params.max_iterations;
+        workflow.global.hpc_cost_per_rank_s = layer.params.hpc_cost_per_rank_s;
+        workflow.global.qpu_cost_per_s = layer.params.qpu_cost_per_s;
+      }
+      storeWorkflow(workflow); renderLayers(); closeLayerModal();
+    }
+    function resetCurrentLayer(){ if(!editingLayerId) return; const fresh = defaultVqeWorkflow(); const freshLayer = fresh.layers.find(layer => layer.id === editingLayerId); const curLayer = getLayerById(editingLayerId); curLayer.params = { ...freshLayer.params }; if(curLayer.type === "resource_setup") workflow.global = { ...fresh.global }; storeWorkflow(workflow); openLayerModal(editingLayerId); renderLayers(); }
+    document.getElementById("closeModalBtn").onclick = closeLayerModal;
+    document.getElementById("applyLayerBtn").onclick = applyLayerChanges;
+    document.getElementById("resetLayerBtn").onclick = resetCurrentLayer;
+    backdrop.addEventListener("click", (e) => { if(e.target === backdrop) closeLayerModal(); });
+    document.getElementById("resetTemplateBtn").onclick = () => { workflow = defaultVqeWorkflow(); storeWorkflow(workflow); renderLayers(); };
+    document.getElementById("templateSelect").onchange = () => { workflow = defaultVqeWorkflow(); storeWorkflow(workflow); renderLayers(); };
+    document.getElementById("sendToRunnerBtn").onclick = () => { storeWorkflow(workflow); window.location.href = "run-prototype.html"; };
+    renderLayers();
+  </script>
+</body>
+</html>
