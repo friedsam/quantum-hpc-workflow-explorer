@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Run • Quantum–HPC Workflow Explorer</title>
+  <link rel="stylesheet" href="../assets/site.css" />
+  <style>
+    .dash{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    .diagram-stage{position:relative;height:360px;border:1px solid var(--line);border-radius:14px;background:#000;overflow:hidden}
+    .diagram-base{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+    .overlay-box{position:absolute;border-radius:10px;border:2px solid transparent;background:rgba(15,20,31,.15);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font-weight:700;transition:background .18s,border-color .18s,color .18s,opacity .18s}
+    .overlay-box.inactive{opacity:0}
+    .overlay-box.active-green{opacity:.96;background:rgba(74,222,128,.92);border-color:rgba(74,222,128,1);color:#111827}
+    .overlay-box.active-yellow{opacity:.96;background:rgba(251,191,36,.96);border-color:rgba(251,191,36,1);color:#111827}
+    .overlay-box.active-red{opacity:.96;background:rgba(251,113,133,.96);border-color:rgba(251,113,133,1);color:#111827}
+    .transfer-line{position:absolute;height:6px;border-radius:999px;background:rgba(255,255,255,.92);opacity:0;transition:opacity .18s}
+    .transfer-line.on{opacity:1}
+    .transfer-line.dashed{background:repeating-linear-gradient(90deg, rgba(255,255,255,.95) 0 16px, rgba(255,255,255,.2) 16px 26px)}
+    .counter-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .counter{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(15,20,31,.75)}
+    .counter .k{font-size:12px;color:var(--muted)}
+    .counter .v{margin-top:6px;font-weight:800;font-size:18px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .runlog{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(15,20,31,.75)}
+    .runlog .title{font-size:12px;color:var(--muted)}
+    .runlog .body{margin-top:8px;font-weight:600;line-height:1.4}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+    .modal{max-width:760px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+    .formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .field label{font-size:12px;color:var(--muted)}
+    .field input{margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0c0f14;color:var(--text)}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .layer-chip{display:inline-block;padding:4px 9px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    @media (max-width:900px){ .dash{grid-template-columns:1fr} .counter-grid{grid-template-columns:1fr} .formgrid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="brand-title">Quantum–HPC Workflow Explorer</div>
+          <div class="brand-sub">Runner prototype</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="pill" href="../index.html">Home</a>
+        <a href="simulations.html">Simulations</a>
+        <a href="builder-prototype.html">Build prototype</a>
+        <a href="references.html">References</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <h1 class="page-title">Runner prototype</h1>
+    <p class="muted">Metrics and the left-side visualization are driven from the same layer/state model.</p>
+    <div class="dash">
+      <section class="panel">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div><h2 style="margin:0">Workflow diagram</h2><div class="muted" id="currentStageText">Ready.</div></div>
+          <div class="layer-chip" id="currentLayerChip">Not started</div>
+        </div>
+        <div class="diagram-stage" style="margin-top:12px">
+          <img class="diagram-base" src="../assets/states-anim/Blank.png" alt="Workflow diagram" />
+          <div id="boxWorking" class="overlay-box inactive" style="left:2.4%;top:39%;width:26.2%;height:13.8%"></div>
+          <div id="boxIdle" class="overlay-box inactive" style="left:2.4%;top:57.2%;width:26.2%;height:13.8%"></div>
+          <div id="boxBlocked" class="overlay-box inactive" style="left:2.4%;top:75.2%;width:26.2%;height:13.8%"></div>
+          <div id="boxTransferOut" class="overlay-box inactive" style="left:32.2%;top:43.4%;width:26%;height:11.8%;justify-content:center;padding-right:0"></div>
+          <div id="boxRun" class="overlay-box inactive" style="left:63.8%;top:43.4%;width:14%;height:11.8%;justify-content:center;padding-right:0"></div>
+          <div id="boxQueue" class="overlay-box inactive" style="left:81.2%;top:32.2%;width:16%;height:13.8%"></div>
+          <div id="boxTransferIn" class="overlay-box inactive" style="left:67.8%;top:79.2%;width:24%;height:11.8%;justify-content:center;padding-right:0"></div>
+          <div class="transfer-line dashed" id="lineTopLeft" style="left:30.7%;top:49.2%;width:11.4%"></div>
+          <div class="transfer-line dashed" id="lineTopRight" style="left:59.6%;top:49.2%;width:6.9%"></div>
+          <div class="transfer-line dashed" id="lineBottomLeft" style="left:40.7%;top:83.4%;width:7.2%"></div>
+          <div class="transfer-line dashed" id="lineBottomRight" style="left:60.1%;top:83.4%;width:23.7%"></div>
+        </div>
+        <div class="controls">
+          <button class="btn primary" id="playBtn">Play</button>
+          <button class="btn" id="pauseBtn">Pause</button>
+          <button class="btn" id="stepBtn">Step layer</button>
+          <button class="btn" id="resetBtn">Reset</button>
+          <button class="btn" id="calcOnlyBtn">Calculate only</button>
+          <button class="btn" id="editWorkflowBtn">Edit workflow</button>
+        </div>
+        <div class="runlog"><div class="title">Run status</div><div class="body" id="runStatusText">Ready to run.</div></div>
+      </section>
+      <aside class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0">Results</h2><button class="btn" id="openGlobalBtn">Edit parameters</button></div>
+        <hr class="sep" />
+        <div class="counter-grid" id="counterGrid"></div>
+        <hr class="sep" />
+        <div class="muted" style="font-size:12px">HPC cost is computed from allocated ranks over wall-clock runtime. QPU cost is computed from active QPU runtime only.</div>
+      </aside>
+    </div>
+  </main>
+  <div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><h3>Global parameters</h3><div class="muted">Resource setup layer</div></div><button class="btn" id="closeModalBtn">Close</button></div>
+      <div id="form" class="formgrid" style="margin-top:12px"></div>
+      <div class="modal-actions"><button class="btn" id="resetGlobalBtn">Reset</button><button class="btn primary" id="applyGlobalBtn">Apply</button></div>
+    </div>
+  </div>
+  <script type="module">
+    import { defaultVqeWorkflow, getStoredWorkflow, storeWorkflow, getLayerFormSpec, simulateWorkflow, fmtSeconds, fmtMoney } from "../assets/workflow-prototype.js";
+    let workflow = getStoredWorkflow() || defaultVqeWorkflow();
+    let simulation = simulateWorkflow(workflow);
+    let stepIndex = 0;
+    let playing = false;
+    let timer = null;
+    const metrics = [["total_runtime_s","Total runtime"],["hpc_active_rank_s","HPC active rank-time"],["hpc_blocked_rank_s","HPC blocked rank-time"],["hpc_idle_rank_s","HPC idle rank-time"],["qpu_active_s","QPU active time"],["qpu_queued_s","QPU queued/wait time"],["hpc_cost","HPC cost"],["qpu_cost","QPU cost"],["total_cost","Total cost"]];
+    const counterGrid = document.getElementById("counterGrid");
+    const backdrop = document.getElementById("backdrop");
+    const form = document.getElementById("form");
+    function recalc(){ simulation = simulateWorkflow(workflow); if(stepIndex > simulation.states.length-1) stepIndex = simulation.states.length-1; if(stepIndex < 0) stepIndex = 0; render(); }
+    function stateAt(index){ return simulation.states[index] || simulation.states[0]; }
+    function setBox(id, mode, text){ const el=document.getElementById(id); el.className="overlay-box"; if(!mode){ el.classList.add("inactive"); el.textContent=text ?? ""; return; } el.classList.add(mode); el.textContent=text ?? ""; }
+    function setLine(id, on){ document.getElementById(id).classList.toggle("on", !!on); }
+    function updateDiagram(state){
+      setBox("boxWorking", state.flags.working_active ? "active-green" : null, state.counts.working > 0 ? state.counts.working : "");
+      setBox("boxIdle", state.flags.idle_active ? "active-yellow" : null, state.counts.idle > 0 ? state.counts.idle : "");
+      setBox("boxBlocked", state.flags.blocked_active ? "active-red" : null, state.counts.blocked > 0 ? state.counts.blocked : "");
+      setBox("boxTransferOut", state.flags.transfer_out_active ? "active-yellow" : null, "");
+      setBox("boxRun", state.flags.qpu_running ? "active-green" : null, "");
+      setBox("boxQueue", state.flags.qpu_queued ? "active-yellow" : null, state.counts.queue_depth > 0 ? state.counts.queue_depth : "");
+      setBox("boxTransferIn", state.flags.transfer_in_active ? "active-yellow" : null, "");
+      setLine("lineTopLeft", state.flags.transfer_out_active); setLine("lineTopRight", state.flags.transfer_out_active); setLine("lineBottomLeft", state.flags.transfer_in_active); setLine("lineBottomRight", state.flags.transfer_in_active);
+    }
+    function renderCounters(state){ counterGrid.innerHTML = ""; metrics.forEach(([key,label]) => { const isMoney = key.includes("cost"); const value = isMoney ? fmtMoney(state.metrics[key]) : fmtSeconds(state.metrics[key]); const div = document.createElement("div"); div.className = "counter"; div.innerHTML = `<div class="k">${label}</div><div class="v">${value}</div>`; counterGrid.appendChild(div); }); }
+    function render(){ const state = stateAt(stepIndex); updateDiagram(state); renderCounters(state); document.getElementById("currentStageText").textContent = state.description; document.getElementById("currentLayerChip").textContent = `${state.layer.name} • ${state.phase}`; document.getElementById("runStatusText").textContent = `Step ${stepIndex+1} / ${simulation.states.length} • ${state.scopeLabel} • ${state.iterationLabel}`; }
+    function stopPlayback(){ playing = false; if(timer) clearTimeout(timer); timer = null; }
+    function stepForward(){ stopPlayback(); if(stepIndex < simulation.states.length-1){ stepIndex += 1; render(); } }
+    function playContinuous(){ stopPlayback(); playing = true; function tick(){ if(!playing) return; if(stepIndex >= simulation.states.length-1){ stopPlayback(); render(); return; } stepIndex += 1; render(); timer = setTimeout(tick, 900); } tick(); }
+    function resetRun(){ stopPlayback(); stepIndex = 0; render(); }
+    function calculateOnly(){ stopPlayback(); stepIndex = simulation.states.length-1; render(); }
+    function buildGlobalForm(){ const resourceLayer = workflow.layers.find(layer => layer.type === "resource_setup"); const spec = getLayerFormSpec(resourceLayer); form.innerHTML = ""; spec.forEach(field => { const wrap = document.createElement("div"); wrap.className = "field"; wrap.innerHTML = `<label for="${field.key}">${field.label}</label><input id="${field.key}" type="number" step="${field.step || "any"}" value="${resourceLayer.params[field.key]}">`; form.appendChild(wrap); }); }
+    function openGlobalModal(){ buildGlobalForm(); backdrop.style.display = "flex"; }
+    function closeGlobalModal(){ backdrop.style.display = "none"; }
+    function applyGlobalChanges(){ const resourceLayer = workflow.layers.find(layer => layer.type === "resource_setup"); const spec = getLayerFormSpec(resourceLayer); spec.forEach(field => { const value = parseFloat(document.getElementById(field.key).value); if(Number.isFinite(value)) resourceLayer.params[field.key] = value; }); workflow.global.total_hpc_ranks = resourceLayer.params.total_hpc_ranks; workflow.global.total_qpus = resourceLayer.params.total_qpus; workflow.global.max_iterations = resourceLayer.params.max_iterations; workflow.global.hpc_cost_per_rank_s = resourceLayer.params.hpc_cost_per_rank_s; workflow.global.qpu_cost_per_s = resourceLayer.params.qpu_cost_per_s; storeWorkflow(workflow); recalc(); closeGlobalModal(); }
+    document.getElementById("playBtn").onclick = playContinuous;
+    document.getElementById("pauseBtn").onclick = stopPlayback;
+    document.getElementById("stepBtn").onclick = stepForward;
+    document.getElementById("resetBtn").onclick = resetRun;
+    document.getElementById("calcOnlyBtn").onclick = calculateOnly;
+    document.getElementById("editWorkflowBtn").onclick = () => { window.location.href = "builder-prototype.html"; };
+    document.getElementById("openGlobalBtn").onclick = openGlobalModal;
+    document.getElementById("closeModalBtn").onclick = closeGlobalModal;
+    document.getElementById("applyGlobalBtn").onclick = applyGlobalChanges;
+    document.getElementById("resetGlobalBtn").onclick = () => { workflow = defaultVqeWorkflow(); storeWorkflow(workflow); recalc(); closeGlobalModal(); };
+    backdrop.addEventListener("click", (e) => { if(e.target === backdrop) closeGlobalModal(); });
+    render();
+  </script>
+</body>
+</html>
