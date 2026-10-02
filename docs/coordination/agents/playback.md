@@ -32,7 +32,7 @@ Do not:
 
 ## Current status
 
-Checkpoint implementation ready for coordinator review.
+Frozen-v1 compatibility pass complete; ready for coordinator review.
 
 ### Playback model
 
@@ -93,6 +93,44 @@ For integration, expose only:
 
 Do not expose raw per-event autoplay as the primary viewing mode. Do not autoplay on page load.
 
+### Frozen-v1 compatibility pass
+
+Coordinator assignment consumed from `agent/integration` commit `ef44462bfbf21621fe669558001f29377995dc2b`.
+
+[verified] Compatibility target:
+- frozen shared contract: `SimulationResult` v1;
+- real engine source: Agent A commit `4958bdcfda30a5e69127e4756c8575540e3a0f65`;
+- pinned real result: `tests/playback/fixtures/engine-v1-minimal-result.mjs`.
+
+[verified] Snapshot interval correction:
+- v1 intervals are strictly half-open `[startS,endS)`;
+- zero-width intervals are empty and are never rendered as active;
+- completion remains visible only through the authoritative `task_completed` event;
+- same-time queue snapshots use the last engine-provided sample at that simulation time.
+
+[verified] Real minimal trace:
+- 24 engine events;
+- 8 semantic groups/keyframes;
+- at QPU handoff `t=5.5`, the completed task is absent and the next QPU task is running;
+- at terminal `t=9.25`, no task/resource interval remains active.
+
+[verified] Multi-signature compression is required for real v1 traces. A live 24-cycle already-expanded CPU↔QPU DAG executed through Agent A's frozen engine produced:
+- 286 source events;
+- 96 semantic groups;
+- a deterministic repeating 4-group signature cycle;
+- 0 compressed groups under the original identical-signature-only algorithm.
+
+The bounded periodic compressor now detects the shortest repeated semantic-signature pattern up to 8 groups, requires at least 4 repeats, preserves at least one full pattern at each boundary, and never modifies or reorders source events.
+
+[verified] With the compatibility correction, the same real-engine stress trace produces:
+- 13 visual keyframes;
+- one compressed 4-step regime representing 21 middle cycles;
+- complete ordered source-event provenance.
+
+[verified] Exact committed playback blob `c77ad95054aaa5315d9d62c7a3309a0b73c3e3a0` passed 14/14 compatibility assertions, covering the original playback invariants plus frozen-v1 half-open snapshots, zero-width interval rejection, periodic compression, and live-engine provenance.
+
+No shared v1 interface change is requested.
+
 ## Handoff fields
 
 - **Files intentionally proposed for promotion**
@@ -103,7 +141,7 @@ Do not expose raw per-event autoplay as the primary viewing mode. Do not autopla
 - **Dependencies added/changed:** none.
 - **Interface changes requested:** none. The module consumes provisional v0 and adds presentation-only fields (`dwellMs`, `kind`, `repeatCount`) to Agent-B-owned keyframes.
 - **Known failures/discarded approaches:** legacy Scenario D's independent counter/state machine is not reused; raw event-by-event frame swapping is rejected because it exposes high-frequency trace detail directly and caused prior blinking/readability problems.
-- **Unresolved risks:** compression currently recognizes consecutive same-signature semantic groups. If Agent A's v1 trace emits a repetitive cycle as several distinct simulation-time signatures (A→B→C→A→B→C), add deterministic repeated-pattern compression rather than weakening the semantic signature.
+- **Unresolved risks:** periodic detection is intentionally bounded to patterns of at most 8 semantic groups and at least 4 repeats. This is a presentation-safety bound, not an engine semantic limitation; expand only if a validated workflow requires a longer repeated cycle.
 - **Promotion recommendation:** **PORT** the playback module/tests into the new scaffold after Agent F freezes the v1 `SimulationResult`; retain the fixture as regression evidence.
 
 
