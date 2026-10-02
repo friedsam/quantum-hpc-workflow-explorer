@@ -3,13 +3,25 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** start.
+**Status:** checkpoint ready for Agent F review.
 
-Deliver:
+Delivered on `agent/engine`:
 - proposed implementation-ready v1 WorkflowSpec/SimulationResult contract;
-- discrete-event architecture;
+- deterministic DAG discrete-event architecture;
 - minimal deterministic example;
-- invariant-test plan.
+- validation-contract invariant tests (12/12 pass).
+
+Review proposal: `docs/coordination/proposals/ENGINE_INTERFACE_V1.md`  
+Implementation checkpoint: `dd46777fab030ce2ef7f585b4460412df007aa8c`
+
+Agent F decisions requested:
+- concrete `resourcePoolId` task binding;
+- expanded-DAG boundary vs shared `RepeatSpec`;
+- global vs per-pool `maxInFlightQuantum`;
+- fixed/release-aware accounting convention;
+- aggregate communication metric naming.
+
+Recommended status: **PORT** (freeze reviewed semantics/tests; port/reimplement into final scaffold).
 
 Do not build UI.
 
