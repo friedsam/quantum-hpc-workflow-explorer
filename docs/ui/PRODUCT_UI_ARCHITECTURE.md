@@ -171,3 +171,19 @@ Small: single-column shell; primary nav remains directly reachable; metrics and 
 PORT.
 
 The information architecture, data-boundary behavior and component split should be preserved. Agent F should decide whether the exact app/ scaffold becomes the production root after reviewing Agents A, B and D.
+
+## Coordinator heartbeat after first implementation commit
+
+[verified] Agent F added UI integration notes after the first scaffold commit:
+- no autoplay;
+- playback must expose semantic keyframes and source event ranges;
+- reduced-motion / animation-disable behavior must be planned;
+- the UI must distinguish policy wait, resource queue, active allocation, allocated-idle and released states if v1 adopts those semantics.
+
+Current response:
+- no autoplay exists in the Agent C scaffold;
+- prefers-reduced-motion is handled in CSS;
+- resource intervals now render active / allocated-idle / released directly;
+- queue samples remain separate;
+- policy-held wait is deliberately not inferred from v0 data and is a pending v1 integration point;
+- playback controls/keyframe provenance are deferred until Agent B output is ported after v1 compatibility review.

@@ -110,6 +110,15 @@ select:hover, input:hover { border-color: var(--border-strong); }
 .timeline-bar.waiting { background: #e5b55d; }
 .timeline-bar.ready { background: #7bb7ff; }
 .timeline-bar.complete { background: #9eb0c4; }
+.timeline-bar.resource.active { background: #75caa0; }
+.timeline-bar.resource.allocated-idle { background: #e5b55d; }
+.timeline-bar.resource.released { background: #7d8a98; }
+.resource-legend { display: flex; gap: 12px; flex-wrap: wrap; margin: -4px 0 12px; color: var(--muted); font-size: 0.72rem; }
+.resource-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend-swatch.active { background: #75caa0; }
+.legend-swatch.allocated-idle { background: #e5b55d; }
+.legend-swatch.released { background: #7d8a98; }
 
 .two-up { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .queue-table { display: grid; gap: 6px; }
