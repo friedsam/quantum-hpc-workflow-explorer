@@ -21,7 +21,7 @@ Artifacts:
 
 [verified] All four required variants render without third-party JS dependencies. The test renders each variant twice and requires byte-identical output. It also checks SVG accessibility metadata and required GPU/fork/join semantic IDs.
 
-[verified] Moving QPU changes the resource-card position; edge endpoints are recomputed from card anchors. GPU insertion reuses the same card primitive. Fork/join reuses existing cards and adds named fork/join anchors plus orthonal route waypoints.
+[verified] Moving QPU changes the resource-card position; edge endpoints are recomputed from card anchors. GPU insertion reuses the same card primitive. Fork/join reuses existing cards and adds named fork/join anchors plus orthogonal route waypoints.
 
 ### Grid/anchor standard
 
@@ -37,12 +37,13 @@ Artifacts:
 
 [opinion] Do not extend this into a general graph-layout engine. Stable geometry is the reason to use it for bounded resource/state views.
 
-## ELK + graph render result
+## ELK + graph renderer result
 
 Hands-on auto-layout board: https://www.figma.com/board/lon6gMDOKMUd05ltvjUQ0F
-[verified] GPU insertion and fork/join were re-laid out without manual edge endpoint reconstruction.
 
-[verified] The cyclic legacy HPC→QPU baseline did not preserve the desired left-to-right HPC↑QPU convention; automatic cycle breaking placed QPU left of HPC. This makes auto-layout unsuitable for the fixed resource-state panel, while it remains appropriate for the actual workflow DAG.
+[verified] GPU insertion and fork/join were re-laid out without manual edge endpoint reconstruction.
+
+[verified] The cyclic legacy HPC↔QPU baseline did not preserve the desired left-to-right HPC→QPU convention; automatic cycle breaking placed QPU left of HPC. This makes auto-layout unsuitable for the fixed resource-state panel, while it remains appropriate for the actual workflow DAG.
 
 [verified] React Flow's official layout guide treats layout as an external concern and documents ELK as the most capable common option for dynamic node sizes, subflows, and edge routing. Its ELK multiple-handle example maps stable handles to ELK ports and uses fixed port ordering. React Flow also provides keyboard/screen-reader/ARIA support.
 
