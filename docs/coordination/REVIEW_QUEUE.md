@@ -13,12 +13,15 @@ Task:
 - keep frozen v1 unchanged unless a concrete representational defect is proven.
 
 ### E — Research/validation
-**Status:** active.
+**Status:** **Round 2 complete — PORT accepted; CLOSED/IDLE.**
 
-Task:
-- extract a source-grounded A-D concept/acceptance matrix from the QAMP tutorial;
-- distinguish defining bottleneck, non-bottlenecks, minimum structure, observable consequences and anti-invariants;
-- map old Working/Idle/Blocked language only where technically valid.
+Accepted source-grounded contract:
+- A = local overlap / QPU off critical path;
+- B = global complete-result dependency / synchronization wall;
+- C = communication-dominated local paths with low QPU saturation;
+- D = service-capacity mismatch + bounded admission / independent local progress.
+
+No frozen-v1 compatibility defect found.
 
 ### B — Playback
 **Status:** hold.
