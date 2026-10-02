@@ -2,47 +2,46 @@
 
 Updated: 2026-10-02
 
-## A — Engine
-**Status:** CLOSED/IDLE — v1 frozen and production runtime staged under `app/src/engine/`.
+## Round 2 — scenario semantics and behavioral acceptance
 
-## B — Playback
-**Status:** CLOSED/IDLE — frozen-v1 compatible production playback staged under `app/src/playback/`.
+### A — Engine
+**Status:** active.
 
-Integration wording constraint remains: periodic event-pattern compression is not semantic loop identity unless workflow metadata proves it.
+Task:
+- implement scaled A-D WorkflowSpec acceptance fixtures;
+- assert conceptual invariants, not legacy screenshot counts;
+- keep frozen v1 unchanged unless a concrete representational defect is proven.
 
-## C — UI
-**Status:** CLOSED/IDLE — final integration checkpoint accepted and promoted to staging.
+### E — Research/validation
+**Status:** active.
 
-Promoted into `agent/integration`:
-- React/TypeScript/Vite app shell;
-- editable custom DAG authoring;
-- resource/policy authoring;
-- frozen-v1 simulation;
-- A-D + IBM/QAMP presets;
-- Explore/playback/resource-state views;
-- saved-run Compare;
-- React Flow + ELK graph renderer;
-- app tests.
+Task:
+- extract a source-grounded A-D concept/acceptance matrix from the QAMP tutorial;
+- distinguish defining bottleneck, non-bottlenecks, minimum structure, observable consequences and anti-invariants;
+- map old Working/Idle/Blocked language only where technically valid.
 
-Known deferred product gap:
-- user-facing bounded-repeat/template authoring above the expanded-DAG engine.
+### B — Playback
+**Status:** hold.
 
-## D — Graphics
-**Status:** CLOSED/IDLE — accepted visual grammar now implemented in staging.
+Starts after A/E reconciliation. Then test the accepted A-D real traces for human-watchable playback only.
 
-## E — Research/validation
-**Status:** CLOSED/IDLE — accepted evidence/presets/methodology available for later documentation.
+### C — UI
+**Status:** hold.
 
-## F — Coordinator / Integration
-**Status:** **active — first coherent staging build created.**
+Starts after A/E reconciliation. Then port the accepted A-D presets/labels into staging; no broad UI redesign in this round.
 
-Current staging commit:
-- `6fdb7954d1aeed4ddf82ea94ae81e9fe1830cd35`
+### D — Graphics
+**Status:** hold.
 
-Next gates:
-1. staging CI on `agent/integration`;
-2. browser-level E2E/visual smoke tests;
-3. verify A-D behavior as engine-derived acceptance scenarios;
-4. test custom workflow authoring → simulate → playback → modify → compare;
-5. resolve deployment root from legacy `web/` to new `app/`;
-6. only then consider promotion to `main`.
+Only reactivate if A-D playback/runtime-state visualization exposes a concrete graphics defect.
+
+### F — Coordinator
+**Status:** active.
+
+Next:
+1. review A and E independently;
+2. reconcile them into one scenario acceptance contract;
+3. decide whether any v1 engine gap is real;
+4. then activate B and C for the second half of the round.
+
+The integrated staging app remains at the current accepted state while A/E work proceeds.
