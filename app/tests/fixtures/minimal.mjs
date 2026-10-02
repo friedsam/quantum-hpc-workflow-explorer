@@ -1,4 +1,4 @@
-import { simulateWorkflow } from "../index.mjs";
+import { simulateWorkflow } from "../../src/engine/runtime.mjs";
 
 export const minimalWorkflow = {
   id: "fanout-qpu-join",
