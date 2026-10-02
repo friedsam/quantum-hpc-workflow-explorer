@@ -56,7 +56,8 @@ Completed:
 
 Latest Agent E commits:
 - `957a9dd3243faf9e40b56d6ff63d198f6433fed4` — Rao analytical baseline;
-- `81b6defc28414bf751393dbfcb645e395fe2b277` — role/handoff completion state.
+- `81b6defc28414bf751393dbfcb645e395fe2b277` — role/handoff completion state;
+- `de37c19bfbfe2a071cd560b263bff5f8fb903d2b` — Rao equation Markdown/LaTeX rendering correction.
 
 No production logic, dependencies, or shared interfaces changed.
 
