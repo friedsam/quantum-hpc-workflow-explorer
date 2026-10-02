@@ -105,3 +105,36 @@ Do not expose raw per-event autoplay as the primary viewing mode. Do not autopla
 - **Known failures/discarded approaches:** legacy Scenario D's independent counter/state machine is not reused; raw event-by-event frame swapping is rejected because it exposes high-frequency trace detail directly and caused prior blinking/readability problems.
 - **Unresolved risks:** compression currently recognizes consecutive same-signature semantic groups. If Agent A's v1 trace emits a repetitive cycle as several distinct simulation-time signatures (A→B→C→A→B→C), add deterministic repeated-pattern compression rather than weakening the semantic signature.
 - **Promotion recommendation:** **PORT** the playback module/tests into the new scaffold after Agent F freezes the v1 `SimulationResult`; retain the fixture as regression evidence.
+
+
+## Coordinator review — 2026-10-02
+
+**Agent F decision:** **PORT — accepted checkpoint, integration held until engine v1 contract is frozen.**
+
+### Accepted
+
+- Correct architectural boundary: consumes a `SimulationResult`-shaped trace and does not simulate workflow execution.
+- Exact source ordering is preserved and invalid backward traces are rejected.
+- Presentation time is explicitly separated from simulation time.
+- Repetitive steady-state events are compressed while retaining source-event sequence ranges.
+- Playback clock is deterministic and wall-clock/refresh-rate independent.
+- Browser adapter renders only on semantic keyframe changes and pauses on page hide.
+- No production dependencies were added.
+- Synthetic Scenario-D-like fixture is correctly labeled as a playback stress fixture rather than engine evidence.
+- 9/9 reported tests cover the main contract claims.
+
+### Integration prerequisites / follow-up
+
+1. Agent A v1 must define interval-boundary semantics used by snapshots (the current implementation assumes half-open active intervals: `startS <= t < endS`).
+2. Re-check compression against the real v1 trace. Current compression handles consecutive identical semantic signatures; if the engine emits a repetitive multi-state cycle (for example A→B→C repeated), B should add deterministic repeated-pattern compression rather than weakening signatures.
+3. Coordinate reduced-motion / animation-disable behavior with Agent C during UI integration. No autoplay remains the default.
+4. The current path `web/assets/playback/` is not a commitment to the final scaffold. Agent F may port/rehome the module and tests if Agent C adopts a new React/TypeScript structure.
+
+### Promotion scope
+
+Proposed for later port after v1 compatibility check:
+- `web/assets/playback/trace-playback.mjs`
+- `tests/playback/trace-playback.test.mjs`
+- `tests/playback/fixtures/scenario-d-like.mjs`
+
+Do **not** merge the whole branch to main. No further Agent-B work is required until Agent A's v1 trace contract or Agent F requests a compatibility pass.
