@@ -3,17 +3,14 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** checkpoint reviewed — PORT after bounded repair R1-R5.
+**Status:** **v1 FROZEN — PORT accepted; Agent A can pause.**
 
-Required repair:
-1. explicit fixed classical reservation by pool;
-2. per-QPU-pool in-flight admission limit;
-3. same-timestamp causal closure before admission/start;
-4. suppress communication events for zero-cost dependencies;
-5. freeze half-open interval semantics and rename aggregate communication metric.
+R1-R5 completed and reviewed. Canonical contract is now `docs/coordination/INTERFACE_CONTRACTS.md` on `agent/integration`.
 
 ## B — Playback
-**Status:** checkpoint accepted — conditional PORT; waiting for Agent A v1 compatibility check.
+**Status:** **ready for one v1 compatibility pass.**
+
+Use the frozen `SimulationResult` contract and one real engine trace. Confirm snapshot interval behavior and whether repeated multi-signature-cycle compression is needed. No new playback features.
 
 ## C — UI
 **Status:** **checkpoint accepted — PORT shell/architecture; v0 model/map must be replaced during integration.**
@@ -31,7 +28,7 @@ Do not promote unchanged:
 - temporary linear WorkflowMap;
 - monolithic integration layout.
 
-After A v1 freeze, C gets one bounded integration pass for:
+C now gets one bounded integration pass against frozen v1 for:
 - frozen shared types/validator;
 - React Flow + ELK **editable DAG**;
 - creation/deletion/editing of supported tasks and dependencies, not only preset parameter editing;
