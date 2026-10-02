@@ -8,9 +8,16 @@ Updated: 2026-10-02
 R1-R5 completed and reviewed. Canonical contract is now `docs/coordination/INTERFACE_CONTRACTS.md` on `agent/integration`.
 
 ## B — Playback
-**Status:** **ready for one v1 compatibility pass.**
+**Status:** **CLOSED/IDLE — PORT accepted after frozen-v1 compatibility pass.**
 
-Use the frozen `SimulationResult` contract and one real engine trace. Confirm snapshot interval behavior and whether repeated multi-signature-cycle compression is needed. No new playback features.
+Accepted:
+- actual v1 trace compatibility;
+- half-open interval snapshots;
+- bounded periodic multi-signature compression;
+- deterministic controller/RAF driver;
+- 14/14 reported compatibility assertions.
+
+Integration wording constraint: periodic detection proves repeated event-signature activity, not semantic loop identity; production labels must remain neutral unless workflow metadata proves a loop.
 
 ## C — UI
 **Status:** **checkpoint accepted — PORT shell/architecture; v0 model/map must be replaced during integration.**
