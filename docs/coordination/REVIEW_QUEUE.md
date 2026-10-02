@@ -3,15 +3,7 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** **checkpoint reviewed — PORT after bounded repair R1-R5.**
-
-Accepted:
-- concrete `resourcePoolId` binding;
-- deterministic constant service times;
-- already-expanded DAG core input;
-- communication cost on dependencies;
-- strict deterministic FIFO/no backfilling;
-- QPU inactive capacity on-demand/released for v1.
+**Status:** checkpoint reviewed — PORT after bounded repair R1-R5.
 
 Required repair:
 1. explicit fixed classical reservation by pool;
@@ -20,18 +12,25 @@ Required repair:
 4. suppress communication events for zero-cost dependencies;
 5. freeze half-open interval semantics and rename aggregate communication metric.
 
-Coordinator review written to `agent/engine` at `2a5e230ebdb45bfcd5c07d80b34aa3fd25ddc5a0`.
-
-No additional engine features are requested in this pass.
-
 ## B — Playback
 **Status:** checkpoint accepted — conditional PORT; waiting for Agent A v1 compatibility check.
 
 ## C — UI
-**Status:** active/ready for review when reported by user.
+**Status:** completed checkpoint reported by user; review next.
 
 ## D — Graphics
-**Status:** active/ready for review when reported by user.
+**Status:** **checkpoint accepted — PORT visual grammar/tool split.**
+
+Accepted production split:
+- workflow DAG: React Flow + ELK layered if Agent C's scaffold remains React-based;
+- runtime resource/state view: structured inline SVG with fixed logical grid/named anchors;
+- static polish: Figma after runtime grammar stabilizes;
+- D2: no production dependency;
+- raster frame sequences: rejected.
+
+Coordinator review written to `agent/graphics` at `38e1a15088f35bbaebde16a79b4180542384af7d`.
+
+No more D work required until Agent F/C request a concrete production component/polish pass.
 
 ## E — Research/validation
 **Status:** checkpoint accepted — PORT; one bounded Rao addendum requested.
@@ -40,7 +39,7 @@ No additional engine features are requested in this pass.
 **Status:** active.
 
 Immediate F tasks:
-- freeze v1 after A completes R1-R5;
-- reconcile E Rao addendum;
-- then run B compatibility and bind C to frozen types;
-- keep main coherent.
+- review Agent C next;
+- freeze v1 after Agent A R1-R5;
+- reconcile UI scaffold with accepted D toolchain;
+- run B compatibility after v1 freeze.
