@@ -27,7 +27,7 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
     const rightRows = buildMetricRows(right.spec, right.result);
     const leftByKey = new Map(leftRows.map((row) => [row.key, row]));
     const rightByKey = new Map(rightRows.map((row) => [row.key, row]));
-    const keys = [...new Set([...leftRows.map((row) => row.key), ...rightRows.map((row) => row.key])];
+    const keys = [...new Set([...leftRows.map((row) => row.key), ...rightRows.map((row) => row.key)])];
     return { leftByKey, rightByKey, keys };
   }, [left, right]);
 
