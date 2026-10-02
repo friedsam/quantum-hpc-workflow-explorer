@@ -105,7 +105,7 @@ export function simulateWorkflow(spec) {
   function admit(t){
     for(const s of [...st.values()].filter(x=>x.status==="ready").sort(sortReady)){
       const r=resources.get(s.t.resourcePoolId); if(r.kind==="qpu"&&inflight>=max){ if(!s.throttled){emit(t,"task_throttled",{taskId:s.t.id,resourcePoolId:r.id,metadata:{reason:"maxInFlightQuantum",maxInFlightQuantum:max}});s.throttled=true;} continue; }
-      s.status="queued";s.queued=t;const p=pools.get(r.id);p.q.push(s);p.q.sort(sortQueued);if(r.kind==="qpu")inflight++;depth(p,t,p.q.length);emit(t,"task_queued",{taskId:s.t.id,resourcePoolId:r.id,metadata:{queueDepth:p.q.length}});
+      s.status="queued";s.queued=t;const p=pools.get(r.id);p.q.push(s);p.q.sort(sortQueued);if(r.kind==="qpu")inflight++;depth(p,t,p.q.length);emit(t,"task_queued",{taskId:s.t.id,resourcePoolId:r.id,metadata:{queueDepth:p.q.length,qpuInFlight:r.kind==="qpu"?inflight:undefined}});
     }
   }
   function start(t){
@@ -114,7 +114,7 @@ export function simulateWorkflow(spec) {
       const d=duration(task.serviceTime,`task ${task.id}.serviceTime`),end=t+d;emit(t,"task_started",{taskId:task.id,resourcePoolId:r.id,metadata:{resourceCount:task.resourceCount,serviceTimeS:d}});runs.push({taskId:task.id,resourcePoolId:r.id,startS:t,endS:end,units:task.resourceCount});taskIntervals.push({taskId:task.id,startS:t,endS:end,state:"running"});evq.push(end,"complete",{id:task.id});}}
   }
   const settle=t=>{admit(t);start(t);};
-  function complete(t,id){const s=st.get(id),task=s.t,r=resources.get(task.resourcePoolId),p=pools.get(r.id);if(s.status!=="running")die(`invalid completion ${id}`);s.status="complete";s.end=t;p.used-=task.resourceCount;if(r.kind==="qpu")inflight--;emit(t,"task_completed",{taskId:id,resourcePoolId:r.id});taskIntervals.push({taskId:id,startS:t,endS:t,state:"complete"});
+  function complete(t,id){const s=st.get(id),task=s.t,r=resources.get(task.resourcePoolId),p=pools.get(r.id);if(s.status!=="running")die(`invalid completion ${id}`);s.status="complete";s.end=t;p.used-=task.resourceCount;if(r.kind==="qpu")inflight--;emit(t,"task_completed",{taskId:id,resourcePoolId:r.id,metadata:{qpuInFlight:r.kind==="qpu"?inflight:undefined}});taskIntervals.push({taskId:id,startS:t,endS:t,state:"complete"});
     for(const d of outgoing.get(id)){const dt=transferTime(d);emit(t,"communication_started",{taskId:id,metadata:{dependencyId:d.id,sourceTaskId:id,targetTaskId:d.targetTaskId,durationS:dt}});evq.push(t+dt,"transferComplete",{d});}}
   function transferDone(t,d){emit(t,"communication_completed",{taskId:d.targetTaskId,metadata:{dependencyId:d.id,targetTaskId:d.targetTaskId}});const s=st.get(d.targetTaskId);s.deps--;if(!s.deps)ready(s,t);}
 
