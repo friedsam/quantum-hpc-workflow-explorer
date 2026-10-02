@@ -265,3 +265,69 @@ Map old Working/Idle/Blocked language onto frozen-v1 observables only where the 
 One concise scenario matrix suitable for Agent F to reconcile against Agent A's executable fixtures.
 
 After this checkpoint, stop for Agent F review.
+
+
+## Round 2 checkpoint — QAMP A–D concept contract
+
+**Status:** **READY FOR AGENT F REVIEW; stop after this checkpoint.**
+
+Deliverable:
+
+- `docs/research/QAMP_SCENARIO_CONTRACT.md`
+- source commit: `c8b3e99421367ae85472d21dd653abd47a0420f9`
+
+### Source basis
+
+Checked directly against current QAMP documentation source on `HPC-Quantum/Documentation-website/main`:
+
+- `workflowscenarios.md`
+- `scenario-a.md`
+- `scenario-b.md`
+- `scenario-c.md`
+- `scenario-d.md`
+
+Mapped only against frozen v1 from `agent/integration:docs/coordination/INTERFACE_CONTRACTS.md`.
+
+### Result
+
+The contract separates the four mechanisms exactly as requested:
+
+- **A:** local dependency + overlap; QPU off overall critical path.
+- **B:** global complete-result dependency/synchronization wall; no throttling/queue wall required.
+- **C:** positive dependency communication dominates; no global barrier and no sustained backend saturation.
+- **D:** service-capacity mismatch + per-pool bounded admission; local consumers resume independently.
+
+### Frozen-v1 vocabulary findings
+
+- `Working` maps directly only to running classical tasks / active classical resources.
+- QPU `Run` and `Queue` map directly.
+- `Transfer` maps to positive-duration dependency communication, not a network resource or three-phase transfer state machine.
+- legacy `Idle` maps only partially to `allocated-idle`/released allocation state.
+- legacy `Blocked` has **no direct v1 state**; local/global dependency gating must be shown from graph/event timing, not recreated as an authoritative rank counter.
+- Scenario D policy-held work maps directly to `task_throttled` + `admissionWaitSecondsByPool`, while any CPU allocated-idle state remains separate.
+
+### Representational-gap result
+
+**No frozen-v1 compatibility defect found.** All four defining mechanisms are expressible without adding engine states.
+
+Historical visuals not first-class in v1:
+- per-rank Blocked counts;
+- causal subtypes of Idle beyond explicit policy wait/allocation accounting;
+- off-load/in-flight/on-load transfer subphases;
+- “working while off-loading” unless authored as an explicit task;
+- exact historical rank/job counts.
+
+### Validation
+
+Research-only checkpoint; no executable engine/UI code changed.
+
+Validation performed:
+- direct source comparison against all five QAMP scenario source files;
+- cross-check against frozen-v1 task/resource/queue/communication semantics;
+- explicit anti-invariants written for A–D to detect mechanism drift.
+
+### Promotion recommendation
+
+**PORT** the scenario matrix and source/observable mapping into Agent F's A/E reconciliation. Do not merge research prose wholesale into the product UI.
+
+No dependencies, engine code, UI code, or shared interfaces changed.
