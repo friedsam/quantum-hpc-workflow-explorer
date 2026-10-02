@@ -50,10 +50,10 @@ Do not build:
 QAMP remains the conceptual and historical origin.
 
 The rebuilt Explorer should:
-- use QAMP/IBM workflow material as a real preset/reference case;
-- preserve useful educational continuity;
-- not force old A–D visual/state assumptions into the new core;
-- allow legacy scenarios to survive only as presets/regression cases if they map cleanly onto the new model.
+- use QAMP Scenarios A–D as the **first engine acceptance/preset cases** because they are the original Explorer's intended conceptual test suite;
+- regenerate those scenarios from the authoritative engine rather than preserve their old hand-coded counters/state machines;
+- use the IBM/QAMP Fe4S4 SQD workflow afterward as the first serious real-workflow reference preset;
+- preserve useful educational continuity without forcing stale visual/state assumptions into the new core.
 
 ## Current architecture status
 
