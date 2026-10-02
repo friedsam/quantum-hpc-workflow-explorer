@@ -156,3 +156,76 @@ Pending v1 integration requirement: if policy-held ready/wait is adopted as a fi
 **PORT.**
 
 Preserve the information architecture, strict engine/UI boundary, stale-result invalidation behavior, accessibility/responsive shell and component split. Agent F should decide whether the exact `app/` scaffold is promoted or reimplemented after A/B/D review.
+
+
+## Coordinator review — 2026-10-02
+
+**Agent F decision:** **PORT — React/TypeScript/Vite shell accepted as the production UI direction; temporary v0 model/rendering must not be promoted unchanged.**
+
+### Accepted
+
+- One coherent Builder → Explore → Compare application shell.
+- Explicit stale-result invalidation: editing a WorkflowSpec detaches the previous SimulationResult rather than recomputing metrics in UI code.
+- UI reads authoritative metrics/intervals/queue samples/assumptions from SimulationResult.
+- Compare mode shows explicit A/B values and presentation-only B-A deltas without ranking a universal winner.
+- Structural validation is explicit and does not silently normalize invalid input.
+- No autoplay.
+- Reduced-motion support and non-color-only state labeling.
+- Responsive Builder/Explore/Compare information architecture.
+- React + TypeScript + Vite is accepted for the production scaffold.
+
+Current package/version check by Agent F:
+- React 19.3 is current stable.
+- TypeScript 7.0.2 is current stable.
+- Vite current latest is 8.3.2; the scaffold's ^8.3.1 range is compatible with the current 8.3.x line.
+- Vite 8 requires Node 20.19+ or 22.12+; freeze that runtime requirement in the production README/CI.
+
+### Do not promote unchanged
+
+1. **app/src/model.ts**
+   - It intentionally duplicates provisional v0 types and is now stale relative to Agent A's accepted direction.
+   - Production UI must import/use the Agent-F-frozen v1 contract rather than maintain a second WorkflowSpec/SimulationResult definition.
+   - UI convenience/form validation may remain, but canonical semantic validation before simulation must use the shared engine/contract validator.
+
+2. **Current WorkflowMap implementation**
+   - It is a temporary structure preview, not a DAG renderer.
+   - Replace it during integration with the accepted Agent-D stack: React Flow + ELK layered layout.
+   - Stable task/dependency IDs map to node/edge IDs; layout runs only on topology/size changes, not playback state changes.
+
+3. **Current v0 state vocabulary**
+   - Update after A v1 freeze: resourcePoolId binding, queued/admission-wait semantics, fixed reservations, per-pool in-flight policy, half-open intervals, and renamed aggregate communication metric.
+   - Do not infer policy wait; render only explicit engine data.
+
+### Integration refactor required
+
+The 684-line App.tsx is acceptable as a checkpoint prototype but should not become the long-term integration file. When ported, split at least along the existing component boundaries (Builder, Explore, Compare, graph, inspectors, timelines/metrics) so B/D/A integration does not recreate a monolith.
+
+### Build/validation requirement
+
+The source review is positive, but the real dependency install/typecheck/Vite build has not yet been run. Before promotion to main, Agent F/integration must run:
+
+```bash
+npm install
+npm run typecheck
+npm run build
+```
+
+plus final application tests once the engine adapter is connected.
+
+### Promotion scope
+
+PORT:
+- app shell / view state model;
+- Builder → Explore → Compare flow;
+- stale-result invalidation;
+- accessibility/responsive CSS principles;
+- metrics/timeline/compare component boundaries;
+- React/TS/Vite scaffold configuration.
+
+REIMPLEMENT/REPLACE during integration:
+- v0 local contract types/fixtures;
+- WorkflowMap;
+- engine adapter seam;
+- monolithic file layout as needed.
+
+No further Agent-C work is required until Agent A v1 is frozen. At that point Agent F may request one bounded integration pass for v1 types + React Flow/ELK.
