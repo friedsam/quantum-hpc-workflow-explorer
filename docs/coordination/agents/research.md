@@ -28,7 +28,7 @@ Do not:
 
 ## Current status
 
-**Checkpoint 1 ready for coordinator review.**
+**Coordinator-requested Rao follow-up complete; research track ready to stop pending final coordinator consumption.**
 
 Primary evidence artifact:
 
@@ -149,3 +149,31 @@ Research prose is not to be merged wholesale into product UI. Agent F will port:
 - explicit assumption labels.
 
 After the bounded Rao addendum, Agent E can stop unless Agent F requests a later source check.
+
+
+## Rao addendum completion — 2026-10-02
+
+**[verified]** Coordinator-bounded follow-up completed in:
+
+- `docs/research/VALIDATION_MATRIX.md`, section 11;
+- commit `957a9dd3243faf9e40b56d6ff63d198f6433fed4`.
+
+Validated directly against Rao et al. 2026:
+
+- Eqs. (1)–(5): `T_cycle`, `T_C`, `T_Q`, `T_comm`, `R_cc`;
+- `F` is blocking exchange frequency per compute cycle, distinct from shot count;
+- analytical model is cycle-average/diagnostic and does not replace DES semantics;
+- synthetic exact fixture R1;
+- published SQD order-of-magnitude reproduction R2.
+
+R2 reproduces Rao's SQD table to rounding/order-of-magnitude precision:
+
+- remote: `1.15e-4` vs published `1.2e-4`;
+- co-located: `1.03e-6` vs published `1.0e-6`;
+- tight: `2.05e-7` vs published `2.1e-7`.
+
+Real-time/QEC feasibility was documented only as a scope boundary; no QEC/control-loop model was added.
+
+No dependencies, production logic, or shared interfaces were changed.
+
+**Recommended state:** Agent E idle/closed after coordinator review unless a later source check is requested.
