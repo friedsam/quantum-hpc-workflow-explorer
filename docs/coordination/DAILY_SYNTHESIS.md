@@ -10,7 +10,7 @@
 
 ### Agent B playback checkpoint
 
-[verified] Accepted as conditional PORT. Pure trace-to-presentation layer; 3005-event stress trace compressed to 10 keyframes; 9/9 reported tests.
+[verified] Accepted as conditional PORT. Pure trace-to-presentation layer; deterministic semantic compression/playback; no second simulator.
 
 ### Agent E research/validation checkpoint
 
@@ -18,29 +18,29 @@
 
 ### Agent A engine checkpoint
 
-[verified] Reviewed Agent A's deterministic DAG/DES core and proposed interface v1.
+[verified] Main architecture accepted; PORT after bounded R1-R5 repair. v1 not yet frozen.
 
-Strong points:
-- compact zero-dependency engine;
-- explicit resource pools/capacity;
-- deterministic FIFO scheduling;
-- configurable QPU capacity;
-- admission wait separate from resource queue wait;
-- fixed vs release-aware accounting;
-- clear trace/interval/metric outputs;
-- 12/12 local tests reported passing.
+### Agent D graphics/toolchain checkpoint
 
-Coordinator accepted the main architecture but did **not** freeze v1 yet.
+[verified] Agent D was not stuck; it completed a benchmark checkpoint on `agent/graphics`.
 
-Required bounded repair:
-1. explicit fixed classical reservation size by pool;
-2. per-QPU-pool in-flight limits;
-3. process same-time completion/dependency-release events to causal closure before scheduling starts;
-4. zero-cost control dependencies must not emit fake communication events;
-5. half-open interval semantics; completion authoritative via event; rename communication metric to reflect aggregate duration rather than critical-path time.
+Accepted:
+- React Flow + ELK for the dynamic workflow DAG, contingent on C's React scaffold;
+- structured inline SVG/grid/named anchors for runtime resource/state views;
+- Figma for later static polishing/design work;
+- no D2 production dependency;
+- no raster-frame redraw/animation approach.
 
-Decision: **PORT after R1-R5**, not wholesale merge.
+Independent documentation checks support the recommendation:
+- React Flow documents ELK port/handle integration with fixed ordering;
+- ELK Layered supports orthogonal routing/port constraints and explicit randomization seed;
+- D2 currently lacks user-specified ports;
+- Figma MCP supports editable native canvas structures.
+
+Decision: **PORT the visual grammar/tool split, not benchmark code wholesale.**
+
+Agent D can pause until UI integration needs concrete components.
 
 ### Next synthesis checkpoint
 
-Freeze engine v1 after R1-R5, then request one B compatibility pass and bind UI/types to the accepted contract.
+Review Agent C. Then reconcile C scaffold with accepted D toolchain and A's repaired/frozen v1 contract.
