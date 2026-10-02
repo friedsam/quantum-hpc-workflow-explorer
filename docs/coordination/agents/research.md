@@ -178,3 +178,47 @@ Real-time/QEC feasibility was documented only as a scope boundary; no QEC/contro
 No dependencies, production logic, or shared interfaces were changed.
 
 **Recommended state:** Agent E idle/closed after coordinator review unless a later source check is requested.
+
+
+## Coordinator final review — 2026-10-02
+
+**Agent F decision:** **PORT accepted; research track CLOSED/IDLE.**
+
+### Rao addendum independently verified
+
+Agent F checked the primary arXiv HTML for Rao et al. 2026.
+
+Confirmed:
+- Eq. (1): T_cycle = T_C + T_Q + T_comm.
+- Eq. (2): T_C = C_C / tau_C.
+- Eq. (3): T_Q = C_Q / tau_Q.
+- Eq. (4): T_comm = F(L + V/B).
+- Eq. (5): R_cc = T_comm / (T_Q + T_C).
+- F counts blocking quantum-classical exchanges per compute cycle and is explicitly distinct from shot count s.
+- SQD uses one measurement batch & diagonalization as the canonical compute cycle and F=1.
+- Published SQD reference: 301 x 2.4M shots, ~45 min quantum, 90 min classical.
+- Paper reconstructs T_Q ~= 2400 s and T_C ~= 5400 s.
+- Published R_cc values are 1.2e-4 remote, 1.0e-6 co-located, 2.1e-7 tight.
+
+The addendum's reproduced values (1.15e-4, 1.03e-6, 2.05e-7) are consistent with the paper's rounded table.
+
+### Accepted usage
+
+- Rao equations become an analytical baseline/diagnostic layer.
+- They do not replace the DES or define DES scheduling semantics.
+- R_cc may be displayed only from explicit analytical inputs or a deliberately defined trace/cycle mapping with assumptions shown.
+- Real-time/QEC feasibility remains documented out-of-scope for v1.
+
+### Final promotion scope
+
+PORT into integration/design:
+- validated IBM/QAMP structural preset;
+- E1-E6 deterministic acceptance cases;
+- legacy assumption removals/demotions;
+- fixed-reservation and policy-wait/resource-queue semantics;
+- Rao analytical equations + R1/R2 validation fixtures;
+- source/provenance notes needed by README/methodology.
+
+Do not merge the research document wholesale into user-facing UI.
+
+No further Agent-E work is required unless Agent F requests a targeted source check later.
