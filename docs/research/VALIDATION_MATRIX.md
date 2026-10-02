@@ -424,3 +424,207 @@ Project/QAMP evidence supplied by the repository owner:
 Port the validated facts, preset topology, legacy-assumption removals, and acceptance fixtures into Agent A/F work. Do not merge research-branch prose wholesale into the product UI.
 
 No production dependency was added. No engine/UI logic was modified.
+
+
+
+---
+
+## 11. Rao et al. 2026 analytical cycle model — bounded addendum
+
+Primary source: P. Rao et al., **“A Performance Model for Hybrid Quantum-Classical Workflows,”** arXiv:2607.15426 (2026), accessed 2026-10-02.
+
+This section closes the coordinator-requested analytical-baseline gap. It does **not** add a second simulator.
+
+### Published equations and definitions
+
+**[verified]** Rao et al. define a workflow-specific **compute cycle** as the smallest repeated unit containing at least one blocking classical–quantum exchange. At the application level:
+
+[
+T_{mathrm{cycle}} = T_C + T_Q + T_{mathrm{comm}}
+	ag{1}
+]
+
+with
+
+[
+T_C = rac{C_C}{	au_C}
+	ag{2}
+]
+
+and
+
+[
+T_Q = rac{C_Q}{	au_Q}.
+	ag{3}
+]
+
+Here (C_C) and (C_Q) are workflow-dependent classical and quantum compute costs per cycle, while (	au_C) and (	au_Q) are hardware-dependent throughputs.
+
+**[verified]** Blocking communication is modeled as
+
+[
+T_{mathrm{comm}} = Fleft(L + rac{V}{B}ight),
+	ag{4}
+]
+
+where:
+
+- (F) = number of **blocking quantum–classical exchanges per compute cycle**;
+- (L) = round-trip latency between the relevant classical and quantum endpoints;
+- (V) = data volume per blocking exchange;
+- (B) = available bandwidth.
+
+**[verified]** Rao et al. explicitly distinguish (F) from shot count (s). Shot count contributes to quantum compute cost; (F) counts blocking exchanges that structure the workflow. Independent shots can often be batched so that many shots still correspond to (F=1). Sequential data dependence can make (F) irreducible.
+
+The application-level diagnostic is
+
+[
+R_{cc} =
+rac{T_{mathrm{comm}}}{T_Q+T_C}
+=
+rac{F(L+V/B)}{T_Q+T_C}.
+	ag{5}
+]
+
+**[verified]** (R_{cc}ll1) denotes a compute-dominated regime in this model; (R_{cc}gg1) denotes a communication-dominated regime. The value is hardware-dependent because it is defined from wall-clock times.
+
+**[verified]** For homogeneous repeated steps, Rao et al. note that (R_{cc}) is invariant to regrouping (k) identical fine-grained steps into a larger compute cycle because (F), (C_C), and (C_Q) scale together. For heterogeneous workflows, it is a cycle-average diagnostic.
+
+### Scope relative to the Explorer
+
+**[opinion]** This model belongs in the Explorer as an **analytical diagnostic/baseline**, not as authoritative execution semantics.
+
+The discrete-event engine should remain authoritative for:
+
+- dependency ordering;
+- overlapping tasks;
+- resource capacity and contention;
+- policy wait vs resource queue;
+- allocated-idle vs released resources;
+- nonuniform repeated subgraphs;
+- makespan and trajectory-derived metrics.
+
+The Rao equations are useful for:
+
+- a fast “communication importance” diagnostic from explicit user/preset inputs;
+- cross-checking a simple homogeneous cycle;
+- explaining when latency/bandwidth changes are capable of mattering;
+- comparing an event-simulated workflow against a coarse cycle-average approximation.
+
+**[opinion]** The engine should not infer (C_C), (C_Q), (F), (V), (L), or (B) from unrelated fields. Any displayed (R_{cc}) must be trace-derived from a deliberately defined cycle or computed from explicit analytical inputs with assumptions shown.
+
+### Small deterministic analytical fixture — R1
+
+Synthetic values, chosen for exact arithmetic:
+
+- (C_C=200) operations;
+- (	au_C=100) operations/s -> (T_C=2) s;
+- (C_Q=600) quantum-work units;
+- (	au_Q=200) quantum-work units/s -> (T_Q=3) s;
+- (F=2);
+- (L=0.1) s;
+- (V=1000) bytes per exchange;
+- (B=1000) bytes/s.
+
+Expected:
+
+[
+T_{mathrm{comm}}=2(0.1+1000/1000)=2.2;mathrm{s}
+]
+
+[
+T_{mathrm{cycle}}=2+3+2.2=7.2;mathrm{s}
+]
+
+[
+R_{cc}=2.2/(2+3)=0.44.
+]
+
+Acceptance requirements:
+
+1. identical inputs produce exactly the same analytical result;
+2. changing shot count alone must not silently change (F);
+3. doubling (F) with other quantities fixed doubles (T_{mathrm{comm}});
+4. the analytical result is labeled diagnostic, not a DES makespan unless the modeled workflow actually satisfies the same serial-cycle assumptions.
+
+### Published SQD order-of-magnitude reproduction — R2
+
+**[verified]** Rao et al. use SQD as an application-level reference with one measurement batch plus classical diagonalization per compute cycle. They report/derive approximately:
+
+- (F=1);
+- quantum work (301	imes2.4) million shots;
+- effective quantum throughput (	au_Q=3	imes10^5) layers/s;
+- reconstructed (T_Qapprox2400) s (~40 min), consistent with a reported ~45 min;
+- (T_Capprox5400) s (90 min);
+- (Vsim100) MB as the upper end of their representative communication-volume range.
+
+Using decimal network units consistently ((100) MB = (8	imes10^8) bits):
+
+#### Remote tier
+
+(L=0.1) s, (B=1) Gbit/s:
+
+[
+T_{mathrm{comm}}
+=
+0.1+rac{8	imes10^8}{10^9}
+=
+0.9;mathrm{s}.
+]
+
+Using the paper's reconstructed (T_Q=2408) s and (T_C=5400) s:
+
+[
+R_{cc}
+=
+rac{0.9}{2408+5400}
+=
+1.15	imes10^{-4},
+]
+
+which reproduces the paper's tabulated (1.2	imes10^{-4}) to the stated order-of-magnitude/rounding precision.
+
+#### Co-located tier
+
+(L=10;mumathrm{s}), (B=100) Gbit/s:
+
+[
+R_{cc}approx1.03	imes10^{-6},
+]
+
+consistent with the paper's (1.0	imes10^{-6}).
+
+#### Tight tier
+
+(L=100) ns, (B=500) Gbit/s:
+
+[
+R_{cc}approx2.05	imes10^{-7},
+]
+
+consistent with the paper's (2.1	imes10^{-7}).
+
+**[verified]** This reproduction supports the implementation of equations (1)–(5) and confirms that (F=1) for the batched SQD cycle used by Rao et al.; it does not calibrate the Explorer's IBM/QAMP preset service times.
+
+### Relationship to the IBM/QAMP preset
+
+**[verified]** Rao's canonical SQD cycle (“one measurement batch & diagonalization”) is structurally compatible with the serious IBM/QAMP preset established above: quantum sampling is followed by classical recovery/diagonalization work.
+
+**[important distinction]** The inspected IBM C-API demo performs one sampling stage followed by a bounded classical recovery/SBD loop. Rao's cycle abstraction is deliberately coarser and is intended for communication-vs-computation diagnosis. The Explorer must not force the DES trace to mimic the analytical cycle boundary.
+
+### Real-time/QEC scope exclusion
+
+**[verified]** Rao et al. separately define a real-time feasibility condition,
+
+[
+T_{C,mathrm{step}} + T_{mathrm{comm,step}} le 	au_{mathrm{phys}},
+]
+
+for workflows whose correctness depends on device-imposed physical timing.
+
+**[opinion]** Real-time/QEC feasibility is out of the initial Explorer scope. Record it as a documented model boundary only; do not add physical-qubit coherence, decoder timing, or QEC control-loop simulation to v1.
+
+### Sources for this addendum
+
+- P. Rao et al., “A Performance Model for Hybrid Quantum-Classical Workflows,” arXiv:2607.15426 (2026): https://arxiv.org/abs/2607.15426
+- AWS Quantum Technologies Blog, “A framework for quantum-classical integration decisions” (2026-07-20): https://aws.amazon.com/blogs/quantum-computing/a-framework-for-quantum-classical-integration-decisions/
