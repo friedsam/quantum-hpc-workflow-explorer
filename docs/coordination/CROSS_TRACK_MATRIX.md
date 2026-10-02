@@ -2,13 +2,13 @@
 
 Updated: 2026-10-02
 
-| Track | Owns | Initial dependency | Primary integration risk | Current status |
+| Track | Owns | Current dependency | Primary integration risk | Current status |
 |---|---|---|---|---|
-| A Engine | workflow semantics + DES + metrics | E validation input | over-generalization / wrong abstractions | active |
+| A Engine | workflow semantics + DES + metrics | E accepted semantics + B trace needs | over-generalization / wrong abstractions | active |
 | B Playback | trace compression + pacing | A v1 result | reintroducing semantics into animation | checkpoint accepted; conditional PORT |
-| C UI | product interaction | v0 mock types, later A/B | UI inventing business logic | ready |
+| C UI | product interaction | v0 mock types, later A/B/D | UI inventing business logic | ready |
 | D Graphics | visual toolchain | representative fixtures | multiple competing graphics stacks | ready |
-| E Research | literature/QAMP validation | public sources/tutorial | scope expansion / research overengineering | active |
+| E Research | literature/QAMP validation | Rao bounded follow-up | scope expansion / research overengineering | checkpoint accepted; PORT + follow-up |
 | F Integration | contracts + promotion + product | all tracks | coordination bottleneck | active |
 
 ## Cross-track rules
@@ -21,6 +21,9 @@ Updated: 2026-10-02
 
 ## Current cross-track issues
 
-1. **A -> B:** v1 must define interval boundary semantics and actual repetitive event shape.
-2. **B -> C:** playback defaults to semantic keyframes, no autoplay; UI should expose pause/step/speed and reduced-motion behavior.
-3. **B integration decision:** keep branch as evidence; port playback module/tests after v1 contract check rather than merging branch wholesale.
+1. **E -> A/F:** add explicit fixed-reservation semantics or equivalent; active task usage must be separable from allocated capacity.
+2. **E -> A/F:** define `maxInFlightQuantum` as admitted running + resource-queued work; policy-held ready work is distinct.
+3. **E -> A/F:** external/provider delay must be explicit assumption or omitted; no provider-scheduler model in v1.
+4. **A -> B:** define interval boundaries and actual repetitive trace shape.
+5. **B -> C:** semantic-keyframe playback, no autoplay, reduced-motion support.
+6. **E follow-up:** Rao cycle-average analytical model and `R_cc` must be validated before research track closes.
