@@ -1,12 +1,10 @@
-# Everything
+# Human repository owner remains final GitHub owner/reviewer.
 * @friedsam
 
-# Scenarios (animations / models)
-scenarios/ @friedsam
+# Coordination / agent operating contract
+/AGENTS.md @friedsam
+/repo_policy.toml @friedsam
+/docs/coordination/ @friedsam
 
-# Core UI
-assets/ @friedsam
-pages/  @friedsam
-
-# Docs / metadata
-README.md @friedsam
+# Product
+/web/ @friedsam

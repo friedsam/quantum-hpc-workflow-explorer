@@ -1,0 +1,40 @@
+[project]
+name = "quantum-hpc-workflow-explorer"
+default_branch = "main"
+integration_branch = "agent/integration"
+main_semantics = "shippable product"
+target_completion_days = 10
+remote_branch_cap = 10
+
+[branches]
+long_lived = [
+  "main",
+  "prototype-vqe-runner",
+  "agent/engine",
+  "agent/playback",
+  "agent/ui",
+  "agent/graphics",
+  "agent/research",
+  "agent/integration",
+]
+historical = ["prototype-vqe-runner"]
+agent_branches_are_labs = true
+self_promotion_allowed = false
+wholesale_agent_merge_assumed = false
+
+[paths]
+legacy_app = "web/"
+coordination = "docs/coordination/"
+scratch = "scratch/"
+
+[promotion]
+coordinator_role = "Agent F"
+staging_branch = "agent/integration"
+allowed_decisions = ["PROMOTE", "PORT", "REIMPLEMENT", "DEFER", "REJECT"]
+main_requires_coordinator_review = true
+
+[architecture]
+simulation_source_of_truth = true
+ui_business_logic_allowed = false
+playback_may_change_simulation_semantics = false
+graphics_may_define_simulation_semantics = false
