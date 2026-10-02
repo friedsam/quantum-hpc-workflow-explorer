@@ -1,0 +1,37 @@
+name: App validation
+
+on:
+  push:
+    branches:
+      - agent/integration
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  app-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Engine, playback, and architecture tests
+        run: npm test
+
+      - name: TypeScript and Vite build
+        run: npm run build
