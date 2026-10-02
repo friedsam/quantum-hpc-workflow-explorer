@@ -170,3 +170,53 @@ PROMOTE the UI/product implementation substantially intact.
 PORT engine/playback imports to their canonical Agent-A/B locations during integration rather than preserving duplicate subsystem copies.
 
 DEFER the branch-only CI workflow unless Agent F wants it as the permanent product validation workflow.
+
+
+## Coordinator final review — 2026-10-02
+
+**Agent F decision:** **PROMOTE/PORT accepted. Agent C integration checkpoint is accepted for staging.**
+
+### Verified by coordinator
+
+- Final branch head `3843b7c60c9a828dae60b8a4483e712616163af9` has a successful GitHub Actions run `37070602061`.
+- Current production dependencies exist at the declared versions: `@xyflow/react 12.12.0` and `elkjs 0.12.0`.
+- Vite 8 requires Node 20.19+ or 22.12+; branch CI uses Node 22.
+- React Flow's current handle/ELK guidance supports the stable handle/port approach used by this implementation.
+
+### Accepted for staging substantially intact
+
+- React/TypeScript/Vite product shell.
+- Custom workflow authoring: add/delete/edit tasks, dependencies and resource pools.
+- Frozen-v1 resource/policy editing.
+- Authoritative engine validation/simulation seam.
+- React Flow + ELK editable DAG.
+- A-D + custom + IBM/QAMP presets.
+- Explore metrics/timelines/queue evidence.
+- Structured SVG runtime resource view.
+- Agent-B playback integration and controls.
+- Saved real-run comparison.
+- Componentized layout and architecture tests.
+
+### Canonical subsystem decision
+
+During staging, the accepted copies under:
+- `app/src/engine/runtime.mjs`
+- `app/src/playback/trace-playback.mjs`
+
+become the canonical **production** engine/playback locations. Agent A/B branches remain provenance and development history; do not create duplicate production copies elsewhere.
+
+### Remaining staging gaps
+
+1. Browser-level E2E/visual smoke testing still required.
+2. Deployment root must move from the legacy `web/` product to the new `app/` build when staging is approved.
+3. Bundle size warning (~1.9 MB minified JS) is non-blocking but should be measured after initial browser testing.
+4. User-facing bounded-repeat/template authoring is not yet implemented. This is a Builder/preprocessor feature above the frozen expanded-DAG engine and is not required to validate the first staging build, but remains part of the intended generic workflow product.
+5. Dependency lockfile/reproducible install should be addressed before final main release if not produced by the staging integration workflow.
+
+### Promotion
+
+PROMOTE the `app/` implementation substantially intact to `agent/integration`.
+PORT the UI architecture documentation.
+REPLACE the branch-specific CI workflow with an integration/main app-validation workflow.
+
+Agent C can pause after this review. Future C work should be driven by browser/E2E findings or the bounded-repeat authoring task.
