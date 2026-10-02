@@ -160,3 +160,54 @@ select:hover, input:hover { border-color: var(--border-strong); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+
+.notice.error { border-color: rgba(255, 141, 141, 0.42); background: rgba(255, 141, 141, 0.08); color: #ffc4c4; }
+
+.workflow-dag {
+  height: 390px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #07111b;
+}
+.workflow-dag .react-flow__renderer { border-radius: inherit; }
+.workflow-dag .react-flow__node-default.dag-node {
+  width: 210px;
+  min-height: 82px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  background: #0c1a28;
+  color: var(--text);
+  box-shadow: 0 9px 26px rgba(0, 0, 0, 0.22);
+  text-align: left;
+  padding: 13px;
+}
+.workflow-dag .react-flow__node-default.dag-node.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(123, 183, 255, 0.25), 0 9px 26px rgba(0, 0, 0, 0.22);
+}
+.workflow-dag .react-flow__edge-path { stroke: #7197bb; stroke-width: 1.7; }
+.workflow-dag .react-flow__controls {
+  border: 1px solid var(--border);
+  box-shadow: none;
+  overflow: hidden;
+}
+.workflow-dag .react-flow__controls-button {
+  background: #0c1a28;
+  border-bottom-color: var(--border);
+  color: var(--text);
+}
+.dag-node-content { display: grid; gap: 7px; }
+.dag-node-content strong { font-size: 0.88rem; line-height: 1.25; }
+.dag-node-content span { color: var(--muted); font-size: 0.7rem; line-height: 1.3; }
+
+.timeline-bar.queued { background: #c8a7ff; }
+.legend-swatch.ready { background: #7bb7ff; }
+.legend-swatch.queued { background: #c8a7ff; }
+.legend-swatch.running { background: #75caa0; }
+.legend-swatch.waiting { background: #e5b55d; }
+
+@media (max-width: 760px) {
+  .workflow-dag { height: 330px; }
+}

@@ -1,16 +1,35 @@
 # Agent C UI scaffold
 
-This directory is an isolated React + TypeScript + Vite product-UI prototype for the Workflow Explorer.
+This directory is the accepted React + TypeScript + Vite product-UI direction for the Workflow Explorer.
 
 ## Boundary
 
-The UI consumes WorkflowSpec and SimulationResult objects. It does not calculate authoritative simulation metrics. The two included results are deterministic synthetic fixture pairs for integration testing and are explicitly labeled as such.
+The UI consumes WorkflowSpec and SimulationResult objects. It does not calculate authoritative simulation metrics.
 
-Editing a workflow invalidates its fixture result. The prototype intentionally refuses to synthesize a replacement result until the engine adapter is connected.
+Editing a workflow invalidates the attached result. Simulation requests cross `src/services/engineAdapter.ts`; the Agent-C branch currently uses an unavailable adapter and will not generate fallback metrics.
+
+The existing `src/model.ts` remains a temporary v0 fixture source only. Production integration must replace the `src/contracts.ts` compatibility boundary with Agent-F-frozen shared v1 types and validation.
+
+## Product surfaces
+
+- Builder — DAG + task/policy inspector + explicit validation.
+- Explore — authoritative metrics, task intervals, resource intervals, queue evidence and assumptions.
+- Compare — two explicit config/result pairs with direct values and presentation-only deltas.
+
+## Workflow DAG
+
+Agent D's accepted split is implemented here for the workflow topology:
+- React Flow for interaction/rendering;
+- ELK layered for positions;
+- explicit non-zero ELK seed;
+- stable task/dependency IDs become node/edge IDs;
+- layout runs on topology/label/size inputs, not selection or playback state.
+
+Runtime resource/state graphics remain separate from the workflow DAG.
 
 ## Run
 
-Requires Node.js 20.19+ or 22.12+ for the current Vite 8 line.
+Node.js requirement for Vite 8: 20.19+ or 22.12+.
 
     npm install
     npm run typecheck
@@ -20,19 +39,26 @@ Production check:
 
     npm run build
 
-## Current dependencies
+## Dependencies
 
 Production:
-- React
-- React DOM
+- React / React DOM
+- @xyflow/react
+- elkjs
 
 Development:
 - TypeScript
 - Vite
 - official Vite React plugin
 
-No graph/layout framework is selected here. Agent D owns that benchmark.
+No routing or application-state framework is required for this pass.
 
 ## Integration seam
 
-Replace the fixture-loading boundary with an engine adapter that accepts a WorkflowSpec and returns a SimulationResult. Builder, Explorer, timeline and comparison surfaces should not need simulation logic.
+`src/contracts.ts` is the single temporary compatibility boundary for v0 fixture types. Components should not import `model.ts` directly.
+
+After v1 freeze:
+1. replace the compatibility exports with the shared v1 contract/validator;
+2. bind `EngineAdapter.simulate` to the shared engine;
+3. replace provisional policy controls with v1 fixed-reservation and per-QPU-pool admission controls;
+4. add Agent B semantic-keyframe playback without changing DAG geometry.
