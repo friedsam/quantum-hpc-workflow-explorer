@@ -1,4 +1,4 @@
-import type { SimulationResult } from "../../contracts";
+import type { SimulationResult } from "../../domain/types";
 
 export function ResourceTimeline({ result }: { result: SimulationResult }) {
   const makespan = Math.max(result.metrics.makespanS, 0.000001);
@@ -7,8 +7,8 @@ export function ResourceTimeline({ result }: { result: SimulationResult }) {
     <section className="surface" aria-labelledby="resource-timeline-heading">
       <div className="surface-heading">
         <div>
-          <p className="section-kicker">Resource state</p>
-          <h2 id="resource-timeline-heading">Allocation timeline</h2>
+          <p className="section-kicker">Resource allocation</p>
+          <h2 id="resource-timeline-heading">Resource timeline</h2>
         </div>
         <span className="muted-label">direct ResourceInterval states</span>
       </div>
@@ -22,7 +22,7 @@ export function ResourceTimeline({ result }: { result: SimulationResult }) {
           const left = (interval.startS / makespan) * 100;
           const width = Math.max(((interval.endS - interval.startS) / makespan) * 100, 1.5);
           return (
-            <div className="timeline-row" key={interval.resourcePoolId + interval.state + index}>
+            <div className="timeline-row" key={interval.resourcePoolId + interval.state + interval.startS + index}>
               <div className="timeline-label">
                 <strong>{interval.resourcePoolId} · {interval.units} unit{interval.units === 1 ? "" : "s"}</strong>
                 <span>{interval.state} · {interval.startS.toFixed(2)}–{interval.endS.toFixed(2)} s</span>
@@ -36,7 +36,6 @@ export function ResourceTimeline({ result }: { result: SimulationResult }) {
           );
         })}
       </div>
-      <p className="field-note">Policy-held wait is never inferred from resource intervals.</p>
     </section>
   );
 }

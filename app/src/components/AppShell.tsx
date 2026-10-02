@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { WorkflowSpec } from "../contracts";
+import type { WorkflowSpec } from "../domain/types";
 
 export type ViewId = "builder" | "explore" | "compare";
 
@@ -14,10 +14,11 @@ interface Props {
   onViewChange: (view: ViewId) => void;
   workflow: WorkflowSpec;
   resultAttached: boolean;
+  runCount: number;
   children: ReactNode;
 }
 
-export function AppShell({ view, onViewChange, workflow, resultAttached, children }: Props) {
+export function AppShell({ view, onViewChange, workflow, resultAttached, runCount, children }: Props) {
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -30,6 +31,7 @@ export function AppShell({ view, onViewChange, workflow, resultAttached, childre
           <span className={resultAttached ? "status-chip ok" : "status-chip stale"}>
             {resultAttached ? "result attached" : "draft · unsimulated"}
           </span>
+          <span className="status-chip">{runCount} saved run{runCount === 1 ? "" : "s"}</span>
         </div>
       </header>
 
@@ -47,7 +49,7 @@ export function AppShell({ view, onViewChange, workflow, resultAttached, childre
       </nav>
 
       <div className="source-strip">
-        <strong>Source of truth:</strong> workflow edits produce WorkflowSpec; displayed metrics come only from SimulationResult.
+        <strong>Source of truth:</strong> Builder creates the frozen-v1 WorkflowSpec; the ported v1 engine produces SimulationResult; UI only renders or compares returned values.
       </div>
 
       <main className="workspace">{children}</main>

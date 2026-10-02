@@ -1,18 +1,16 @@
-import type { SimulationResult, WorkflowSpec } from "../contracts";
+import type { SimulationResult, WorkflowSpec } from "../domain/types";
+import { simulateWorkflow, validateWorkflowSpec } from "../engine/runtime.mjs";
 
 export interface EngineAdapter {
+  validate(spec: WorkflowSpec): true;
   simulate(spec: WorkflowSpec): Promise<SimulationResult>;
 }
 
-export class EngineUnavailableError extends Error {
-  constructor() {
-    super("The shared simulation engine is not connected to this UI branch.");
-    this.name = "EngineUnavailableError";
-  }
-}
-
-export const unavailableEngineAdapter: EngineAdapter = {
-  async simulate(_spec) {
-    throw new EngineUnavailableError();
+export const localEngineAdapter: EngineAdapter = {
+  validate(spec) {
+    return validateWorkflowSpec(spec);
+  },
+  async simulate(spec) {
+    return simulateWorkflow(structuredClone(spec));
   }
 };

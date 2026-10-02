@@ -1,4 +1,4 @@
-import type { WorkflowSpec } from "../../contracts";
+import type { WorkflowSpec } from "../../domain/types";
 import type { DagViewModel } from "./types";
 
 export function projectWorkflowDag(spec: WorkflowSpec): DagViewModel {
@@ -6,19 +6,23 @@ export function projectWorkflowDag(spec: WorkflowSpec): DagViewModel {
 
   return {
     nodes: spec.tasks.map((task) => {
-      // Temporary compatibility projection. Frozen v1 will expose resourcePoolId directly.
-      const taskRecord = task as unknown as Record<string, unknown>;
-      const provisionalPoolId =
-        typeof taskRecord.resourcePoolId === "string" ? taskRecord.resourcePoolId : undefined;
-      const provisionalKind =
-        typeof taskRecord.resourceKind === "string" ? taskRecord.resourceKind : undefined;
-      const resource = provisionalPoolId ? resourceById.get(provisionalPoolId) : undefined;
-      const resourceLabel = resource ? resource.id + " · " + resource.kind : provisionalKind ?? "resource";
+      const resource = resourceById.get(task.resourcePoolId);
+      const resourceLabel = resource
+        ? resource.id + " · " + resource.kind
+        : task.resourcePoolId + " · missing";
 
       return {
         id: task.id,
         label: task.label,
-        detail: resourceLabel + " · " + task.resourceCount + " unit" + (task.resourceCount === 1 ? "" : "s")
+        detail:
+          resourceLabel +
+          " · " +
+          task.resourceCount +
+          " unit" +
+          (task.resourceCount === 1 ? "" : "s") +
+          " · " +
+          task.serviceTime.seconds +
+          " s"
       };
     }),
     edges: spec.dependencies.map((dependency) => ({

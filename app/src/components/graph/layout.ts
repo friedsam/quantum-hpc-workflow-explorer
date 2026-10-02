@@ -20,12 +20,29 @@ export async function layoutDag(nodes: Node[], edges: Edge[]): Promise<{ nodes: 
     children: nodes.map((node) => ({
       id: node.id,
       width: Number(node.measured?.width ?? node.width ?? 210),
-      height: Number(node.measured?.height ?? node.height ?? 96)
+      height: Number(node.measured?.height ?? node.height ?? 96),
+      layoutOptions: {
+        "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+      },
+      ports: [
+        {
+          id: node.id + "-in",
+          width: 1,
+          height: 1,
+          layoutOptions: { "org.eclipse.elk.port.side": "WEST" }
+        },
+        {
+          id: node.id + "-out",
+          width: 1,
+          height: 1,
+          layoutOptions: { "org.eclipse.elk.port.side": "EAST" }
+        }
+      ]
     })),
     edges: edges.map((edge) => ({
       id: edge.id,
-      sources: [edge.source],
-      targets: [edge.target]
+      sources: [edge.source + "-out"],
+      targets: [edge.target + "-in"]
     }))
   };
 

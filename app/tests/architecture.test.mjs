@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -13,48 +13,59 @@ async function sourceFiles(dir) {
   const nested = await Promise.all(entries.map(async (entry) => {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) return sourceFiles(full);
-    return /\.(ts|tsx)$/.test(entry.name) ? [full] : [];
+    return /\.(ts|tsx|mjs)$/.test(entry.name) ? [full] : [];
   }));
   return nested.flat();
 }
 
-test("temporary v0 model is isolated behind contracts.ts", async () => {
+test("legacy v0 UI model and contract shims are removed", async () => {
+  await assert.rejects(access(path.join(srcRoot, "model.ts")));
+  await assert.rejects(access(path.join(srcRoot, "contracts.ts")));
+});
+
+test("only the engine runtime owns simulation semantics", async () => {
   const files = await sourceFiles(srcRoot);
   for (const file of files) {
     const relative = path.relative(srcRoot, file);
-    if (relative === "model.ts" || relative === "contracts.ts") continue;
+    if (relative === path.join("engine", "runtime.mjs")) continue;
     const content = await readFile(file, "utf8");
     assert.equal(
-      /from\s+["'][^"']*model["']/.test(content),
+      /function\s+simulateWorkflow\s*\(/.test(content),
       false,
-      relative + " imports the temporary model directly"
+      relative + " defines simulateWorkflow outside the engine"
     );
   }
 });
 
-test("UI source contains no workflow metric compute implementation", async () => {
-  const files = await sourceFiles(srcRoot);
-  for (const file of files) {
-    if (path.basename(file) === "model.ts") continue;
-    const content = await readFile(file, "utf8");
-    assert.equal(/\bcompute\s*\(/.test(content), false, path.relative(srcRoot, file) + " contains compute()");
-    assert.equal(/\bsimulateWorkflow\s*\(/.test(content), false, path.relative(srcRoot, file) + " contains simulateWorkflow()");
-  }
+test("UI validation delegates to the frozen engine validator", async () => {
+  const validation = await readFile(path.join(srcRoot, "domain", "validation.ts"), "utf8");
+  assert.match(validation, /validateWorkflowSpec\(spec\)/);
+  assert.match(validation, /engine\/runtime\.mjs/);
 });
 
-test("DAG layout is deterministic and selection does not trigger layout", async () => {
-  const layout = await readFile(path.join(srcRoot, "components/graph/layout.ts"), "utf8");
-  const dag = await readFile(path.join(srcRoot, "components/graph/WorkflowDag.tsx"), "utf8");
+test("DAG layout uses deterministic ELK and layout is topology-driven", async () => {
+  const layout = await readFile(path.join(srcRoot, "components", "graph", "layout.ts"), "utf8");
+  const dag = await readFile(path.join(srcRoot, "components", "graph", "WorkflowDag.tsx"), "utf8");
   assert.match(layout, /"elk\.randomSeed":\s*"1"/);
   assert.match(layout, /"elk\.algorithm":\s*"layered"/);
   assert.match(dag, /\}, \[topologyKey\]\);/);
+  assert.match(dag, /onConnect=/);
+  assert.match(dag, /onEdgesDelete=/);
 });
 
-test("App orchestration is split below checkpoint-monolith size", async () => {
+test("App orchestration stays split below checkpoint-monolith size", async () => {
   const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
   const lines = app.split(/\r?\n/).length;
   assert.ok(lines < 180, "App.tsx still has " + lines + " lines");
-  assert.match(app, /unavailableEngineAdapter\.simulate\(draft\)/);
+  assert.match(app, /localEngineAdapter\.simulate\(draft\)/);
+  assert.match(app, /setRuns/);
+});
+
+test("A-D plus custom and IBM/QAMP presets are loadable", async () => {
+  const presets = await readFile(path.join(srcRoot, "presets", "presets.ts"), "utf8");
+  for (const key of ["custom", "scenario-a", "scenario-b", "scenario-c", "scenario-d", "ibm-sqd"]) {
+    assert.ok(presets.includes('key: "' + key + '"'), "missing preset " + key);
+  }
 });
 
 test("accepted graph dependencies are declared", async () => {

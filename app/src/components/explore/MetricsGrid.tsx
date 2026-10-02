@@ -1,4 +1,4 @@
-import type { SimulationResult, WorkflowSpec } from "../../contracts";
+import type { SimulationResult, WorkflowSpec } from "../../domain/types";
 import { buildMetricRows } from "./metricRows";
 
 export function MetricsGrid({ spec, result }: { spec: WorkflowSpec; result: SimulationResult }) {
@@ -11,7 +11,7 @@ export function MetricsGrid({ spec, result }: { spec: WorkflowSpec; result: Simu
           <p className="section-kicker">Authoritative output</p>
           <h2 id="metrics-heading">Metrics</h2>
         </div>
-        <span className="muted-label">direct SimulationResult values</span>
+        <span className="muted-label">direct frozen-v1 SimulationResult values</span>
       </div>
       <div className="metric-grid">
         {rows.map((row) => (

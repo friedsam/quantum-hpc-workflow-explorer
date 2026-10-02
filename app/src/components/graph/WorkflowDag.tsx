@@ -4,35 +4,41 @@ import {
   Controls,
   MarkerType,
   ReactFlow,
+  type Connection,
   type Edge,
   type Node
 } from "@xyflow/react";
 import type { DagViewModel } from "./types";
 import { layoutDag } from "./layout";
+import { WorkflowNode } from "./WorkflowNode";
 
 interface Props {
   model: DagViewModel;
   selectedTaskId?: string;
   onSelectTask?: (taskId: string) => void;
+  onConnectTasks?: (sourceTaskId: string, targetTaskId: string) => void;
+  onDeleteDependencies?: (dependencyIds: string[]) => void;
 }
 
-export function WorkflowDag({ model, selectedTaskId, onSelectTask }: Props) {
+const nodeTypes = { workflow: WorkflowNode };
+
+export function WorkflowDag({
+  model,
+  selectedTaskId,
+  onSelectTask,
+  onConnectTasks,
+  onDeleteDependencies
+}: Props) {
   const sourceNodes = useMemo<Node[]>(
     () =>
       model.nodes.map((node) => ({
         id: node.id,
+        type: "workflow",
         position: { x: 0, y: 0 },
-        data: {
-          label: (
-            <div className="dag-node-content">
-              <strong>{node.label}</strong>
-              <span>{node.detail}</span>
-            </div>
-          )
-        },
-        className: "dag-node",
+        data: { label: node.label, detail: node.detail },
         draggable: false,
-        selectable: true
+        selectable: true,
+        deletable: false
       })),
     [model.nodes]
   );
@@ -43,10 +49,13 @@ export function WorkflowDag({ model, selectedTaskId, onSelectTask }: Props) {
         id: edge.id,
         source: edge.source,
         target: edge.target,
+        sourceHandle: "out",
+        targetHandle: "in",
         type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed }
+        markerEnd: { type: MarkerType.ArrowClosed },
+        deletable: Boolean(onDeleteDependencies)
       })),
-    [model.edges]
+    [model.edges, onDeleteDependencies]
   );
 
   const topologyKey = useMemo(
@@ -82,18 +91,19 @@ export function WorkflowDag({ model, selectedTaskId, onSelectTask }: Props) {
     return () => {
       cancelled = true;
     };
-    // topologyKey intentionally gates layout. Selection/playback state must not relayout the DAG.
+    // Selection/playback state is intentionally excluded: layout is topology/size driven only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topologyKey]);
 
   const displayedNodes = useMemo(
-    () =>
-      nodes.map((node) => ({
-        ...node,
-        className: selectedTaskId === node.id ? "dag-node selected" : "dag-node"
-      })),
+    () => nodes.map((node) => ({ ...node, selected: node.id === selectedTaskId })),
     [nodes, selectedTaskId]
   );
+
+  function connect(connection: Connection) {
+    if (!onConnectTasks || !connection.source || !connection.target) return;
+    onConnectTasks(connection.source, connection.target);
+  }
 
   return (
     <section className="surface workflow-surface" aria-labelledby="workflow-heading">
@@ -111,15 +121,18 @@ export function WorkflowDag({ model, selectedTaskId, onSelectTask }: Props) {
         <ReactFlow
           nodes={displayedNodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           colorMode="dark"
           fitView
           fitViewOptions={{ padding: 0.22 }}
           minZoom={0.35}
           maxZoom={1.6}
           nodesDraggable={false}
-          nodesConnectable={false}
+          nodesConnectable={Boolean(onConnectTasks)}
           elementsSelectable
           onNodeClick={(_, node) => onSelectTask?.(node.id)}
+          onConnect={connect}
+          onEdgesDelete={(deleted) => onDeleteDependencies?.(deleted.map((edge) => edge.id))}
           proOptions={{ hideAttribution: true }}
         >
           <Controls showInteractive={false} />
@@ -127,11 +140,14 @@ export function WorkflowDag({ model, selectedTaskId, onSelectTask }: Props) {
         </ReactFlow>
       </div>
 
+      <div className="dag-help">
+        {onConnectTasks
+          ? "Connect the right handle of a source task to the left handle of a target task. Select an edge and press Delete/Backspace to remove it."
+          : "Read-only workflow topology."}
+      </div>
       <div className="edge-list" aria-label="Dependencies">
         {model.edges.map((edge) => (
-          <span className="edge-chip" key={edge.id}>
-            {edge.source} → {edge.target}
-          </span>
+          <span className="edge-chip" key={edge.id}>{edge.source} → {edge.target}</span>
         ))}
       </div>
     </section>

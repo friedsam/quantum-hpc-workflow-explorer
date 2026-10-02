@@ -1,12 +1,12 @@
-import type { SimulationResult } from "../../contracts";
+import type { SimulationResult } from "../../domain/types";
 
 export function QueueEvidence({ result }: { result: SimulationResult }) {
   return (
     <section className="surface" aria-labelledby="queue-heading">
       <div className="surface-heading compact">
         <div>
-          <p className="section-kicker">Queue evidence</p>
-          <h2 id="queue-heading">Returned samples</h2>
+          <p className="section-kicker">Resource queue</p>
+          <h2 id="queue-heading">Queue samples</h2>
         </div>
       </div>
       <div className="queue-table" role="table" aria-label="Queue samples">
@@ -18,6 +18,7 @@ export function QueueEvidence({ result }: { result: SimulationResult }) {
           </div>
         ))}
       </div>
+      <p className="field-note">Queue depth includes resource-queued tasks only; policy-held ready tasks are not inferred into this series.</p>
     </section>
   );
 }
@@ -31,7 +32,11 @@ export function Assumptions({ result }: { result: SimulationResult }) {
           <h2 id="assumptions-heading">Assumptions</h2>
         </div>
       </div>
-      <ul>{result.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>
+      {result.assumptions.length ? (
+        <ul>{result.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>
+      ) : (
+        <p className="field-note">No assumptions were attached to this run.</p>
+      )}
     </section>
   );
 }
