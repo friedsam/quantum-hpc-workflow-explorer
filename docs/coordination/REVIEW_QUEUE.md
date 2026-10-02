@@ -47,23 +47,28 @@ Deliver:
 Matplotlib is not a candidate for architecture/state diagrams.
 
 ## E — Research/validation
-**Status:** coordinator PORT accepted; requested Rao addendum complete.
+**Status:** **Round 2 checkpoint ready for Agent F review.**
 
-Completed:
-- `docs/research/VALIDATION_MATRIX.md` sections 1–10: IBM/QAMP validation, preset, legacy disposition, E1–E6;
-- section 11: Rao et al. 2026 equations (1)–(5), `F` vs shot-count distinction, diagnostic scope, exact synthetic fixture R1, published SQD reproduction R2;
-- Rao SQD `R_cc` reproduced for remote/co-located/tight tiers to the paper's stated rounding/order-of-magnitude precision.
+Delivered:
+- `docs/research/QAMP_SCENARIO_CONTRACT.md`;
+- source-grounded A-D mechanism matrix;
+- frozen-v1 mapping for Working/Idle/Blocked/Transfer/Run/Queue;
+- minimum structures, measurable consequences, and anti-invariants for each scenario;
+- explicit conclusion: no frozen-v1 compatibility defect found.
 
-Latest Agent E commits:
-- `957a9dd3243faf9e40b56d6ff63d198f6433fed4` — Rao analytical baseline;
-- `81b6defc28414bf751393dbfcb645e395fe2b277` — role/handoff completion state;
-- `de37c19bfbfe2a071cd560b263bff5f8fb903d2b` — Rao equation Markdown/LaTeX rendering correction.
+Round 2 commits:
+- `c8b3e99421367ae85472d21dd653abd47a0420f9` — concept acceptance contract;
+- `af0a92485b12a4cbc9e26881bea8767c80a5a9a1` — role/handoff checkpoint.
 
-No production logic, dependencies, or shared interfaces changed.
+Key reconciliation constraints:
+- A must prove overlap and QPU off critical path.
+- B must prove global dependency gating without admission-control/queue saturation as the cause.
+- C must prove communication-dominated delay with low QPU utilization/small resource queue.
+- D must prove capacity mismatch + bounded admission, positive policy wait, bounded resource queue, and independent consumer progress.
 
-Requested R1–R3 interface reconciliation remains owned by Agent F/A.
+No engine/UI/interface/dependency changes.
 
-**Recommended state:** stop Agent E unless Agent F requests a later source check.
+**Recommendation:** PORT the matrix into A/E reconciliation, then stop Agent E pending review.
 
 ## F — Coordinator
 **Status:** active.
