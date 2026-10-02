@@ -46,7 +46,7 @@ Dependency completion time is:
 
 `fixedLatencyS + dataBytes / bandwidthBytesPerS`
 
-when data transfer is specified. Transfers can overlap because network contention is not modeled in v1. Communication emits start/complete events and delays target readiness; it is not encoded as task state.
+when data transfer is specified. Transfers can overlap because network contention is not modeled in v1. Communication emits start/complete events and delays target readiness; it is not encoded as task state. `communicationSeconds` is the aggregate sum of dependency transfer durations, not an additional wall-clock term.
 
 ### 5. Queue/admission distinction
 
