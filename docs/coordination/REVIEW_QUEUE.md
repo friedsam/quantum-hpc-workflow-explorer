@@ -3,21 +3,25 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** bounded repair R1-R5 complete; ready for Agent F freeze review.
+**Status:** Round 2 QAMP A-D acceptance suite complete; ready for Agent F review.
 
 Delivered:
-- explicit fixed classical reservation by pool + E5 fixture;
-- per-QPU-pool in-flight admission + E4/multi-QPU fixtures;
-- same-timestamp causal closure;
-- zero-cost control dependencies without fake communication events;
-- half-open intervals, event-authoritative completion, `aggregateCommunicationSeconds`;
-- validator runtime/type consistency fix.
+- `engine/fixtures/qamp-scenarios.mjs`
+- `engine/tests/qamp-scenarios.test.mjs`
+- `docs/coordination/proposals/QAMP_SCENARIO_ACCEPTANCE.md`
 
-Validation: **17/17 local tests pass** against Git-blob-verified branch files.
+Validation:
+- frozen v1 engine unchanged;
+- **5/5 Round 2 tests pass**;
+- no representational gap found.
 
-Review candidate: `docs/coordination/proposals/ENGINE_INTERFACE_V1.md`
+Concept coverage:
+- A local overlap / off-critical-path quantum work;
+- B dependency-driven synchronization wall with fixed reservation;
+- C communication-dominated local paths with low QPU utilization;
+- D throughput-limited bounded admission with independent consumer progress.
 
-Recommended status: **PORT / FREEZE v1**. No additional engine features requested.
+Recommended status: **PORT**. Stop after Agent F review unless a concrete acceptance defect is identified.
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
