@@ -6,15 +6,12 @@ export function projectWorkflowDag(spec: WorkflowSpec): DagViewModel {
 
   return {
     nodes: spec.tasks.map((task) => {
-      // v0 fixture compatibility: Agent-F-frozen v1 will use resourcePoolId.
+      // Temporary compatibility projection. Frozen v1 will expose resourcePoolId directly.
+      const taskRecord = task as unknown as Record<string, unknown>;
       const provisionalPoolId =
-        "resourcePoolId" in task && typeof (task as { resourcePoolId?: unknown }).resourcePoolId === "string"
-          ? (task as { resourcePoolId: string }).resourcePoolId
-          : undefined;
+        typeof taskRecord.resourcePoolId === "string" ? taskRecord.resourcePoolId : undefined;
       const provisionalKind =
-        "resourceKind" in task && typeof (task as { resourceKind?: unknown }).resourceKind === "string"
-          ? String((task as { resourceKind: unknown }).resourceKind)
-          : undefined;
+        typeof taskRecord.resourceKind === "string" ? taskRecord.resourceKind : undefined;
       const resource = provisionalPoolId ? resourceById.get(provisionalPoolId) : undefined;
       const resourceLabel = resource ? resource.id + " · " + resource.kind : provisionalKind ?? "resource";
 

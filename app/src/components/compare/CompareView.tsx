@@ -74,12 +74,15 @@ export function CompareView() {
             const a = leftByKey.get(key);
             const b = rightByKey.get(key);
             const delta = a && b ? b.value - a.value : undefined;
+            const formatter = a?.formatValue ?? b?.formatValue;
             return (
               <div className="compare-row" role="row" key={key}>
                 <span role="cell">{a?.label ?? b?.label ?? key}</span>
                 <strong role="cell">{a?.formatted ?? "—"}</strong>
                 <strong role="cell">{b?.formatted ?? "—"}</strong>
-                <span role="cell">{delta === undefined ? "—" : (delta > 0 ? "+" : "") + delta.toFixed(3)}</span>
+                <span role="cell">
+                  {delta === undefined || !formatter ? "—" : (delta > 0 ? "+" : "") + formatter(delta)}
+                </span>
               </div>
             );
           })}
