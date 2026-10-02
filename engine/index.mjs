@@ -43,7 +43,7 @@ function validateRecord(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) die(`${label} must be an object keyed by resourcePoolId`);
 }
 
-export function validateWorkflowSpec(spec) {
+function prepareWorkflowSpec(spec) {
   if (!spec?.id || !Array.isArray(spec.tasks) || spec.tasks.length === 0 ||
       !Array.isArray(spec.dependencies) || !Array.isArray(spec.resources) || spec.resources.length === 0) {
     die("workflow requires id, tasks, dependencies, and resources");
@@ -131,6 +131,11 @@ export function validateWorkflowSpec(spec) {
   if (seen !== spec.tasks.length) die("workflow dependencies must form a DAG");
 
   return { resources, tasks, order, incoming, outgoing };
+}
+
+export function validateWorkflowSpec(spec) {
+  prepareWorkflowSpec(spec);
+  return true;
 }
 
 class Events {
@@ -261,7 +266,7 @@ function resourceAccounting(spec, runs, makespanS) {
 }
 
 export function simulateWorkflow(spec) {
-  const { resources, order, incoming, outgoing } = validateWorkflowSpec(spec);
+  const { resources, order, incoming, outgoing } = prepareWorkflowSpec(spec);
   const eventQueue = new Events();
   const events = [];
   const queueSeries = [];
