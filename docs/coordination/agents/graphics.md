@@ -39,14 +39,30 @@ Do not:
 
 ## Current status
 
-Ready to start benchmark.
+Checkpoint complete. Evidence: `docs/coordination/graphics/GRAPHICS_BENCHMARK.md`.
+
+## Verified result
+
+- Structured inline SVG + named anchors survived all four required revisions and produced deterministic repeat output in the benchmark test.
+- ELK-style auto-layout handled GPU insertion/fork-join, but the cyclic legacy HPC↔QPU state panel reordered the intended spatial convention; auto-layout should own the DAG, not the fixed runtime state panel.
+- Figma native is suitable for static polishing; scripted fork/join exposed coordinate/routing fragility for runtime topology edits.
+- D2 was evaluated against current docs; strong export/browser support does not outweigh missing user-specified ports and stack duplication here.
+
+## Recommendation
+
+1. **Workflow DAG:** React Flow + ELK layered, explicit non-zero seed, stable node/edge/port IDs.
+2. **Runtime resource/state graphics:** structured inline SVG on a strict logical grid with named anchors; presentation only.
+3. **Static polished figures:** Figma-assisted authoring/export after product visuals stabilize.
+4. **D2:** do not add to production stack.
+
+No shared interface change is requested.
 
 ## Handoff fields
 
-Record:
-- candidates tested;
-- benchmark artifacts;
-- modification cost/failures;
-- recommended production split (workflow DAG vs runtime state vs static polished figures);
-- exact commit/paths;
-- promotion recommendation.
+- Candidates: structured SVG/grid; ELK + React Flow fit; Figma native; D2.
+- Artifacts: `docs/coordination/graphics/GRAPHICS_BENCHMARK.md`, `structured-svg-benchmark.mjs`, `test-structured-svg.mjs`; external Figma links are recorded in the benchmark.
+- Dependencies added: none.
+- Known failures: ELK cycle ordering for fixed state panel; Figma fork/join coordinate/routing fragility; raster-frame approach rejected.
+- Production files proposed now: none; implementation should follow Agent F's toolchain review and Agent C's accepted scaffold.
+- Investigation-only: Figma/FigJam benchmark files and benchmark renderer/test.
+- Promotion recommendation: **PORT** the visual grammar/tool split; reimplement production components in the accepted scaffold rather than merging benchmark code wholesale.
