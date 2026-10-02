@@ -44,7 +44,8 @@ export interface ResourcePoolSpec {
 
 export interface PolicySpec {
   allocation: "fixed" | "release-aware";
-  maxInFlightQuantum?: number;
+  fixedReservationByPool?: Record<string, number>;
+  maxInFlightQuantumByPool?: Record<string, number>;
 }
 
 export type SimulationEventType =
@@ -65,6 +66,9 @@ export interface SimulationEvent {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * All intervals use half-open semantics [startS, endS).
+ */
 export interface ResourceInterval {
   resourcePoolId: string;
   startS: number;
@@ -74,11 +78,16 @@ export interface ResourceInterval {
   taskId?: string;
 }
 
+/**
+ * All intervals use half-open semantics [startS, endS).
+ * Task completion is represented authoritatively by task_completed events,
+ * not by a zero-width "complete" interval.
+ */
 export interface TaskInterval {
   taskId: string;
   startS: number;
   endS: number;
-  state: "ready" | "queued" | "running" | "complete";
+  state: "ready" | "queued" | "running";
 }
 
 export interface QueueSample {
@@ -96,7 +105,7 @@ export interface Metrics {
   releasedResourceSecondsByPool: Record<string, number>;
   queueWaitSecondsByPool: Record<string, number>;
   admissionWaitSecondsByPool: Record<string, number>;
-  communicationSeconds: number;
+  aggregateCommunicationSeconds: number;
   costByPool: Record<string, number>;
   totalCost: number;
 }
