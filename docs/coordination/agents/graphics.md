@@ -65,4 +65,6 @@ No shared interface change is requested.
 - Known failures: ELK cycle ordering for fixed state panel; Figma fork/join coordinate/routing fragility; raster-frame approach rejected.
 - Production files proposed now: none; implementation should follow Agent F's toolchain review and Agent C's accepted scaffold.
 - Investigation-only: Figma/FigJam benchmark files and benchmark renderer/test.
+- Substantive checkpoint commits: `0d1d12035ec8dc6f8ff730c96fa9dd9faaef5daa` (benchmark/code) and `50aa223c653d3aeb76f02bf904ae3939e8fca8a8` (benchmark text-encoding repair).
+- Coordinator heartbeat: inspected `agent/integration@c562c0d2a126a62cc5067e0b3d3299ea2d45eed6`; shared interface remains v0 provisional and Agent D is marked active/ready for review.
 - Promotion recommendation: **PORT** the visual grammar/tool split; reimplement production components in the accepted scaffold rather than merging benchmark code wholesale.
