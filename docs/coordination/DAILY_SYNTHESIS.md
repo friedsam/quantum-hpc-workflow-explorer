@@ -1,92 +1,64 @@
 # Coordinator Daily Synthesis
 
-## 2026-10-02 — multi-agent rebuild initialized
+## 2026-10-02 — first integrated staging build
 
-### Repository baseline
+### Accepted architecture
 
-- `main`: legacy static Explorer with bespoke scenario state machines and disconnected placeholder Builder/Runner.
-- `prototype-vqe-runner`: historical shared-model experiment; useful evidence, not accepted architecture.
-- Product horizon: approximately 10 days.
+- generic user-authored WorkflowSpec;
+- deterministic frozen-v1 DES;
+- QAMP A-D as first acceptance/preset suite;
+- IBM/QAMP Fe4S4 SQD as real structural reference preset;
+- semantic playback from exact engine traces;
+- React Flow + ELK editable workflow DAG;
+- structured SVG runtime resource view;
+- Builder → Explore/Playback → Compare product flow.
 
-### Agent B playback
+### Agent status
 
-[verified] Conditional PORT accepted. Pure trace-to-presentation layer; deterministic semantic compression/playback; no second simulator.
+- A: closed/idle; v1 engine accepted.
+- B: closed/idle; frozen-v1 playback accepted.
+- C: closed/idle; final product checkpoint accepted.
+- D: closed/idle; graphics/tool split implemented.
+- E: closed/idle; research evidence accepted.
+- F: active integration/testing.
 
-### Agent E research/validation
+### First coherent staging build
 
-[verified] Research track CLOSED/IDLE.
+Agent C's self-contained app was promoted substantially intact to `agent/integration` at:
 
-Rao follow-up independently verified against arXiv:
-- T_cycle = T_C + T_Q + T_comm;
-- T_C = C_C/tau_C;
-- T_Q = C_Q/tau_Q;
-- T_comm = F(L+V/B);
-- R_cc = T_comm/(T_Q+T_C);
-- F is distinct from shot count;
-- SQD reference F=1 and published R_cc values reproduced to rounding.
+`6fdb7954d1aeed4ddf82ea94ae81e9fe1830cd35`
 
-PORT accepted:
-- serious IBM/QAMP Fe4S4 structural preset;
-- E1-E6 acceptance cases;
-- legacy assumption corrections;
-- Rao analytical diagnostics/fixtures;
-- methodology/provenance notes.
+Canonical production subsystem locations are now:
+- engine: `app/src/engine/runtime.mjs`
+- playback: `app/src/playback/trace-playback.mjs`
+- shared domain contract: `app/src/domain/types.ts`
+- Builder/UI: `app/src/components/`
+- presets: `app/src/presets/presets.ts`
 
-### Agent A engine
+Agent A/B branches remain provenance/history rather than duplicate production modules.
 
-[verified] Architecture accepted; PORT after bounded R1-R5 repair. v1 not yet frozen.
+### Verified C evidence
 
-### Agent D graphics
+Final Agent-C head `3843b7c60c9a828dae60b8a4483e712616163af9` passed GitHub Actions run `37070602061`.
 
-[verified] PORT accepted:
-- React Flow + ELK for workflow DAG;
-- structured inline SVG/grid/anchors for runtime state/resource graphics;
-- Figma for static polish;
-- D2/raster-frame workflows excluded.
+Branch checks included:
+- engine tests;
+- playback tests;
+- architecture tests;
+- TypeScript;
+- Vite production build.
 
-### Agent C UI
+Current external package verification:
+- `@xyflow/react 12.12.0` is current npm release;
+- `elkjs 0.12.0` is current npm release;
+- Vite 8 requires Node 20.19+ / 22.12+ and staging CI uses Node 22.
 
-[verified] Checkpoint accepted as PORT.
+### Remaining gates before main
 
-Accepted:
-- React/TypeScript/Vite shell;
-- Builder → Explore → Compare flow;
-- explicit result invalidation after edits;
-- no UI metric simulation;
-- direct display of engine result evidence;
-- compare deltas without policy ranking;
-- responsive/accessibility baseline.
-
-Not accepted unchanged:
-- provisional v0 `model.ts` type/fixture duplication;
-- temporary linear WorkflowMap;
-- 684-line App.tsx as final integrated structure.
-
-Current public version verification:
-- React 19.3 stable;
-- TypeScript 7.0.2 stable;
-- Vite current 8.3.2; C's ^8.3.1 range is compatible;
-- Vite 8 requires Node 20.19+ or 22.12+.
-
-C can pause until A v1 freezes, then receive one bounded integration pass.
-
-### Next synthesis checkpoint
-
-Agent A repaired v1 is now the critical dependency. After freeze: B compatibility → C/D integration → first coherent staging build.
-
-
-### Agent B frozen-v1 compatibility — final
-
-[verified] Agent B completed the real-trace compatibility pass and is CLOSED/IDLE.
-
-Accepted:
-- pinned actual Agent-A v1 result;
-- half-open interval snapshots;
-- queue/resource/task states consumed from engine evidence;
-- periodic multi-signature compression for long repeated activity;
-- exact source-event provenance;
-- 14/14 reported playback compatibility assertions.
-
-One integration wording constraint: periodic compression detects event-signature repetition and must not be labeled an algorithmic loop/cycle unless workflow metadata establishes that identity.
-
-Next critical work remains Agent C's integration pass. Agent F can begin staging canonical engine/playback modules once C's final scaffold/file layout is known.
+1. integration-branch CI;
+2. browser E2E/visual smoke test;
+3. A-D behavioral acceptance review;
+4. custom workflow end-to-end authoring test;
+5. deployment-root migration from legacy `web/`;
+6. dependency lock/reproducibility decision;
+7. bounded-repeat authoring decision for final 10-day scope.
