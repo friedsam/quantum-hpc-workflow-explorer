@@ -73,3 +73,20 @@ C can pause until A v1 freezes, then receive one bounded integration pass.
 ### Next synthesis checkpoint
 
 Agent A repaired v1 is now the critical dependency. After freeze: B compatibility → C/D integration → first coherent staging build.
+
+
+### Agent B frozen-v1 compatibility — final
+
+[verified] Agent B completed the real-trace compatibility pass and is CLOSED/IDLE.
+
+Accepted:
+- pinned actual Agent-A v1 result;
+- half-open interval snapshots;
+- queue/resource/task states consumed from engine evidence;
+- periodic multi-signature compression for long repeated activity;
+- exact source-event provenance;
+- 14/14 reported playback compatibility assertions.
+
+One integration wording constraint: periodic compression detects event-signature repetition and must not be labeled an algorithmic loop/cycle unless workflow metadata establishes that identity.
+
+Next critical work remains Agent C's integration pass. Agent F can begin staging canonical engine/playback modules once C's final scaffold/file layout is known.
