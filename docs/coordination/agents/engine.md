@@ -113,3 +113,121 @@ Implementation language/layout is not intended to force the final application sc
 ### Recommended promotion status
 
 **PORT** — promote/freeze the reviewed semantics and tests, then port or reimplement the compact engine into the final TypeScript/application scaffold selected by Agent F/C.
+
+
+## Coordinator review — 2026-10-02
+
+**Agent F decision:** **PORT after one bounded repair pass. v1 is not frozen yet.**
+
+### Accepted design decisions
+
+The following Agent-A proposals are accepted for shared v1 unless the repair exposes a contradiction:
+
+1. **Concrete `resourcePoolId` task binding** — accepted. The 10-day simulator should resolve tasks to explicit pools rather than add a resource-selector subsystem.
+2. **Deterministic constant service times only** — accepted for v1.
+3. **Already-expanded DAG as engine input** — accepted. Bounded-loop/repeat expansion belongs in a preset/Builder adapter outside the DES core.
+4. **Communication cost on dependencies** — accepted; no network-contention model in v1.
+5. **Task states `ready | queued | running` plus completion events** — accepted conceptually. See interval semantics below.
+6. **QPU inactive capacity is on-demand/released for v1** — accepted. Generic monetary cost remains an explicit user/preset assumption, not provider-accurate billing.
+7. **Strict deterministic FIFO/no backfilling** — accepted for v1 and must be documented as an engine policy assumption, not a universal scheduler model.
+
+### Required repair R1 — explicit fixed classical reservation
+
+Agent E's E5 requirement is accepted.
+
+Add an explicit fixed reservation quantity by classical resource pool rather than equating `ResourcePoolSpec.capacity` with both system capacity and reserved allocation.
+
+Preferred v1 shape:
+
+```ts
+interface PolicySpec {
+  allocation: "fixed" | "release-aware";
+  fixedReservationByPool?: Record<string, number>;
+  maxInFlightQuantumByPool?: Record<string, number>;
+}
+```
+
+Semantics:
+
+- `ResourcePoolSpec.capacity` = maximum modeled pool capacity available to the workflow.
+- Under `fixed`, each CPU/GPU pool may reserve `fixedReservationByPool[poolId]`; default to full pool capacity if omitted.
+- Fixed-policy task concurrency on that pool cannot exceed the reservation.
+- Units inside the reservation but not active are `allocated-idle`.
+- Capacity outside the reservation is `released`.
+- Under `release-aware`, tasks allocate on demand up to pool capacity and inactive units are `released`.
+- QPU remains on-demand/released under both allocation modes in v1.
+- Cost = active + allocated-idle resource-seconds times explicit cost rate; released capacity is not charged.
+
+Add E5 or an equivalent exact test.
+
+### Required repair R2 — per-pool quantum admission limit
+
+The current global `maxInFlightQuantum` creates unintended coupling if multiple QPU pools exist.
+
+Use `maxInFlightQuantumByPool` (or an equivalently explicit per-QPU-pool representation).
+
+Accepted definition from Agent E:
+
+> in flight = admitted but not complete = running + resource-queued quantum tasks.
+
+Dependency-ready work held by admission control remains `ready` / policy-waiting and does not increase QPU resource queue depth.
+
+Add/retain a deterministic E4-style test.
+
+### Required repair R3 — same-timestamp causal closure
+
+Code inspection found a subtle ordering issue in the current event loop.
+
+A task completion at time `t` can create a zero-latency dependency completion also at `t`; current code calls `settle(t)` before processing that newly-created same-time event. This means another task already visible to the scheduler can start before a newly-released task that is logically ready at the same timestamp, so the documented workflow-order tie-break is not globally true.
+
+Required rule:
+
+> Resolve all completion/dependency-release consequences at timestamp `t` to causal closure before admission/resource-start decisions at `t`.
+
+After that closure, apply stable task-order/FIFO rules. Zero-duration tasks may then create a new same-time completion round.
+
+Add a regression test with two tasks becoming ready at the same timestamp through different causal paths and verify the documented tie rule.
+
+Standard DES practice requires explicit deterministic ordering for equal-time events; SimPy similarly uses simulation time plus a monotonically increasing event ID to make equal-time processing deterministic. The project still needs its own causal-phase rule because resource admission affects results.
+
+### Required repair R4 — zero-cost dependencies are not communication events
+
+A pure control/DAG dependency with zero latency and zero bytes should release its target dependency at the same simulation time. It should **not** emit a visible `communication_started` / `communication_completed` pair.
+
+Only dependencies with positive modeled transfer duration should emit communication events and contribute to communication metrics.
+
+This matters for Agent E's fork/join/barrier fixture and avoids playback/UI visual noise.
+
+### Required repair R5 — freeze interval and communication metric semantics
+
+Freeze these definitions in the v1 proposal/types/tests:
+
+- intervals use half-open semantics **`[startS, endS)`**;
+- zero-duration completion is represented authoritatively by `task_completed` event; a zero-width `complete` interval is unnecessary and should preferably be removed from `TaskInterval`;
+- rename `communicationSeconds` to **`aggregateCommunicationSeconds`** (or equally explicit wording) because it is the sum of modeled transfer durations and may exceed wall-clock/critical-path communication time through overlap. This prevents confusion with Rao's cycle-level `T_comm`.
+
+### Deferred / explicitly not required
+
+- network contention;
+- stochastic service time;
+- backfilling;
+- live provider queue model;
+- arbitrary control flow;
+- production scheduler behavior;
+- optimization.
+
+### Validation status
+
+Agent F code review confirms the architecture is compact and within scope. Agent A reports 12/12 local tests passing. There is currently no GitHub CI run for this branch, and Agent F's sandbox cannot network-clone the repository, so the reported local test result is not independently re-executed yet; integration will re-run canonical tests once the production scaffold is available.
+
+### Promotion decision
+
+**PORT after R1-R5.**
+
+Do not merge the whole branch into main. After the repair:
+- Agent F will freeze v1 shared semantics;
+- Agent B gets one compatibility pass against the real trace;
+- Agent C can bind its UI mock/types to the frozen contract;
+- engine implementation/tests will then be ported or rehomed into the production scaffold.
+
+No additional engine features beyond R1-R5 are requested in this pass.
