@@ -217,3 +217,41 @@ Report:
 - exact commits/files proposed for PORT.
 
 After this pass, Agent B should stop pending integration.
+
+
+## Coordinator final review — 2026-10-02
+
+**Agent F decision:** **PORT accepted; Agent B CLOSED/IDLE.**
+
+The frozen-v1 compatibility pass satisfies the requested contract checks:
+
+- actual Agent-A v1 trace used and pinned with producer commit provenance;
+- half-open `[startS,endS)` snapshots handled correctly;
+- zero-width intervals are not rendered active;
+- v1 `queued` state is consumed directly;
+- queue samples remain engine-provided evidence;
+- playback does not touch/recompute `aggregateCommunicationSeconds`;
+- source-event provenance remains complete and ordered;
+- real v1 stress trace demonstrated that multi-signature periodic compression was necessary;
+- bounded periodic compression reduced 96 semantic groups to 13 keyframes while preserving source ranges;
+- 14/14 compatibility assertions reported passing.
+
+### One integration wording constraint
+
+Periodic compression detects a repeated **event-signature pattern**, not necessarily an algorithmically declared loop. Therefore production UI should label a compressed multi-signature segment neutrally (for example, `Repeated 4-step activity ×21`) unless explicit workflow metadata proves that it is a loop/cycle.
+
+Do not present heuristic periodicity alone as semantic loop identity.
+
+This is a presentation-label constraint, not a request for further Agent-B work.
+
+### Promotion scope
+
+PORT:
+- playback/keyframe pipeline;
+- periodic-compression logic;
+- controller/RAF driver;
+- v1 compatibility tests and pinned trace evidence.
+
+Rehome/rewrite paths as needed in the React/TypeScript scaffold. Do not merge the laboratory branch wholesale.
+
+No further Agent-B work is required unless integration reveals a concrete compatibility defect.
