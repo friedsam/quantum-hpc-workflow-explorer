@@ -47,13 +47,20 @@ Deliver:
 Matplotlib is not a candidate for architecture/state diagrams.
 
 ## E — Research/validation
-**Status:** start.
+**Status:** checkpoint 1 ready for review.
 
-Deliver:
-- validation matrix for analytical baseline, queue/resource policy literature, QAMP/IBM workflow;
-- define one serious QAMP/IBM preset;
-- identify assumptions that should NOT survive from legacy A–D;
-- acceptance cases for engine tests.
+Delivered on `agent/research`:
+- `docs/research/VALIDATION_MATRIX.md`;
+- serious IBM/QAMP Fe4S4 SQD structural preset;
+- legacy A–D assumption disposition;
+- deterministic acceptance cases E1–E6.
+
+Requested Agent A/F decisions:
+- define workflow-level fixed reservation quantity/scope separately from task active usage;
+- define `maxInFlightQuantum` as running + resource-queued admitted jobs, with policy wait separate;
+- keep external/provider queue delay explicit/user-supplied or defer it rather than inventing a provider scheduler.
+
+Research recommendation: **PORT** validated semantics/fixtures, not wholesale prose.
 
 Do not expand into a new scheduler/research platform.
 
