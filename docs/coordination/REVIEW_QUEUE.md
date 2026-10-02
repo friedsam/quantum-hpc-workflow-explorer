@@ -11,9 +11,12 @@ Deliver:
 - minimal deterministic example;
 - invariant-test plan.
 
-Additional integration question from B review:
-- define interval-boundary semantics for ResourceInterval/TaskInterval snapshots (B currently assumes half-open intervals, start <= t < end);
-- show whether steady repetitive engine traces use one semantic signature or a repeated multi-signature cycle.
+Additional questions from E/B review:
+- define workflow-level fixed reservation quantity/scope separately from instantaneous task active usage;
+- define `maxInFlightQuantum` as admitted-but-not-complete quantum tasks (running + QPU-resource-queued), with policy-held ready tasks separate from resource queue depth;
+- keep external/provider queue delay explicit synthetic/user input or omit it; do not implement a provider scheduler;
+- define interval-boundary semantics for ResourceInterval/TaskInterval snapshots;
+- show whether repetitive engine traces use one semantic signature or a repeated multi-signature cycle.
 
 Do not build UI.
 
@@ -25,15 +28,14 @@ Verified branch checkpoint:
 - coordinator review added on B branch at `f927cfe3d7f9fcd2ab0fc473c74e7987e72c5320`;
 - 3005-event synthetic stress trace -> 1005 semantic groups -> 10 visual keyframes;
 - 9/9 reported playback tests passing;
-- no production dependencies;
-- source trace is preserved; presentation timing is separate from simulation timing.
+- no production dependencies.
 
 Decision:
 - **PORT**, not wholesale merge;
 - hold code integration until Agent A freezes v1 `SimulationResult`;
-- then run one compatibility pass and add repeated-pattern compression only if real traces require it.
+- then run one compatibility pass.
 
-No further B work is required until Agent F requests that compatibility pass.
+No further B work is required until Agent F requests that pass.
 
 ## C — UI
 **Status:** start independently against mock v0 data.
@@ -44,10 +46,11 @@ Deliver:
 - component boundaries;
 - React/TypeScript migration/scaffold recommendation.
 
-Integration note from B:
+Integration notes:
 - no autoplay;
-- playback exposes semantic keyframes, source event ranges, 0.5x/1x/2x controls;
-- reduced-motion/animation-disable behavior should be handled with B during integration.
+- playback exposes semantic keyframes and source event ranges;
+- plan reduced-motion/animation-disable behavior;
+- UI must distinguish policy wait, resource queue, active allocation, allocated-idle, and released states if v1 adopts E/A semantics.
 
 Do not calculate simulation metrics.
 
@@ -63,23 +66,33 @@ Deliver:
 Matplotlib is not a candidate for architecture/state diagrams.
 
 ## E — Research/validation
-**Status:** active.
+**Status:** **checkpoint accepted — PORT; one bounded Rao addendum requested.**
 
-Deliver:
-- validation matrix for analytical baseline, queue/resource policy literature, QAMP/IBM workflow;
-- define one serious QAMP/IBM preset;
-- identify assumptions that should NOT survive from legacy A–D;
-- acceptance cases for engine tests.
+Verified/accepted:
+- current Qiskit C API role correction;
+- IBM Fe4S4 SQD reference structure: rank-0 quantum integration, one sampling stage, then bounded recovery/SBD loop;
+- QPU capacity remains configurable;
+- provider queue delay is dynamic/external and must not become a fixed measured constant;
+- IBM/QAMP preset topology;
+- legacy A-D assumption removals/demotions;
+- deterministic acceptance cases E1-E6.
 
-Do not expand into a new scheduler/research platform.
+Coordinator review written to `agent/research` at `9a9ec1f122525394db8a656aa0298939f4a9ea00`.
+
+Required bounded follow-up:
+- validate Rao et al. 2026 equations (1)-(5), especially `F` and `R_cc`;
+- add the smallest reproducible analytical fixture/reference check;
+- keep Rao as analytical baseline/diagnostic, not a replacement for event simulation.
+
+After this addendum, E can stop unless a later source check is requested.
 
 ## F — Coordinator
 **Status:** active.
 
 Immediate F tasks:
-- review A/E when ready;
+- review A next;
+- reconcile A v1 against E's R1-R3 and B snapshot/playback assumptions;
 - maintain shared contracts;
-- resolve semantic conflicts;
 - enforce 10-day boundary;
 - decide promotion status;
 - keep `main` coherent.
