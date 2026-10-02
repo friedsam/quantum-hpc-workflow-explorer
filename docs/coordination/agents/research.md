@@ -222,3 +222,46 @@ PORT into integration/design:
 Do not merge the research document wholesale into user-facing UI.
 
 No further Agent-E work is required unless Agent F requests a targeted source check later.
+
+
+## Round 2 task — QAMP A–D concept contract
+
+**Status:** REOPENED for one bounded source-grounding task.
+
+### Goal
+
+Translate the QAMP Scenario A–D tutorial material into a **concept-level acceptance contract** for the rebuilt generic Explorer.
+
+This is not a request to recreate old frames or defend stale didactic counts.
+
+For each scenario, extract from the QAMP documentation:
+
+- defining orchestration mechanism;
+- assumptions needed for that mechanism;
+- what is explicitly *not* the bottleneck;
+- minimum workflow structure needed to demonstrate it;
+- observable consequences that frozen v1 can legitimately measure;
+- legacy visual concepts that should only be derived/presentational;
+- anti-invariants: behavior that would mean the fixture is testing the wrong thing.
+
+### Required distinctions
+
+- A: overlap / QPU off critical path.
+- B: global dependency/synchronization wall, not capacity throttling.
+- C: communication-dominated delay, not global synchronization or backend queue saturation.
+- D: service-capacity mismatch + bounded admission, not a barrier or pure latency wall.
+
+Map old Working/Idle/Blocked language onto frozen-v1 observables only where the mapping is technically valid; explicitly flag concepts that frozen v1 does not represent directly.
+
+### Rules
+
+- Ground the contract in the QAMP scenario pages.
+- Do not import exact 1000/200/50 counts unless needed to explain the historical example.
+- Do not modify engine/UI code.
+- Do not expand research scope beyond acceptance semantics.
+
+### Deliverable
+
+One concise scenario matrix suitable for Agent F to reconcile against Agent A's executable fixtures.
+
+After this checkpoint, stop for Agent F review.
