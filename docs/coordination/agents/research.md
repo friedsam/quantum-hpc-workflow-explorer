@@ -331,3 +331,30 @@ Validation performed:
 **PORT** the scenario matrix and source/observable mapping into Agent F's A/E reconciliation. Do not merge research prose wholesale into the product UI.
 
 No dependencies, engine code, UI code, or shared interfaces changed.
+
+
+## Coordinator Round 2 review — 2026-10-02
+
+**Agent F decision:** **PORT accepted; Agent E CLOSED/IDLE pending A reconciliation.**
+
+The concept contract is accepted as the source-grounded semantic reference for Scenarios A-D.
+
+Accepted discriminators:
+
+- **A:** local dependency + overlap; QPU remains off overall critical path.
+- **B:** global complete-result dependency / synchronization wall; queue saturation and admission control are not the cause.
+- **C:** communication-dominated local paths; no global barrier, no sustained backend saturation, no provider queue assumption.
+- **D:** service-capacity mismatch + bounded admission; policy wait distinct from QPU resource queue; local consumers resume independently.
+
+Accepted vocabulary constraints:
+
+- `Working` is only directly represented by running classical tasks / active classical resources.
+- QPU `Run` and `Queue` map directly.
+- `Transfer` maps to positive-duration dependency communication only.
+- legacy `Idle` is only partially represented by allocation state.
+- legacy `Blocked` is **not** a frozen-v1 task state and must not be recreated as an authoritative rank counter.
+- Scenario-D policy-held work maps to `task_throttled` + admission wait.
+
+No frozen-v1 compatibility defect is identified by this contract.
+
+Agent F will reconcile this matrix against Agent A's executable fixtures. No further Agent-E work is required unless that reconciliation exposes a source question.
