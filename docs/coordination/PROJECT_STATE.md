@@ -33,9 +33,21 @@ Preserve the branch as evidence; port selectively if useful.
 
 ## Product thesis
 
+The core product is a **generic user-authored workflow explorer**, not a scenario viewer.
+
+Primary workflow:
+
+`create/edit workflow → validate → simulate → animate/inspect trace → compare design alternatives`
+
+The application must let a user construct or substantially modify a hybrid workflow using the supported primitives (tasks, dependencies, CPU/GPU/QPU resource pools, communication costs, bounded repeat/template expansion, and supported policies), then execute that design through the authoritative simulator.
+
+Scenarios A–D are the first acceptance/preset suite and teaching examples. They are not the product boundary.
+
+The IBM/QAMP Fe4S4 SQD workflow is a serious real-workflow preset/reference case after A–D; it is not the generic architecture.
+
 Build:
 
-`workflow model → discrete-event execution → trace/metrics → interactive visualization/comparison`
+`user WorkflowSpec → discrete-event execution → trace/metrics → animation/inspection/comparison`
 
 Do not build:
 - a production scheduler;
