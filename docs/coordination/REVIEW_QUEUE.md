@@ -3,70 +3,46 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** **v1 FROZEN — PORT accepted; Agent A can pause.**
-
-R1-R5 completed and reviewed. Canonical contract is now `docs/coordination/INTERFACE_CONTRACTS.md` on `agent/integration`.
+**Status:** CLOSED/IDLE — v1 frozen and production runtime staged under `app/src/engine/`.
 
 ## B — Playback
-**Status:** **CLOSED/IDLE — PORT accepted after frozen-v1 compatibility pass.**
+**Status:** CLOSED/IDLE — frozen-v1 compatible production playback staged under `app/src/playback/`.
 
-Accepted:
-- actual v1 trace compatibility;
-- half-open interval snapshots;
-- bounded periodic multi-signature compression;
-- deterministic controller/RAF driver;
-- 14/14 reported compatibility assertions.
-
-Integration wording constraint: periodic detection proves repeated event-signature activity, not semantic loop identity; production labels must remain neutral unless workflow metadata proves a loop.
+Integration wording constraint remains: periodic event-pattern compression is not semantic loop identity unless workflow metadata proves it.
 
 ## C — UI
-**Status:** **checkpoint accepted — PORT shell/architecture; v0 model/map must be replaced during integration.**
+**Status:** CLOSED/IDLE — final integration checkpoint accepted and promoted to staging.
 
-Accepted:
-- React + TypeScript + Vite production direction;
-- Builder → Explore → Compare shell;
-- stale-result invalidation;
-- authoritative result consumption;
-- accessibility/responsive principles;
-- no autoplay / reduced-motion behavior.
+Promoted into `agent/integration`:
+- React/TypeScript/Vite app shell;
+- editable custom DAG authoring;
+- resource/policy authoring;
+- frozen-v1 simulation;
+- A-D + IBM/QAMP presets;
+- Explore/playback/resource-state views;
+- saved-run Compare;
+- React Flow + ELK graph renderer;
+- app tests.
 
-Do not promote unchanged:
-- duplicated v0 `app/src/model.ts` contract;
-- temporary linear WorkflowMap;
-- monolithic integration layout.
-
-C now gets one bounded integration pass against frozen v1 for:
-- frozen shared types/validator;
-- React Flow + ELK **editable DAG**;
-- creation/deletion/editing of supported tasks and dependencies, not only preset parameter editing;
-- resource-pool and supported policy editing needed to define a custom WorkflowSpec;
-- component split;
-- real engine adapter seam;
-- simulate → Explore/animate → Compare flow for user-created workflows.
-
-A–D should ship as loadable presets/templates, but users must not be confined to them.
+Known deferred product gap:
+- user-facing bounded-repeat/template authoring above the expanded-DAG engine.
 
 ## D — Graphics
-**Status:** checkpoint accepted — PORT visual grammar/tool split.
+**Status:** CLOSED/IDLE — accepted visual grammar now implemented in staging.
 
 ## E — Research/validation
-**Status:** **CLOSED/IDLE — PORT accepted after Rao verification.**
+**Status:** CLOSED/IDLE — accepted evidence/presets/methodology available for later documentation.
 
-Accepted:
-- IBM/QAMP Fe4S4 structural preset;
-- E1-E6 engine acceptance cases;
-- legacy assumption corrections;
-- fixed reservation / policy-wait semantics;
-- Rao equations (1)-(5), R1 synthetic fixture, R2 SQD reproduction;
-- real-time/QEC boundary documented out of v1 scope.
+## F — Coordinator / Integration
+**Status:** **active — first coherent staging build created.**
 
-No further E work unless targeted source verification is requested.
+Current staging commit:
+- `6fdb7954d1aeed4ddf82ea94ae81e9fe1830cd35`
 
-## F — Coordinator
-**Status:** active.
-
-Immediate F tasks:
-- wait for A R1-R5 repair and freeze v1;
-- then request one B compatibility pass;
-- then coordinate one C integration pass with accepted D graphics split;
-- port E evidence/presets into integration methodology/fixtures.
+Next gates:
+1. staging CI on `agent/integration`;
+2. browser-level E2E/visual smoke tests;
+3. verify A-D behavior as engine-derived acceptance scenarios;
+4. test custom workflow authoring → simulate → playback → modify → compare;
+5. resolve deployment root from legacy `web/` to new `app/`;
+6. only then consider promotion to `main`.
