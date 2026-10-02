@@ -47,22 +47,22 @@ Deliver:
 Matplotlib is not a candidate for architecture/state diagrams.
 
 ## E — Research/validation
-**Status:** checkpoint 1 ready for review.
+**Status:** coordinator PORT accepted; requested Rao addendum complete.
 
-Delivered on `agent/research`:
-- `docs/research/VALIDATION_MATRIX.md`;
-- serious IBM/QAMP Fe4S4 SQD structural preset;
-- legacy A–D assumption disposition;
-- deterministic acceptance cases E1–E6.
+Completed:
+- `docs/research/VALIDATION_MATRIX.md` sections 1–10: IBM/QAMP validation, preset, legacy disposition, E1–E6;
+- section 11: Rao et al. 2026 equations (1)–(5), `F` vs shot-count distinction, diagnostic scope, exact synthetic fixture R1, published SQD reproduction R2;
+- Rao SQD `R_cc` reproduced for remote/co-located/tight tiers to the paper's stated rounding/order-of-magnitude precision.
 
-Requested Agent A/F decisions:
-- define workflow-level fixed reservation quantity/scope separately from task active usage;
-- define `maxInFlightQuantum` as running + resource-queued admitted jobs, with policy wait separate;
-- keep external/provider queue delay explicit/user-supplied or defer it rather than inventing a provider scheduler.
+Latest Agent E commits:
+- `957a9dd3243faf9e40b56d6ff63d198f6433fed4` — Rao analytical baseline;
+- `81b6defc28414bf751393dbfcb645e395fe2b277` — role/handoff completion state.
 
-Research recommendation: **PORT** validated semantics/fixtures, not wholesale prose.
+No production logic, dependencies, or shared interfaces changed.
 
-Do not expand into a new scheduler/research platform.
+Requested R1–R3 interface reconciliation remains owned by Agent F/A.
+
+**Recommended state:** stop Agent E unless Agent F requests a later source check.
 
 ## F — Coordinator
 **Status:** active.
