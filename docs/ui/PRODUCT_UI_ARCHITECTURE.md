@@ -1,189 +1,251 @@
-# Product UI architecture — Agent C checkpoint
+# Product UI architecture — Agent C frozen-v1 integration
 
-Date: 2026-10-02
-Branch: agent/ui
+Date: 2026-10-02  
+Branch: `agent/ui`  
+Current checkpoint head before documentation commit: `882377be8b2c66184bcf8207abfe3cce1e35c312`
 
 ## Scope
 
-[verified] The current main product surface is a static web application with separate bespoke scenario pages, a placeholder Builder, and a Runner that owns an independent additive accounting model.
+[verified] Agent F froze the v1 product boundary as:
 
-[verified] Shared contract v0 requires the UI to consume WorkflowSpec and SimulationResult, while the engine remains the sole source of execution semantics and metrics.
+`create/edit WorkflowSpec → validate → simulate → inspect/animate SimulationResult → compare alternatives`
 
-[opinion] The product should move to one application shell with three primary workspaces: Builder, Explore, and Compare.
+[verified] The Agent-C branch now implements that flow against the frozen v1 types and the exact accepted Agent-A engine runtime.
 
-## User flow
-
-1. Builder
-   - load a supported preset;
-   - inspect the workflow graph structure;
-   - select a task;
-   - edit supported task or policy fields;
-   - receive explicit structural validation;
-   - submit the resulting WorkflowSpec to an engine adapter.
-
-2. Explore
-   - display the exact SimulationResult returned for the current WorkflowSpec;
-   - show workflow context, metrics, task/resource timeline, queue evidence and assumptions;
-   - never infer missing queue/resource/task state.
-
-3. Compare
-   - choose two explicit configuration/result pairs;
-   - show each engine metric side by side;
-   - show B minus A as a presentation-only derived difference;
-   - do not label a universal winner because policy suitability depends on workload assumptions.
+[verified] The prior duplicated v0 `app/src/model.ts`, compatibility `contracts.ts`, linear workflow preview, and obsolete v0 policy editor have been removed.
 
 ## Information architecture
 
-Global shell:
-- product identity;
-- current preset/draft status;
-- Builder / Explore / Compare navigation;
-- explicit source-of-truth status.
+### Builder
 
-Builder:
-- workflow structure preview;
+The Builder owns draft authoring only.
+
+Supported authoring:
+- workflow name and assumptions;
+- tasks;
+- dependencies;
+- constant task service time;
+- CPU/GPU/QPU resource pools;
+- pool capacity and optional cost rate;
+- fixed vs release-aware allocation;
+- fixed classical reservation by pool;
+- max in-flight quantum work by QPU pool;
+- dependency fixed latency, data bytes and bandwidth.
+
+A mutation produces a new explicit `WorkflowSpec`, invalidates the currently attached result, and leaves prior completed run snapshots intact for comparison.
+
+The authoritative engine validator gates simulation. The UI does not silently clamp or repair semantic errors.
+
+### Explore
+
+Explore consumes one exact `WorkflowSpec + SimulationResult` pair.
+
+It displays:
+- workflow DAG;
+- makespan and per-pool engine metrics;
+- task-state intervals;
+- resource-allocation intervals;
+- resource queue samples;
+- assumptions/provenance;
+- semantic playback;
+- structured resource-state snapshots.
+
+The UI does not infer policy wait into queue depth or reconstruct hidden resource state.
+
+### Compare
+
+Compare consumes saved real engine runs. It does not recalculate scheduling outcomes.
+
+For matching metric keys it shows:
+- Run A value;
+- Run B value;
+- presentation-only B − A.
+
+It deliberately does not score or rank a universally preferred scheduling policy.
+
+## Shared-contract integration
+
+### Domain types
+
+`app/src/domain/types.ts` is the frozen v1 type surface.
+
+### Engine
+
+`app/src/engine/runtime.mjs` is byte-for-byte the accepted Agent-A runtime copied into this laboratory branch for validation.
+
+`app/src/services/engineAdapter.ts` is the UI execution seam.
+
+Integration rule: if Agent F ports Agent A into a canonical shared engine location, remove the duplicate app copy and rewire this adapter. Do not retain two engine implementations.
+
+### Playback
+
+`app/src/playback/trace-playback.mjs` is the accepted Agent-B v1-compatible playback module.
+
+Production UI wording neutralizes periodic-compression labels to descriptions such as “Repeated 4-step activity ×21”; it does not claim semantic loop identity without workflow metadata.
+
+Integration rule: if Agent F ports Agent B into a canonical playback location, remove the duplicate app copy and rewire imports.
+
+## Workflow graph
+
+[verified] Runtime DAG stack follows Agent D's accepted split:
+- React Flow interaction/rendering;
+- ELK layered layout;
+- stable task/dependency IDs → node/edge IDs;
+- explicit source/target handles;
+- deterministic non-zero ELK seed;
+- fixed WEST/EAST ELK ports;
+- layout driven by topology/content sizing, not playback state.
+
+[verified] Current React Flow documentation defines `<Handle>` as the custom-node connection point and shows target-left/source-right for horizontal flow. Its ELK multiple-handles reference uses unique ports plus fixed port order and WEST/EAST sides.
+
+Builder graph actions:
+- select a task;
+- connect source → target handles to add a dependency;
+- select/delete an edge;
+- add/delete tasks through explicit controls.
+
+Cycle/structural errors are allowed as visible drafts but engine validation prevents simulation until corrected.
+
+## Runtime state graphics
+
+Runtime state uses structured inline SVG, not a second graph renderer.
+
+Stable cards represent resource pools. At a selected simulation time, the view reads only:
+- half-open `ResourceInterval` state;
+- explicit `QueueSample` depth.
+
+States:
+- active;
+- allocated-idle;
+- released;
+- resource-queue depth.
+
+The SVG has a text/table equivalent so the information is not color-only or SVG-only.
+
+## Playback
+
+The playback surface exposes semantic keyframes rather than raw events:
+- restart;
+- previous/next keyframe;
+- Play/Pause;
+- 0.5× / 1× / 2×;
+- presentation progress;
+- source event sequence range;
+- simulation-time range;
+- repeat count for compressed regions.
+
+No autoplay occurs.
+
+With `prefers-reduced-motion: reduce`, animation defaults disabled and step controls remain usable.
+
+Playback updates the same simulation-time boundary used by the resource-state SVG. It does not mutate DAG geometry or engine state.
+
+## Presets
+
+A–D are templates/acceptance cases, not product navigation constraints.
+
+Included:
+- custom starter;
+- Scenario A handoff;
+- Scenario B fork/join;
+- Scenario C synthetic latency stress;
+- Scenario D bounded QPU admission;
+- IBM/QAMP Fe4S4 SQD structural reference.
+
+The IBM preset uses the accepted synthetic scaled E5 timings and labels them as synthetic; provider queue delay is excluded.
+
+## Component split
+
+`App.tsx`
+- view selection;
+- draft/result attachment state;
+- engine simulation request;
+- run-history snapshots.
+
+`components/builder/`
+- preset bar;
 - task inspector;
-- policy editor;
-- validation panel;
-- simulation request boundary.
+- resource/policy editor;
+- dependency editor;
+- workflow settings;
+- validation.
 
-Explore:
-- authoritative metrics;
-- task timeline;
-- resource intervals;
-- queue samples;
-- assumptions.
+`components/graph/`
+- workflow → graph projection;
+- custom node/handles;
+- ELK layout;
+- React Flow canvas.
 
-Compare:
-- A selector;
-- B selector;
-- side-by-side metrics;
-- explicit configuration summaries;
-- assumptions for both results.
+`components/explore/`
+- metrics;
+- task/resource timelines;
+- queue evidence;
+- assumptions;
+- playback;
+- runtime SVG snapshot.
 
-Legacy scenario animations are not required for core navigation. They may later survive as presets, regression fixtures or educational links if they map cleanly onto accepted engine semantics.
+`components/compare/`
+- run selectors and metric comparison.
 
-## Component boundaries
+No component except the engine runtime defines `simulateWorkflow`.
 
-App
-- owns selected view, draft WorkflowSpec and currently attached SimulationResult;
-- invalidates the result when the draft changes.
+## Validation evidence
 
-AppShell
-- navigation and current state labels only.
+GitHub Actions run `37070389320` on `agent/ui` completed successfully after the ELK port alignment.
 
-WorkflowMap
-- reads tasks and dependencies;
-- presents structure;
-- does not schedule or infer state.
+Previous fully logged green run `37070157524` established:
+- 17 engine Node tests pass;
+- 13 playback Node tests pass;
+- 7 architecture tests pass;
+- TypeScript `tsc --noEmit` passes;
+- Vite 8.3.2 build passes;
+- 200 modules transformed.
 
-TaskInspector
-- edits supported TaskSpec fields;
-- emits an explicit new WorkflowSpec.
+The subsequent ELK metadata-only correction also completed green.
 
-PolicyEditor
-- edits PolicySpec fields;
-- does not predict effects.
+Branch audit:
+- no legacy `web/` files modified;
+- rejected `app/src/model.ts` absent;
+- rejected `app/src/contracts.ts` absent;
+- obsolete `PolicyEditor.tsx` absent.
 
-ValidationPanel
-- performs structural input validation only: identifiers, endpoint references, positive capacities/counts and DAG cycle rejection;
-- never normalizes invalid semantic input silently.
+## Accessibility / responsiveness
 
-MetricsGrid
-- reads SimulationResult.metrics directly.
-
-Timeline
-- positions intervals using result timestamps and makespan for rendering only;
-- does not reconstruct missing events or metrics.
-
-CompareView
-- reads two fixture/result pairs;
-- may calculate display deltas from two already-authoritative metrics.
-
-## Mock contract strategy
-
-[verified] Interface contract v0 leaves TimeModel exact fields provisional.
-
-[opinion] The UI fixture uses a minimal local constant-time representation solely to exercise forms. It is not proposed as shared interface v1.
-
-The two fixture pairs are:
-- fixed-allocation baseline;
-- release-aware + batched alternative.
-
-Both are synthetic and are labeled non-measured. Editing either fixture detaches its SimulationResult. No new result is calculated in the UI.
-
-## Scaffold recommendation
-
-[opinion] React + TypeScript + Vite is appropriate for the product shell because:
-- the UI has shared state across editing, exploration and comparison;
-- contract types can be explicit at the engine boundary;
-- Vite provides a minimal modern development/build layer;
-- the initial scaffold needs no routing or state-management dependency.
-
-As of 2026-10-02, current public package/documentation checks show React 19.3, Vite 8.3.x, the official React plugin 6.1.x, and TypeScript 7.0.x. Vite 8 requires Node.js 20.19+ or 22.12+.
-
-Sources:
-- https://vite.dev/guide/
-- https://vite.dev/
-- https://www.npmjs.com/package/react
-- https://www.npmjs.com/package/@vitejs/plugin-react
-- https://www.npmjs.com/package/typescript
-
-## Graphics dependency
-
-No graph library is added. The scaffold uses basic structured HTML/CSS only so Agent D can still determine the production DAG/state-graphics stack without migration pressure.
-
-## Accessibility
-
-- semantic buttons, labels and form controls;
+Implemented:
+- semantic form labels/buttons;
 - keyboard-visible focus;
-- color is supplemented by text/state labels;
-- validation uses an aria-live region;
-- no drag-only interaction is required in the first product version;
-- timeline rows retain text labels even when compact.
+- textual state labels in addition to color;
+- aria-live validation/status messages;
+- DAG authoring also has form-based dependency editing, so connection creation is not drag-only;
+- accessible textual resource-state equivalent;
+- reduced-motion behavior;
+- layouts collapse to one column on narrow screens;
+- wide comparison tables use controlled horizontal overflow.
 
-## Responsive behavior
+## Known non-blocking risks
 
-Desktop: workflow + inspector split pane.
-
-Medium: graph above inspector.
-
-Small: single-column shell; primary nav remains directly reachable; metrics and comparison tables stack without horizontal dependence.
-
-## Migration path
-
-1. Keep legacy web/ untouched during first-track experiments.
-2. Validate the app/ shell against v0 fixture pairs.
-3. Replace local provisional types with Agent-F-approved v1 shared types.
-4. Add an engine adapter returning SimulationResult.
-5. Incorporate Agent B playback artifacts and Agent D graphics recommendation behind existing component boundaries.
-6. Only after integration review decide whether app/ becomes the production root or is ported into another scaffold.
-
-## Known risks
-
-- The engine v1 type contract may require field-name adaptation.
-- Final graph editing interaction depends on Agent D.
-- The fixture results are not engine-validation evidence and must not be used as performance claims.
-- Package installation/build cannot be proven from repository source alone; canonical CI/build commands should be frozen by Agent F after scaffold selection.
+1. Production build warns that the main JS chunk exceeds Vite's 500 kB warning threshold (~1.90 MB minified / 586 kB gzip). ELK/graph code splitting is deferred.
+2. No browser-level E2E interaction suite is included; build/type/test validation is CI-backed, while visual interaction still needs final integration smoke testing.
+3. The engine contract accepts already-expanded DAGs. A first-class user-facing bounded-repeat/template authoring schema is not frozen and is not invented here.
+4. Engine/playback runtime copies exist only so the Agent-C lab branch validates end-to-end. Integration should retain one canonical copy of each subsystem.
 
 ## Promotion recommendation
 
-PORT.
+**PROMOTE/PORT hybrid recommendation**
 
-The information architecture, data-boundary behavior and component split should be preserved. Agent F should decide whether the exact app/ scaffold becomes the production root after reviewing Agents A, B and D.
+PROMOTE substantially intact:
+- `app/src/components/`;
+- Builder → Explore → Compare state model;
+- frozen-v1 UI domain imports;
+- presets;
+- tests;
+- CSS/accessibility behavior;
+- React/TS/Vite scaffold.
 
-## Coordinator heartbeat after first implementation commit
+PORT/rewire during integration:
+- `app/src/engine/runtime.mjs` to the canonical Agent-A engine location;
+- `app/src/playback/trace-playback.mjs` to the canonical Agent-B playback location.
 
-[verified] Agent F added UI integration notes after the first scaffold commit:
-- no autoplay;
-- playback must expose semantic keyframes and source event ranges;
-- reduced-motion / animation-disable behavior must be planned;
-- the UI must distinguish policy wait, resource queue, active allocation, allocated-idle and released states if v1 adopts those semantics.
-
-Current response:
-- no autoplay exists in the Agent C scaffold;
-- prefers-reduced-motion is handled in CSS;
-- resource intervals now render active / allocated-idle / released directly;
-- queue samples remain separate;
-- policy-held wait is deliberately not inferred from v0 data and is a pending v1 integration point;
-- playback controls/keyframe provenance are deferred until Agent B output is ported after v1 compatibility review.
+DEFER:
+- bundle-size optimization;
+- bounded-repeat authoring UI until an authoring representation is explicitly accepted.
