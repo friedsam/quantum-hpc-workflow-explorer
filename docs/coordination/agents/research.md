@@ -156,7 +156,8 @@ After the bounded Rao addendum, Agent E can stop unless Agent F requests a later
 **[verified]** Coordinator-bounded follow-up completed in:
 
 - `docs/research/VALIDATION_MATRIX.md`, section 11;
-- commit `957a9dd3243faf9e40b56d6ff63d198f6433fed4`.
+- content commit `957a9dd3243faf9e40b56d6ff63d198f6433fed4`;
+- Markdown/LaTeX rendering correction `de37c19bfbfe2a071cd560b263bff5f8fb903d2b`.
 
 Validated directly against Rao et al. 2026:
 
