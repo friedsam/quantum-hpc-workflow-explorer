@@ -22,26 +22,38 @@ Established:
 
 ### Agent B playback checkpoint
 
-[verified] Reviewed `agent/playback` through head `900676e41a02404459cc9e7a89159bbbc454b845`; coordinator review was written back to that branch at `f927cfe3d7f9fcd2ab0fc473c74e7987e72c5320`.
+[verified] Reviewed `agent/playback`. Coordinator decision: **conditional PORT** after Agent A freezes v1 `SimulationResult`.
 
-Accepted properties:
-- pure trace-to-presentation layer; no second simulation engine;
+Accepted:
+- pure trace-to-presentation layer;
 - exact source order preserved;
-- same-time semantic grouping;
-- repetitive single-signature runs compressed while retaining source-event ranges;
-- deterministic, timestamp-based presentation clock;
-- browser driver renders only on semantic keyframe changes and pauses when hidden;
-- synthetic 1000-cycle stress fixture compresses 3005 events / 1005 semantic groups into 10 keyframes;
+- deterministic semantic compression/playback;
+- 3005-event stress trace compressed to 10 keyframes;
 - 9/9 reported tests passing;
-- no added dependencies.
+- no dependencies.
 
-Coordinator decision: **conditional PORT** after Agent A freezes v1 `SimulationResult`. Do not wholesale merge B.
+Open B/A integration questions:
+- interval-boundary semantics;
+- repeated multi-signature cycle compression if real v1 traces require it.
 
-Integration questions passed to A/C:
-- A must define half-open/other interval-boundary semantics and expose real repetitive trace shape;
-- C should plan no-autoplay controls and reduced-motion behavior;
-- if A emits repeated multi-signature cycles, B gets one bounded follow-up for deterministic repeated-pattern compression.
+### Agent E research/validation checkpoint
+
+[verified] Reviewed `agent/research` and independently checked the highest-impact IBM/Qiskit corrections against current official documentation and the current qiskit-c-api-demo source.
+
+Accepted:
+- Qiskit C API is a low-level core-data-model interface; provider execution/queue semantics belong to runtime/QRMI layers.
+- IBM Fe4S4 SQD demo has quantum integration exclusively at MPI rank 0.
+- Current demo performs one sampling stage before the configuration-recovery/SBD loop.
+- IBM Quantum Compute cloud execution processes only one job at a time on the QPU while classical preprocessing can overlap.
+- provider fair-share ordering is dynamic and should not be represented as a fixed measured queue delay.
+- QRMI deployments can expose multiple execution lanes, so engine QPU capacity remains configurable.
+- serious IBM/QAMP structural preset and E1-E6 synthetic engine acceptance cases are useful.
+- fixed reservation vs active usage and policy-wait vs resource-queue distinctions should be reconciled into v1.
+
+Coordinator decision: **PORT** research findings/fixtures, not branch prose wholesale.
+
+One gap remains: E validated the Hockney communication term but did not yet validate the full Rao et al. 2026 analytical cycle model and `R_cc`. A bounded Rao addendum was requested on E's branch. After that, E may stop.
 
 ### Next synthesis checkpoint
 
-Review Agent A and Agent E outputs when ready. Agent B can pause pending v1 compatibility.
+Review Agent A's v1 engine/model proposal and reconcile it against accepted B/E findings before freezing shared interfaces.
