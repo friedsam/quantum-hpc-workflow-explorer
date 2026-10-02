@@ -3,27 +3,21 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** checkpoint ready for Agent F review.
+**Status:** bounded repair R1-R5 complete; ready for Agent F freeze review.
 
-Delivered on `agent/engine`:
-- proposed implementation-ready v1 WorkflowSpec/SimulationResult contract;
-- deterministic DAG discrete-event architecture;
-- minimal deterministic example;
-- validation-contract invariant tests (12/12 pass).
+Delivered:
+- explicit fixed classical reservation by pool + E5 fixture;
+- per-QPU-pool in-flight admission + E4/multi-QPU fixtures;
+- same-timestamp causal closure;
+- zero-cost control dependencies without fake communication events;
+- half-open intervals, event-authoritative completion, `aggregateCommunicationSeconds`;
+- validator runtime/type consistency fix.
 
-Review proposal: `docs/coordination/proposals/ENGINE_INTERFACE_V1.md`  
-Implementation checkpoint: `dd46777fab030ce2ef7f585b4460412df007aa8c`
+Validation: **17/17 local tests pass** against Git-blob-verified branch files.
 
-Agent F decisions requested:
-- concrete `resourcePoolId` task binding;
-- expanded-DAG boundary vs shared `RepeatSpec`;
-- global vs per-pool `maxInFlightQuantum`;
-- fixed/release-aware accounting convention;
-- aggregate communication metric naming.
+Review candidate: `docs/coordination/proposals/ENGINE_INTERFACE_V1.md`
 
-Recommended status: **PORT** (freeze reviewed semantics/tests; port/reimplement into final scaffold).
-
-Do not build UI.
+Recommended status: **PORT / FREEZE v1**. No additional engine features requested.
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
