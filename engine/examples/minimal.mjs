@@ -9,7 +9,8 @@ export const minimalWorkflow = {
   ],
   policy: {
     allocation: "fixed",
-    maxInFlightQuantum: 2,
+    fixedReservationByPool: { cpu: 2 },
+    maxInFlightQuantumByPool: { qpu: 2 },
   },
   tasks: [
     { id: "prep", label: "Classical prepare", resourcePoolId: "cpu", resourceCount: 2, serviceTime: { kind: "constant", seconds: 2 } },
