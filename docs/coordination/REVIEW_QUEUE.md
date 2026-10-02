@@ -16,30 +16,48 @@ Required repair:
 **Status:** checkpoint accepted — conditional PORT; waiting for Agent A v1 compatibility check.
 
 ## C — UI
-**Status:** completed checkpoint reported by user; review next.
+**Status:** **checkpoint accepted — PORT shell/architecture; v0 model/map must be replaced during integration.**
+
+Accepted:
+- React + TypeScript + Vite production direction;
+- Builder → Explore → Compare shell;
+- stale-result invalidation;
+- authoritative result consumption;
+- accessibility/responsive principles;
+- no autoplay / reduced-motion behavior.
+
+Do not promote unchanged:
+- duplicated v0 `app/src/model.ts` contract;
+- temporary linear WorkflowMap;
+- monolithic integration layout.
+
+After A v1 freeze, C may get one bounded integration pass for:
+- frozen shared types/validator;
+- React Flow + ELK DAG;
+- component split;
+- real engine adapter seam.
 
 ## D — Graphics
-**Status:** **checkpoint accepted — PORT visual grammar/tool split.**
-
-Accepted production split:
-- workflow DAG: React Flow + ELK layered if Agent C's scaffold remains React-based;
-- runtime resource/state view: structured inline SVG with fixed logical grid/named anchors;
-- static polish: Figma after runtime grammar stabilizes;
-- D2: no production dependency;
-- raster frame sequences: rejected.
-
-Coordinator review written to `agent/graphics` at `38e1a15088f35bbaebde16a79b4180542384af7d`.
-
-No more D work required until Agent F/C request a concrete production component/polish pass.
+**Status:** checkpoint accepted — PORT visual grammar/tool split.
 
 ## E — Research/validation
-**Status:** checkpoint accepted — PORT; one bounded Rao addendum requested.
+**Status:** **CLOSED/IDLE — PORT accepted after Rao verification.**
+
+Accepted:
+- IBM/QAMP Fe4S4 structural preset;
+- E1-E6 engine acceptance cases;
+- legacy assumption corrections;
+- fixed reservation / policy-wait semantics;
+- Rao equations (1)-(5), R1 synthetic fixture, R2 SQD reproduction;
+- real-time/QEC boundary documented out of v1 scope.
+
+No further E work unless targeted source verification is requested.
 
 ## F — Coordinator
 **Status:** active.
 
 Immediate F tasks:
-- review Agent C next;
-- freeze v1 after Agent A R1-R5;
-- reconcile UI scaffold with accepted D toolchain;
-- run B compatibility after v1 freeze.
+- wait for A R1-R5 repair and freeze v1;
+- then request one B compatibility pass;
+- then coordinate one C integration pass with accepted D graphics split;
+- port E evidence/presets into integration methodology/fixtures.
