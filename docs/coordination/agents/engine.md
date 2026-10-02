@@ -279,3 +279,66 @@ The 17-test repaired suite covers the requested regression cases, including E4/E
 The shared contract will now be ported to `agent/integration` as the canonical v1 interface. The engine branch remains laboratory/history; production code may be ported/reimplemented into the accepted application scaffold rather than merged wholesale.
 
 No further Agent-A work is required until integration uncovers a concrete v1 compatibility defect.
+
+
+## Round 2 task — QAMP A–D semantic acceptance suite
+
+**Status:** REOPENED for one bounded validation task. Frozen engine v1 remains unchanged unless a concrete compatibility defect is proven.
+
+### Goal
+
+Turn QAMP Scenarios A–D into **scaled, semantically faithful engine acceptance fixtures**. Do not reproduce the old frame counts literally. Use the scenarios to test the underlying mechanisms.
+
+### Required fixtures
+
+1. **Scenario A — loosely coupled overlap**
+   - local quantum dependency only;
+   - substantial independent classical work continues while QPU runs;
+   - quantum work is off the critical path;
+   - no global synchronization;
+   - no meaningful QPU queue buildup.
+   - Assert overlap and critical-path behavior from engine output.
+
+2. **Scenario B — synchronization wall**
+   - only a subset performs preparation/submission work;
+   - quantum evaluation is serialized for this preset;
+   - a later collective classical stage depends on the complete required quantum result set;
+   - fixed classical reservation may remain allocated-idle during the quantum dependency.
+   - Assert that the collective continuation cannot start early and that the stall is dependency-driven rather than admission-control-driven.
+
+3. **Scenario C — latency/data-movement wall**
+   - independent quantum-result consumers; no global barrier;
+   - communication dominates task service time;
+   - QPU is underutilized / frequently waiting for arrivals;
+   - resource queues stay small relative to the stall.
+   - Assert communication-dominated timing and low QPU utilization without inventing provider queue delay.
+
+4. **Scenario D — throughput-limited asynchronous workflow**
+   - many independent classical→QPU→classical paths;
+   - QPU capacity 1 for the preset;
+   - bounded per-pool in-flight quantum work;
+   - policy wait remains distinct from QPU resource queue;
+   - completed paths resume independently; no global barrier.
+   - Assert queue bound, positive admission wait under saturation, high QPU utilization, and independent consumer progress.
+
+### Rules
+
+- Use small/scaled counts sufficient to expose each mechanism.
+- Tests assert **behavioral invariants**, not old screenshot counts.
+- Use only frozen v1 semantics.
+- Do not add legacy Working/Idle/Blocked as engine states.
+- Do not change engine v1 merely to make an old frame reproducible.
+- If a concept cannot be expressed faithfully with frozen v1, document the exact representational gap and stop before inventing semantics.
+- Keep synthetic timings clearly labeled.
+- Do not edit the staging app on this branch.
+
+### Deliverables
+
+- a concise scenario acceptance specification;
+- executable WorkflowSpec fixtures;
+- exact regression assertions and test results;
+- explicit mapping of each fixture to its QAMP concept;
+- any proven v1 gap, if encountered;
+- exact commits/files proposed for PORT.
+
+After this checkpoint, stop for Agent F review.
