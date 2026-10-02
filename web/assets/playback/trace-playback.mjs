@@ -98,8 +98,7 @@ function activeResourceIntervals(resourceIntervals, simTimeS) {
   const byPool = {};
   for (const interval of resourceIntervals ?? []) {
     const contains = interval.startS <= simTimeS && simTimeS < interval.endS;
-    const terminalPoint = interval.startS === interval.endS && interval.startS === simTimeS;
-    if (!contains && !terminalPoint) continue;
+    if (!contains) continue;
     byPool[interval.resourcePoolId] ??= {};
     byPool[interval.resourcePoolId][interval.state] =
       (byPool[interval.resourcePoolId][interval.state] ?? 0) + interval.units;
@@ -156,18 +155,58 @@ function validateOptions(options) {
   return merged;
 }
 
-function repeatedRuns(groups) {
-  const runs = [];
-  for (let i = 0; i < groups.length;) {
-    let end = i + 1;
-    while (end < groups.length && groups[end].signature === groups[i].signature) end += 1;
-    runs.push({start: i, endExclusive: end, length: end - i, signature: groups[i].signature});
-    i = end;
+const MAX_PATTERN_GROUPS = 8;
+const MIN_PATTERN_REPEATS = 4;
+
+function periodicRunAt(groups, start, cfg) {
+  const remaining = groups.length - start;
+  const maxPeriod = Math.min(
+    MAX_PATTERN_GROUPS,
+    Math.floor(remaining / MIN_PATTERN_REPEATS),
+  );
+
+  for (let period = 1; period <= maxPeriod; period += 1) {
+    let endExclusive = start + period;
+    while (
+      endExclusive < groups.length &&
+      groups[endExclusive].signature ===
+        groups[start + ((endExclusive - start) % period)].signature
+    ) {
+      endExclusive += 1;
+    }
+
+    const matchedGroups = endExclusive - start;
+    const repeatCount = Math.floor(matchedGroups / period);
+    const fullGroups = repeatCount * period;
+    if (
+      repeatCount >= MIN_PATTERN_REPEATS &&
+      fullGroups >= cfg.repeatThreshold
+    ) {
+      return {
+        start,
+        endExclusive: start + fullGroups,
+        length: fullGroups,
+        patternLength: period,
+        patternSignature: groups
+          .slice(start, start + period)
+          .map((group) => group.signature)
+          .join(">>"),
+      };
+    }
   }
-  return runs;
+
+  return null;
 }
 
-function segmentFromGroups(groups, startIndex, endIndexInclusive, kind, repeatCount = 1) {
+function segmentFromGroups(
+  groups,
+  startIndex,
+  endIndexInclusive,
+  kind,
+  repeatCount = 1,
+  patternLength = 1,
+  signatureOverride = null,
+) {
   const slice = groups.slice(startIndex, endIndexInclusive + 1);
   const first = slice[0];
   const last = slice[slice.length - 1];
@@ -178,51 +217,71 @@ function segmentFromGroups(groups, startIndex, endIndexInclusive, kind, repeatCo
     simTimeRangeS: [first.simTimeS, last.simTimeS],
     kind,
     repeatCount,
-    signature: first.signature,
+    patternLength,
+    signature: signatureOverride ?? first.signature,
     eventTypes,
     baseLabel: first.label,
   };
 }
 
 /**
- * Compress only provably repetitive *presentation groups*: consecutive semantic
- * groups must have the same signature. The source trace is never modified.
+ * Compress only provably periodic presentation groups. A run is compressible
+ * when its semantic signature pattern repeats at least four times. The
+ * shortest matching period (up to eight groups) wins, making the result
+ * deterministic. At least one complete pattern remains explicit at each end.
+ * The exact source trace is never modified.
  */
 export function compressSemanticGroups(groups, options = {}) {
   const cfg = validateOptions(options);
   const segments = [];
 
-  for (const run of repeatedRuns(groups)) {
-    if (run.length < cfg.repeatThreshold) {
-      for (let i = run.start; i < run.endExclusive; i += 1) {
-        segments.push(segmentFromGroups(groups, i, i, "detail"));
-      }
+  for (let i = 0; i < groups.length;) {
+    const run = periodicRunAt(groups, i, cfg);
+    if (!run) {
+      segments.push(segmentFromGroups(groups, i, i, "detail"));
+      i += 1;
       continue;
     }
 
-    const headCount = Math.min(cfg.detailGroupsAtRunStart, run.length);
+    const startPatterns = Math.max(
+      1,
+      Math.ceil(cfg.detailGroupsAtRunStart / run.patternLength),
+    );
+    const endPatterns = Math.max(
+      1,
+      Math.ceil(cfg.detailGroupsAtRunEnd / run.patternLength),
+    );
+    const headCount = Math.min(run.length, startPatterns * run.patternLength);
     const remainingAfterHead = run.length - headCount;
-    const tailCount = Math.min(cfg.detailGroupsAtRunEnd, remainingAfterHead);
+    const tailCount = Math.min(
+      remainingAfterHead,
+      endPatterns * run.patternLength,
+    );
     const middleStart = run.start + headCount;
     const middleEnd = run.endExclusive - tailCount - 1;
 
-    for (let i = run.start; i < run.start + headCount; i += 1) {
-      segments.push(segmentFromGroups(groups, i, i, "detail"));
+    for (let j = run.start; j < run.start + headCount; j += 1) {
+      segments.push(segmentFromGroups(groups, j, j, "detail"));
     }
 
     if (middleStart <= middleEnd) {
+      const middleGroupCount = middleEnd - middleStart + 1;
       segments.push(segmentFromGroups(
         groups,
         middleStart,
         middleEnd,
         "compressed",
-        middleEnd - middleStart + 1,
+        middleGroupCount / run.patternLength,
+        run.patternLength,
+        run.patternSignature,
       ));
     }
 
-    for (let i = run.endExclusive - tailCount; i < run.endExclusive; i += 1) {
-      segments.push(segmentFromGroups(groups, i, i, "detail"));
+    for (let j = run.endExclusive - tailCount; j < run.endExclusive; j += 1) {
+      segments.push(segmentFromGroups(groups, j, j, "detail"));
     }
+
+    i = run.endExclusive;
   }
 
   return segments;
@@ -237,8 +296,11 @@ function segmentIsTransition(segments, index) {
 }
 
 function labelForSegment(segment) {
-  if (segment.kind === "compressed") return `${segment.baseLabel} ×${segment.repeatCount}`;
-  return segment.baseLabel;
+  if (segment.kind !== "compressed") return segment.baseLabel;
+  if (segment.patternLength > 1) {
+    return `Repeated ${segment.patternLength}-step cycle ×${segment.repeatCount}`;
+  }
+  return `${segment.baseLabel} ×${segment.repeatCount}`;
 }
 
 /**
@@ -274,6 +336,7 @@ export function buildVisualKeyframes(simulationResult, options = {}) {
       label: labelForSegment(segment),
       kind: segment.kind,
       repeatCount: segment.repeatCount,
+      patternLength: segment.patternLength,
       snapshot: snapshotAt(simulationResult, snapshotTime, segment.eventTypes),
     }));
     presentationTimeMs += dwellMs;
