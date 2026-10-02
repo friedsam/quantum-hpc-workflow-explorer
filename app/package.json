@@ -1,14 +1,15 @@
 {
   "name": "quantum-hpc-workflow-explorer-ui",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "test:engine": "node --test tests/engine.test.mjs",
+    "test:playback": "node --test tests/playback.test.mjs",
     "test:architecture": "node --test tests/architecture.test.mjs",
-    "test": "npm run test:engine && npm run test:architecture",
+    "test": "npm run test:engine && npm run test:playback && npm run test:architecture",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview"
   },

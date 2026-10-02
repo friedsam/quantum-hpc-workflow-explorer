@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { SimulationResult, WorkflowSpec } from "../../domain/types";
 import { WorkflowDag } from "../graph/WorkflowDag";
 import { projectWorkflowDag } from "../graph/projectWorkflow";
 import { MetricsGrid } from "./MetricsGrid";
+import { PlaybackPanel } from "./PlaybackPanel";
 import { QueueEvidence, Assumptions } from "./ResultEvidence";
 import { ResourceStateDiagram } from "./ResourceStateDiagram";
 import { ResourceTimeline } from "./ResourceTimeline";
@@ -16,6 +17,9 @@ interface Props {
 
 export function ExploreView({ spec, result, onReturnToBuilder }: Props) {
   const [inspectionTimeS, setInspectionTimeS] = useState(0);
+  const playbackTimeChanged = useCallback((simTimeS: number) => {
+    setInspectionTimeS(simTimeS);
+  }, []);
 
   if (!result) {
     return (
@@ -36,12 +40,13 @@ export function ExploreView({ spec, result, onReturnToBuilder }: Props) {
         <div>
           <p className="section-kicker">Inspect</p>
           <h2>Explore result</h2>
-          <p>The frozen v1 engine is authoritative for execution order, state intervals, queues and metrics.</p>
+          <p>The frozen v1 engine is authoritative; playback compresses presentation only and preserves source-event ranges.</p>
         </div>
       </div>
 
       <WorkflowDag model={projectWorkflowDag(spec)} />
       <MetricsGrid spec={spec} result={result} />
+      <PlaybackPanel result={result} onTimeChange={playbackTimeChanged} />
 
       <section className="surface time-inspector" aria-labelledby="time-inspector-heading">
         <div>
@@ -57,7 +62,7 @@ export function ExploreView({ spec, result, onReturnToBuilder }: Props) {
           value={inspectionTime}
           onChange={(event) => setInspectionTimeS(Number(event.target.value))}
         />
-        <span className="muted-label">Manual inspection only; Agent B playback will drive the same presentation boundary after compatibility review.</span>
+        <span className="muted-label">Playback drives this time automatically; manual scrubbing remains available while paused.</span>
       </section>
 
       <ResourceStateDiagram spec={spec} result={result} simTimeS={inspectionTime} />
