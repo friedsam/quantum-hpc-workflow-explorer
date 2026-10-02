@@ -2,28 +2,19 @@
 
 Updated: 2026-10-02
 
-| Track | Owns | Current dependency | Primary integration risk | Current status |
-|---|---|---|---|---|
-| A Engine | workflow semantics + DES + metrics | coordinator R1-R5 | semantic debt before freeze | repair pass requested |
-| B Playback | trace compression + pacing | frozen A v1 | trace compatibility | checkpoint accepted; conditional PORT |
-| C UI | product interaction | frozen A v1 + D visual grammar | stale duplicated contract / monolith | checkpoint accepted; PORT |
-| D Graphics | visual toolchain | C production scaffold | multiple graphics stacks | checkpoint accepted; PORT |
-| E Research | literature/QAMP validation | none | none | CLOSED/IDLE; PORT accepted |
-| F Integration | contracts + promotion + product | all tracks | coordination bottleneck | active |
+| Track | Accepted contribution | Production location/status |
+|---|---|---|
+| A Engine | frozen v1 DES + tests | `app/src/engine/`; staged |
+| B Playback | semantic keyframes + periodic compression + controller | `app/src/playback/`; staged |
+| C UI | editable Builder / Explore / Compare app | `app/`; staged |
+| D Graphics | React Flow+ELK DAG + structured SVG state view | implemented in C staging app |
+| E Research | A-D acceptance framing, IBM/QAMP preset, Rao analytical baseline | evidence retained for methodology/presets |
+| F Integration | curation, staging, E2E, deployment, main promotion | active |
 
-## Accepted product direction
+## Current integration risks
 
-- Core semantics: Agent A repaired/frozen v1.
-- Analytical diagnostic: Rao model from Agent E, separate from DES.
-- Playback: Agent B semantic keyframes, compatible with v1 trace.
-- Product shell: Agent C React/TypeScript/Vite.
-- Workflow DAG: React Flow + ELK.
-- Runtime resource/state view: structured inline SVG/grid/anchors.
-- Static polished figures: Figma after runtime visuals stabilize.
-
-## Current cross-track issues
-
-1. A must complete R1-R5 before v1 freeze.
-2. B then performs one real-trace compatibility pass.
-3. C then replaces v0 local types/map with frozen shared contract + React Flow/ELK and splits integration components.
-4. E has no remaining scheduled work.
+1. No browser-level E2E/visual smoke test yet.
+2. Current deployment still points at legacy `web/`, not the new `app/`.
+3. User-facing repeat/template authoring is deferred; custom workflows are currently explicit DAGs.
+4. Bundle is large enough to warrant later code-splitting review, but this is not a functional blocker.
+5. No dependency lockfile is committed yet.
