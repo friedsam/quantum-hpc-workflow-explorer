@@ -31,11 +31,16 @@ Do not promote unchanged:
 - temporary linear WorkflowMap;
 - monolithic integration layout.
 
-After A v1 freeze, C may get one bounded integration pass for:
+After A v1 freeze, C gets one bounded integration pass for:
 - frozen shared types/validator;
-- React Flow + ELK DAG;
+- React Flow + ELK **editable DAG**;
+- creation/deletion/editing of supported tasks and dependencies, not only preset parameter editing;
+- resource-pool and supported policy editing needed to define a custom WorkflowSpec;
 - component split;
-- real engine adapter seam.
+- real engine adapter seam;
+- simulate → Explore/animate → Compare flow for user-created workflows.
+
+A–D should ship as loadable presets/templates, but users must not be confined to them.
 
 ## D — Graphics
 **Status:** checkpoint accepted — PORT visual grammar/tool split.
