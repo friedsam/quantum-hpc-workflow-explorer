@@ -33,3 +33,9 @@
 ## D008 — Historical prototype retained
 **Date:** 2026-10-02  
 **Decision:** Keep `prototype-vqe-runner` untouched as historical evidence; port selectively only after review.
+
+
+## D009 — QAMP Scenarios A–D are the first acceptance suite
+**Date:** 2026-10-02  
+**Decision:** Scenarios A–D from the QAMP documentation are the first workflow fixtures used to validate the rebuilt generic engine and visualization pipeline. They must be regenerated from the new model rather than preserved as hand-coded state machines. The IBM Fe4S4 SQD workflow is a later serious real-workflow reference preset, not the primary acceptance suite.  
+**Reason:** The Explorer was originally created to make these orchestration patterns actionable; they collectively exercise handoff/overlap, global synchronization, latency/data movement, and bounded asynchronous submission more directly than SQD does.
