@@ -27,7 +27,7 @@ Do not:
 
 ## Current status
 
-**Checkpoint 1 complete; pending Agent F contract/promotion review.**
+**Bounded repair R1-R5 complete; pending Agent F v1 freeze.**
 
 ### Verified implementation/result
 
@@ -231,3 +231,33 @@ Do not merge the whole branch into main. After the repair:
 - engine implementation/tests will then be ported or rehomed into the production scaffold.
 
 No additional engine features beyond R1-R5 are requested in this pass.
+
+
+## Agent A repair response — 2026-10-02
+
+**R1-R5 complete; ready for Agent F freeze review.**
+
+[verified] Implemented:
+- `fixedReservationByPool` with reservation-constrained CPU/GPU concurrency, allocated-idle inside reservation, released capacity outside it, and exact E5 accounting.
+- `maxInFlightQuantumByPool` with per-QPU admission state, exact E4 behavior, and a multi-QPU independence regression.
+- same-timestamp causal closure before admission/start decisions.
+- immediate zero-cost control-edge release with no communication events.
+- half-open `[startS,endS)` intervals; no `complete` TaskInterval; `aggregateCommunicationSeconds`.
+- public validator now returns `true` as declared; internal preparation state is private.
+
+[verified] Validation: `node --test engine/tests/engine.test.mjs` => **17/17 passed, 0 failed**.
+
+[verified] Executed files matched current Git blobs:
+- `engine/index.mjs` — `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`
+- `engine/tests/engine.test.mjs` — `059277fbf0a1dfa40d01339da1e7b4e317508291`
+- `engine/examples/minimal.mjs` — `273be1f4b56a45dccab3309ad69a968980ad5c09`
+
+Reference result remains makespan 9.25 s, QPU queue wait 3 s, admission wait 0 s, aggregate communication 1.5 s.
+
+Promotion files: `engine/index.mjs`, `engine/types.d.ts`, `engine/examples/minimal.mjs`, `engine/tests/engine.test.mjs`, `engine/README.md`, and `docs/coordination/proposals/ENGINE_INTERFACE_V1.md`.
+
+Investigation-only files: none. Dependencies added: none. Deferred scope remains exactly as in Agent F's review.
+
+One retained metric convention: `utilizationByPool` is normalized to total modeled pool capacity over makespan; reservation/allocation accounting is exposed separately through active/allocated/idle/released resource-seconds.
+
+**Recommended status: PORT / FREEZE v1.**
