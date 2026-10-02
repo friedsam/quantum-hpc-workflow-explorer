@@ -22,6 +22,10 @@ function coveredSeqs(keyframes) {
   return seqs;
 }
 
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 test("same SimulationResult produces byte-equivalent keyframes", () => {
   const result = makeScenarioDLikeResult({cycles: 1000});
   const a = buildVisualKeyframes(result);
@@ -44,7 +48,7 @@ test("1000-cycle repetitive regime compresses without losing source trace covera
 
 test("compressed segment is presentation-only and metrics are untouched", () => {
   const result = makeScenarioDLikeResult({cycles: 250});
-  const metricsBefore = structuredClone(result.metrics);
+  const metricsBefore = clone(result.metrics);
   const frames = buildVisualKeyframes(result);
 
   assert.deepEqual(result.metrics, metricsBefore);
@@ -140,7 +144,7 @@ test("frozen v1 engine trace snapshots respect half-open interval semantics", ()
 });
 
 test("zero-width intervals are empty under frozen v1 half-open semantics", () => {
-  const result = structuredClone(engineV1MinimalResult);
+  const result = clone(engineV1MinimalResult);
   result.resourceIntervals.push({
     resourcePoolId: "cpu",
     startS: 9.25,
