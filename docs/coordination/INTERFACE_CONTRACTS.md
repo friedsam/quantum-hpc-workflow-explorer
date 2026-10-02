@@ -1,28 +1,23 @@
 # Shared Interface Contracts
 
 Owner: Agent F  
-Status: **v0 provisional**  
+Status: **v1 FROZEN for 10-day integration**  
 Updated: 2026-10-02
 
-The goal is to let A/B/C/D/E work independently without creating separate execution models.
+The shared product contract is now frozen unless Agent F records a concrete compatibility defect.
 
-Agent A should propose implementation-ready v1. Agent F decides the accepted version.
+## Product boundary
 
-## Non-negotiable semantic boundaries
+The core product is a generic user-authored workflow explorer:
 
-1. Task state and resource-allocation state are distinct.
-2. Queue state is distinct from task/resource state.
-3. Communication/transfer is represented by dependency/event cost.
-4. Metrics are derived from the simulation trajectory, not independently recomputed by UI/playback.
-5. Presentation time may differ from simulation time.
-6. Playback may aggregate repeated events but cannot alter final counts/metrics/order constraints.
-7. QPU capacity is configurable.
-8. Initial loops are bounded repeated subgraphs/templates and may be unrolled internally.
+`create/edit WorkflowSpec → validate → simulate → inspect/animate SimulationResult → compare alternatives`
 
-## Provisional workflow shape
+QAMP Scenarios A-D are the first acceptance/preset suite. IBM Fe4S4 SQD is a later real-workflow reference preset.
+
+## Engine input
 
 ```ts
-type ResourceKind = "cpu" | "gpu" | "qpu" | "network";
+type ResourceKind = "cpu" | "gpu" | "qpu";
 
 interface WorkflowSpec {
   id: string;
@@ -31,16 +26,15 @@ interface WorkflowSpec {
   dependencies: DependencySpec[];
   resources: ResourcePoolSpec[];
   policy: PolicySpec;
-  repeats?: RepeatSpec[];
+  assumptions?: string[];
 }
 
 interface TaskSpec {
   id: string;
   label: string;
-  resourceKind: ResourceKind;
+  resourcePoolId: string;
   resourceCount: number;
-  serviceTime: TimeModel;
-  batchable?: boolean;
+  serviceTime: { kind: "constant"; seconds: number };
   metadata?: Record<string, unknown>;
 }
 
@@ -62,22 +56,60 @@ interface ResourcePoolSpec {
 
 interface PolicySpec {
   allocation: "fixed" | "release-aware";
-  maxInFlightQuantum?: number;
-  batching?: number;
+  fixedReservationByPool?: Record<string, number>;
+  maxInFlightQuantumByPool?: Record<string, number>;
 }
 ```
 
-Exact names/fields may change at v1.
+### Semantics
 
-## Simulation output contract
+- Tasks bind to explicit resource pools.
+- Input to the DES core is an already-expanded DAG.
+- Bounded-repeat/template expansion happens before simulation.
+- `capacity` is available modeled pool capacity; fixed classical reservation is separate.
+- Under fixed allocation, CPU/GPU task concurrency is limited by the reservation; unused reserved units are `allocated-idle`; capacity outside the reservation is `released`.
+- Under release-aware allocation, CPU/GPU capacity is allocated on demand up to pool capacity.
+- QPU capacity is on-demand/released in v1.
+- `maxInFlightQuantumByPool` is per QPU pool.
+- in-flight quantum work = running + QPU-resource-queued admitted tasks.
+- dependency-ready work held by policy remains ready/policy-waiting and does not increase QPU resource queue depth.
+- pool queueing is deterministic FIFO with workflow task order as tie-break; no backfilling.
+- network contention, stochastic service time, live provider queues and arbitrary dynamic control flow are outside v1.
 
-The engine owns exact simulation state.
+## Dependency / communication semantics
+
+For positive modeled transfer:
+
+`transferS = fixedLatencyS + dataBytes / bandwidthBytesPerS`
+
+- zero-cost dependencies are pure control edges and release immediately;
+- zero-cost edges emit no communication events;
+- positive-duration transfers emit communication start/complete events;
+- independent transfers may overlap;
+- `aggregateCommunicationSeconds` is the sum of positive modeled transfer durations, not wall-clock or critical-path communication time.
+
+## Equal-time rule
+
+At simulation time `t`:
+
+1. process completion/dependency-release consequences to causal closure;
+2. perform admission and resource-start decisions;
+3. if zero-duration started tasks complete at `t`, process another same-time causal round.
+
+## Simulation output
 
 ```ts
 interface SimulationEvent {
   seq: number;
   simTimeS: number;
-  type: string;
+  type:
+    | "task_ready"
+    | "task_throttled"
+    | "task_queued"
+    | "task_started"
+    | "task_completed"
+    | "communication_started"
+    | "communication_completed";
   taskId?: string;
   resourcePoolId?: string;
   metadata?: Record<string, unknown>;
@@ -96,7 +128,7 @@ interface TaskInterval {
   taskId: string;
   startS: number;
   endS: number;
-  state: "ready" | "running" | "waiting" | "complete";
+  state: "ready" | "queued" | "running";
 }
 
 interface QueueSample {
@@ -108,10 +140,15 @@ interface QueueSample {
 interface Metrics {
   makespanS: number;
   utilizationByPool: Record<string, number>;
+  activeResourceSecondsByPool: Record<string, number>;
   allocatedResourceSecondsByPool: Record<string, number>;
   idleAllocatedResourceSecondsByPool: Record<string, number>;
+  releasedResourceSecondsByPool: Record<string, number>;
   queueWaitSecondsByPool: Record<string, number>;
-  communicationSeconds: number;
+  admissionWaitSecondsByPool: Record<string, number>;
+  aggregateCommunicationSeconds: number;
+  costByPool: Record<string, number>;
+  totalCost: number;
 }
 
 interface SimulationResult {
@@ -125,44 +162,37 @@ interface SimulationResult {
 }
 ```
 
+All intervals are half-open: `[startS, endS)`. Completion is authoritative via `task_completed`; there is no zero-width completion interval.
+
 ## Playback contract
 
-Agent B may derive presentation artifacts:
-
-```ts
-interface VisualKeyframe {
-  presentationTimeMs: number;
-  sourceEventSeqRange: [number, number];
-  simTimeRangeS: [number, number];
-  label: string;
-  snapshot: VisualSnapshot;
-}
-```
-
-A `VisualKeyframe` must reference the source event range that produced it.
-
-Playback rules:
-- exact simulation trace remains intact;
-- repetitive regimes may be compressed;
-- first/last/decision events may be slowed for human comprehension;
-- minimum dwell time is a presentation concern only.
+Agent B may derive presentation-only keyframes from `SimulationResult`. Playback may compress repetitive trace regions and alter presentation dwell time, but may not reorder simulation causality or recalculate metrics. Every keyframe must retain source event sequence provenance.
 
 ## UI contract
 
-Agent C consumes `WorkflowSpec` and `SimulationResult`.
+Agent C consumes the frozen `WorkflowSpec` and `SimulationResult`.
 
 The UI may:
-- edit supported workflow/policy parameters;
-- request a simulation;
-- render graph/timeline/metrics/comparison;
-- derive purely presentational labels/formatting.
+- create/add/delete/edit supported tasks and dependencies;
+- create/edit resource pools and supported policy fields;
+- validate structural input;
+- request simulation;
+- render graph/timeline/metrics/playback/comparison;
+- derive presentation-only formatting/deltas.
 
 The UI may not:
-- invent queue depth;
-- compute makespan independently;
-- infer hidden resource state;
+- maintain a second canonical workflow/result type system;
+- invent queue depth, policy wait or resource state;
+- calculate authoritative makespan/utilization/cost;
 - alter engine ordering/dependency semantics.
+
+## Graphics contract
+
+- editable workflow DAG: React Flow + ELK layered;
+- runtime resource/state view: structured inline SVG with stable logical grid/named anchors;
+- auto-layout runs only on topology/size changes, not playback updates;
+- Figma is optional for later static polish, not runtime truth.
 
 ## Change process
 
-To change this contract, record the proposal in the relevant role/status document and flag it in `REVIEW_QUEUE.md`. Agent F records the accepted change in `DECISION_LOG.md`.
+Any v1 change requires a concrete compatibility defect, affected producer/consumer analysis, migration impact, and regression test. Agent F records the accepted change in DECISION_LOG.
