@@ -92,3 +92,60 @@ Agent F/A must accept or reject these semantics before they become shared contra
 - **Known failure/discarded approach:** legacy additive Runner is not suitable as authoritative timing/cost model; legacy hand-coded scenario counters are not suitable engine semantics.
 - **Unresolved risk:** exact production service/queue times are not supported by sources and must remain user/synthetic inputs.
 - **Recommended promotion decision:** **PORT**.
+
+
+## Coordinator review — 2026-10-02
+
+**Agent F decision:** **PORT — accepted checkpoint, with one bounded follow-up before research track closes.**
+
+### Independently verified
+
+Agent F checked the highest-impact claims against current IBM/Qiskit sources and the current `qiskit-community/qiskit-c-api-demo` source:
+
+- Current Qiskit C API is documented as a low-level interface to the Qiskit core data model, not itself the provider queue/scheduler abstraction.
+- IBM's Fe4S4 SQD demo explicitly states that only the classical eigensolver is MPI-orchestrated and quantum integration occurs at rank 0.
+- Current `src/main.cpp` performs one sampler execution outside the recovery loop; the bounded recovery/subsample/SBD loop follows that sampling step.
+- IBM Quantum Compute documentation states that classical preprocessing for multiple jobs can overlap while only one job at a time executes on the QPU.
+- IBM fair-share scheduling is dynamic, so a fixed deterministic provider-queue delay must not be presented as a measured IBM property.
+- QRMI/Slurm documentation permits resource configurations with multiple execution lanes, supporting the decision to keep engine QPU capacity configurable rather than globally fixed at one.
+- Qiskit 2.3.1 is currently listed as end-of-life while current stable documentation is newer; 2.3 should remain historical QAMP context.
+
+### Accepted for PORT into shared design
+
+- IBM/QAMP Fe4S4 SQD preset topology.
+- Removal/demotion of legacy assumptions listed in the validation matrix.
+- Acceptance fixtures E1-E6, subject to Agent A/F contract reconciliation.
+- Definition of policy wait vs resource queue for `maxInFlightQuantum`.
+- Need for explicit fixed-reservation semantics distinct from instantaneous active usage.
+- External/provider delay must be explicit synthetic/user input or omitted; no provider scheduler in v1.
+
+### One bounded follow-up required
+
+The checkpoint validates the Hockney/alpha-beta communication term, but it does not yet validate the full Rao et al. 2026 analytical model requested by the new project technical note.
+
+Add a concise section covering only implementation-relevant Rao quantities:
+
+- `T_cycle = T_C + T_Q + T_comm`
+- `T_C = C_C / tau_C`
+- `T_Q = C_Q / tau_Q`
+- `T_comm = F(L + V/B)`
+- `R_cc = T_comm / (T_Q + T_C)`
+- distinguish blocking exchange frequency `F` from shot count;
+- state clearly that this analytical cycle-average model is a baseline/diagnostic and does not replace the event simulator;
+- propose the smallest deterministic validation fixture(s), preferably including one published SQD reference check or order-of-magnitude reproduction from Rao.
+
+Do not expand into real-time/QEC modeling unless needed to explain scope exclusion.
+
+### Interface handling
+
+Do not modify shared interfaces directly. Agent F will reconcile R1-R3 with Agent A's v1 proposal.
+
+### Promotion scope
+
+Research prose is not to be merged wholesale into product UI. Agent F will port:
+- validated facts;
+- the serious IBM/QAMP preset;
+- acceptance cases;
+- explicit assumption labels.
+
+After the bounded Rao addendum, Agent E can stop unless Agent F requests a later source check.
