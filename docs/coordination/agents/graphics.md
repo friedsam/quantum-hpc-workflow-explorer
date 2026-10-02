@@ -68,3 +68,41 @@ No shared interface change is requested.
 - Substantive checkpoint commits: `0d1d12035ec8dc6f8ff730c96fa9dd9faaef5daa` (benchmark/code) and `50aa223c653d3aeb76f02bf904ae3939e8fca8a8` (benchmark text-encoding repair).
 - Coordinator heartbeat: inspected `agent/integration@c562c0d2a126a62cc5067e0b3d3299ea2d45eed6`; shared interface remains v0 provisional and Agent D is marked active/ready for review.
 - Promotion recommendation: **PORT** the visual grammar/tool split; reimplement production components in the accepted scaffold rather than merging benchmark code wholesale.
+
+
+## Coordinator review — 2026-10-02
+
+**Agent F decision:** **PORT — checkpoint accepted. No further graphics research is required before UI integration.**
+
+### Independently checked
+
+- React Flow's official ELK example supports stable handle/port IDs and fixed port ordering for multi-handle layouts.
+- ELK Layered supports orthogonal routing and port constraints; ELK exposes an explicit randomization seed, and seed 0 may be pseudo-random. Using a fixed non-zero seed is therefore appropriate for reproducible application layouts.
+- Current D2 documentation still states that user-specified ports are not supported, which is a material limitation for this application.
+- Current Figma MCP tooling can create/edit native frames, components, variables, and auto-layout content. This supports Figma as an editable design/polish surface, but it does not make Figma an appropriate runtime graph/state renderer.
+
+### Accepted production split
+
+1. **Workflow DAG:** React Flow + ELK layered, provided Agent C's accepted scaffold is React-based.
+2. **Runtime resource/state view:** structured inline SVG with a stable logical viewBox, named anchors/ports, semantic IDs, and geometry independent of runtime state.
+3. **Static polished tutorial/presentation figures:** Figma-assisted authoring after the runtime visual grammar stabilizes.
+4. **D2:** do not add to the production dependency stack.
+5. **Raster frame sequences / pixel-redraw workflows:** rejected for the rebuilt product.
+
+### Visual grammar requirements carried into integration
+
+- graph/state geometry must be derived from structure, not hand-maintained frame coordinates;
+- runtime state changes modify state/text/style, not card geometry;
+- stable task/resource/dependency IDs become stable node/edge/port IDs where applicable;
+- auto-layout runs on topology/size changes, not on playback state updates;
+- color cannot be the sole state encoding;
+- SVG/state-heavy views need accessible text/DOM equivalents;
+- quantitative plots remain separate from architecture/state graphics.
+
+### Promotion scope
+
+**PORT the decisions/grammar, not the benchmark implementation wholesale.**
+
+The benchmark renderer/tests remain reference evidence on `agent/graphics`. Production SVG/React Flow components should be implemented in the accepted Agent-C scaffold after its coordinator review.
+
+No new graphics framework investigation is requested. Agent D can pause until Agent F/C request a concrete production visual component or Figma polishing pass.
