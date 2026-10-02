@@ -342,3 +342,68 @@ Turn QAMP Scenarios A–D into **scaled, semantically faithful engine acceptance
 - exact commits/files proposed for PORT.
 
 After this checkpoint, stop for Agent F review.
+
+
+## Agent A Round 2 response — 2026-10-02
+
+**Status:** **Round 2 complete; ready for Agent F review. Frozen v1 unchanged.**
+
+### Deliverables
+
+- `engine/fixtures/qamp-scenarios.mjs`
+  - executable scaled `WorkflowSpec` fixtures for QAMP A-D;
+  - all synthetic timings explicitly labeled in `assumptions`.
+- `engine/tests/qamp-scenarios.test.mjs`
+  - behavioral acceptance assertions for all four scenarios.
+- `docs/coordination/proposals/QAMP_SCENARIO_ACCEPTANCE.md`
+  - concise semantic specification and mapping to QAMP concepts.
+
+### Scenario mapping
+
+- **A — loosely coupled overlap:** local quantum dependency; independent classical work overlaps QPU; quantum path completes before the independent classical critical path; no queue/admission stall.
+- **B — synchronization wall:** subset preparation; serial QPU; later collective depends on both quantum results; fixed CPU reservation remains allocated-idle; admission wait is zero.
+- **C — latency/data-movement wall:** independent result consumers; long modeled dependency communication; low QPU utilization and zero resource-queue wait; no provider queue delay.
+- **D — throughput-limited asynchronous:** six independent CPU→QPU→CPU paths; QPU capacity 1; per-pool in-flight bound 2; queue depth bounded at 1; positive policy/admission wait; local consumers resume before global drain.
+
+### Regression results
+
+Round 2 command:
+
+```bash
+node --test engine/tests/qamp-scenarios.test.mjs
+```
+
+Result: **5/5 passed, 0 failed**.
+
+The test run used the frozen engine implementation corresponding to Git blob:
+`engine/index.mjs` = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`.
+
+Frozen-v1 engine code/types were not modified in Round 2.
+
+### Exact expected behaviors asserted
+
+- A: QPU `[1,5)`; local consumer complete 6 s; independent classical complete/makespan 10 s; QPU queue/admission wait 0.
+- B: quantum completes 4 s / 6 s; collective starts 6 s; makespan 7 s; admission wait 0; fixed CPU allocated 28 resource-s, idle 22 resource-s.
+- C: QPU starts 5/9/13 s; makespan 18 s; aggregate modeled communication 36 s; QPU queue/admission wait 0; QPU utilization < 10%; first consumer starts before third QPU task.
+- D: makespan 13 s; max QPU resource queue depth 1; queue wait 10 s; admission wait 20 s; QPU utilization > 90%; first consumer 2.5 s while final QPU completes 12.5 s.
+
+### v1 compatibility result
+
+**No representational gap found.**
+
+All required A-D mechanisms are expressible with frozen v1 DAG/resource/dependency/admission semantics. No legacy `Working / Idle / Blocked` state, old screenshot count, provider-queue assumption, or new engine ontology was introduced.
+
+### Promotion scope
+
+Proposed for **PORT**:
+- `engine/fixtures/qamp-scenarios.mjs` — commit `a533019c682398f7561e06581bbc748f233c797f`
+- `engine/tests/qamp-scenarios.test.mjs` — commit `2f43d3e79def5473dbcbd6897b3a30873c52223b`
+- `docs/coordination/proposals/QAMP_SCENARIO_ACCEPTANCE.md` — commit `d5940ff7ba066480b45029059f0a0036ee4ad65b`
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Interface changes requested: none.  
+Known failures/discarded approaches: literal legacy frame/count reproduction was intentionally not used.  
+Unresolved risks: synthetic timings are acceptance values only and must not be presented as measured performance.
+
+**Recommended promotion decision: PORT. After review, stop unless Agent F identifies a concrete acceptance defect.**
