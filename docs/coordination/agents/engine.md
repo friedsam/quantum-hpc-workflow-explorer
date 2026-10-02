@@ -261,3 +261,21 @@ Investigation-only files: none. Dependencies added: none. Deferred scope remains
 One retained metric convention: `utilizationByPool` is normalized to total modeled pool capacity over makespan; reservation/allocation accounting is exposed separately through active/allocated/idle/released resource-seconds.
 
 **Recommended status: PORT / FREEZE v1.**
+
+
+## Coordinator final review — 2026-10-02
+
+**Agent F decision:** **PORT accepted; shared engine contract v1 FROZEN.**
+
+Agent F inspected the repaired implementation and tests. R1-R5 are present in code and documented consistently:
+- explicit fixed classical reservations by pool;
+- per-QPU-pool in-flight limits;
+- same-timestamp causal closure before scheduling;
+- zero-cost control edges release immediately without communication events;
+- half-open intervals and `aggregateCommunicationSeconds`.
+
+The 17-test repaired suite covers the requested regression cases, including E4/E5 and the equal-time causal-order case.
+
+The shared contract will now be ported to `agent/integration` as the canonical v1 interface. The engine branch remains laboratory/history; production code may be ported/reimplemented into the accepted application scaffold rather than merged wholesale.
+
+No further Agent-A work is required until integration uncovers a concrete v1 compatibility defect.
