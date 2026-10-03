@@ -532,3 +532,78 @@ Frozen interface changes requested: none.
 Known limitations: repeat blocks are intentionally bounded/minimal; no cross-repeat-block edge semantics; no stochastic/resource-dependent timing; no optimizer.
 
 **Recommended promotion decision: PORT the architecture/compiler above frozen v1. Stop after Agent F review.**
+
+
+## Coordinator Round 2C review — 2026-10-03
+
+**Agent F decision:** **PORT after one very small persistence/provenance repair. Frozen DES remains unchanged.**
+
+### Accepted architecture
+
+The separation is accepted:
+
+- `WorkflowDesign` = stable authored topology/intent;
+- `RunConfiguration` = per-run resource/policy choices;
+- `SystemProfile` = system-specific timing/communication/cost assumptions + provenance;
+- pure compile step -> existing frozen `WorkflowSpec`;
+- `RunRecord` = exact reproducibility envelope.
+
+Also accepted:
+- bounded repeat/template expansion above DES;
+- constant service times remain valid for the current product;
+- no rank-count optimization unless a future timing model explicitly depends on resource count/system;
+- actor/rank groups remain optional semantic metadata and do not become DES states;
+- current direct WorkflowSpec path may remain as compatibility/import path.
+
+### Required small repair R2C-1 — schema versions on persisted top-level inputs
+
+Add explicit `schemaVersion: 1` to:
+- `WorkflowDesign`;
+- `RunConfiguration`;
+- `SystemProfile`.
+
+Validate them in the compiler.
+
+Reason: these objects are intended to be saved/imported and will likely evolve (actor bindings, performance-response models, parameter domains). Version them before persistence hardens.
+
+### Required small repair R2C-2 — explicit compilation manifest
+
+Do not make downstream UI/debugger/optimizer code reverse-engineer generated IDs such as `task@repeat:2`.
+
+Add a presentation/provenance-only compilation manifest outside frozen DES that records, at minimum:
+
+- compiled task id -> stable design task id + repeat block/id/ordinal + timing key;
+- compiled dependency id -> stable design dependency/carry id + repeat ordinal(s) + communication key;
+- compiled resource id -> run resource id + cost key;
+- resolved assumption provenance references where practical.
+
+Preferred shape:
+
+```ts
+interface CompilationResult {
+  workflowSpec: WorkflowSpec;
+  manifest: CompilationManifest;
+}
+```
+
+You may preserve `compileWorkflowDesign(...): WorkflowSpec` as a compatibility wrapper and add a detailed compiler API, rather than changing all callers.
+
+Store the manifest in `RunRecord`.
+
+This is not DES semantics. It is stable traceability from authored model -> expanded concrete simulation instance.
+
+### Actor/rank guardrail
+
+The current `actorGroups + actorGroupIds + actorGroupCounts` is accepted as a **future hook only**.
+
+Do not claim it is already sufficient for exact rank-level Working/Blocked/Idle accounting. Exact actor accounting will later need explicit actor participation/affinity semantics. The important requirement now is that stable actor-group identity is not discarded.
+
+### Validation
+
+Agent A reports 5/5 design/compiler checks passing. Source review confirms the compiler does not alter frozen-v1 DES behavior and the QAMP-A compile path reproduces the existing acceptance result.
+
+After R2C-1/R2C-2:
+- add focused regression tests for schema-version rejection and manifest mapping through one repeated block;
+- stop for Agent F review.
+
+No other architecture changes are requested.
