@@ -97,3 +97,20 @@ Before substantial cross-branch integration, Agent F needs:
 - E: validation matrix + QAMP/IBM preset definition.
 
 No track needs to wait idly for another track, but no track may invent conflicting semantics.
+
+
+## Visual debugger product thesis
+
+The Explorer should differentiate through **human-readable visual execution**, not by attempting to out-schedule or out-optimize mature orchestration systems.
+
+North-star interaction:
+- user authors or loads a workflow DAG;
+- user runs a transparent deterministic simulation;
+- the Explorer can slow/step through semantic execution states;
+- DAG, whole-system HPC/QPU state, and analytical time-series views remain synchronized;
+- users can inspect *why* resources are working, blocked/waiting, policy-held, idle, queued, or released;
+- aggregate plots explain the full run while slow playback explains a selected moment.
+
+This is inspired by the successful LabVIEW interaction model (graphical block diagram + front-panel indicators + execution highlighting/probes), while preserving an important distinction: the Explorer DAG is a declarative simulation model, not executable HPC/QPU program code.
+
+Optimization may be added later as parameter-sweep/Pareto assistance, but explainability and direct manipulation remain the primary product differentiation.
