@@ -220,3 +220,73 @@ PORT the UI architecture documentation.
 REPLACE the branch-specific CI workflow with an integration/main app-validation workflow.
 
 Agent C can pause after this review. Future C work should be driven by browser/E2E findings or the bounded-repeat authoring task.
+
+
+## Round 3 task — integrate accepted model, scenarios, causal debugger
+
+Status: REOPENED for the main product integration pass.
+
+### Inputs now frozen/accepted
+
+Read from `agent/integration`:
+- `docs/coordination/INTERFACE_CONTRACTS.md`
+- `docs/coordination/QAMP_SCENARIO_ACCEPTANCE.md`
+- `docs/coordination/CAUSAL_SYSTEM_STATE.md`
+- `docs/coordination/DESIGN_CONFIGURATION_LAYER.md`
+- `docs/coordination/FULL_SYSTEM_VISUAL_LANGUAGE.md`
+
+Read Agent A's accepted compiler implementation from `agent/engine` Round 2C.
+
+### Required integration
+
+1. **Design/config/profile layer**
+   - port/rehome the accepted versioned WorkflowDesign / RunConfiguration / SystemProfile / RunRecord types and pure compiler into the app;
+   - use CompilationManifest for authored-to-compiled provenance;
+   - keep frozen DES runtime unchanged;
+   - keep direct WorkflowSpec import/compatibility path if useful.
+
+2. **A-D presets**
+   - replace the approximate current A-D presets with the accepted Round-2 scenario fixtures/semantics;
+   - preserve synthetic/provenance labels;
+   - validate expected A-D behavioral assertions in app tests.
+
+3. **Causal explanation adapter**
+   - implement the accepted derived SystemStateSnapshot/explanation layer from WorkflowSpec + SimulationResult;
+   - keep exact resource state separate from causal task/dependency explanations;
+   - do not invent generic blocked-rank counts;
+   - preserve hooks for optional actor/rank groups without claiming exact actor accounting yet.
+
+4. **Full-system debugger view**
+   - replace/upgrade the current simple runtime card using the accepted Agent-D visual language;
+   - exact resource plane + causal explanation plane + DAG lens + linked analytical strips;
+   - one simulation-time cursor drives runtime state, DAG highlighting and semantic playback;
+   - keep geometry stable; no raw-event blinking;
+   - Scenario B and D should visibly demonstrate their distinct bottlenecks.
+
+5. **Current functionality must remain**
+   - custom DAG authoring;
+   - simulate;
+   - semantic playback;
+   - save run;
+   - compare real runs.
+
+### Explicit non-goals for this pass
+
+- no optimizer;
+- no broad landing-page/UI redesign;
+- no calibrated rank-scaling model;
+- no persistent actor-state engine;
+- no provider scheduler;
+- no deployment/main merge yet.
+
+### Validation
+
+Add/adjust tests so the branch verifies:
+- compiler/schema/manifest integration;
+- A-D behavioral acceptance;
+- causal explanation derivation;
+- existing engine/playback/architecture tests;
+- TypeScript;
+- Vite production build.
+
+Stop after a green checkpoint for Agent F review.
