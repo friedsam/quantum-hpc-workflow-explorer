@@ -255,3 +255,59 @@ PORT:
 Rehome/rewrite paths as needed in the React/TypeScript scaffold. Do not merge the laboratory branch wholesale.
 
 No further Agent-B work is required unless integration reveals a concrete compatibility defect.
+
+
+## Round 2B task — causal system-state derivation
+
+**Status:** REOPENED for one bounded diagnostic task.
+
+Agent F has reconciled A/E and accepted the A-D execution mechanisms. Frozen engine v1 remains unchanged for this task.
+
+### Goal
+
+Determine whether the human-facing whole-system state needed by the Explorer can be **derived defensibly** from frozen `WorkflowSpec + SimulationResult`, especially the HPC distinction among working, blocked/waiting, policy-held, idle, and released capacity.
+
+Use the accepted A-D fixtures from Agent A and the source-grounded contract from Agent E.
+
+### Required output
+
+For each scenario and selected semantic timepoints, attempt to derive a non-overlapping explanatory snapshot containing only quantities justified by the model, for example:
+
+- classical resource units actively working;
+- QPU active / queued;
+- active communication dependencies;
+- policy-held quantum work / admission wait;
+- fixed-reservation allocated-idle units;
+- dependency-gated classical continuation;
+- released capacity.
+
+Then answer explicitly:
+
+1. Can a top-level `Working / Blocked / Idle / Released` HPC view be derived without ambiguity?
+2. If `Blocked` can be derived, can its cause be separated into:
+   - waiting on own QPU result,
+   - waiting on communication,
+   - waiting on global synchronization/join?
+3. Can policy-held Scenario-D work be converted into an HPC-rank/resource-unit count without inventing affinity that v1 does not model?
+4. What quantities are exact engine evidence vs explanatory inference?
+5. What is the smallest additional provenance field/event, if any, needed from the engine?
+
+### Rules
+
+- Do not change engine v1.
+- Do not change playback timing/compression.
+- Do not make visualization decisions beyond the minimum schema needed to communicate findings.
+- Do not equate `allocated-idle` with `Blocked`.
+- Do not infer persistent rank identity across CPU → QPU → CPU stages unless the model explicitly proves it.
+- Prefer a derived explanation layer over an engine change if it is unambiguous and deterministic.
+- If derivation is ambiguous, demonstrate the ambiguity with a concrete A-D counterexample.
+
+### Deliverable
+
+- proposed `SystemStateSnapshot` / explanation schema;
+- A-D example snapshots;
+- exact-vs-derived provenance table;
+- any proven frozen-v1 explanatory gap;
+- recommendation: DERIVE / EXTEND ENGINE / MIXED.
+
+Stop after this checkpoint for Agent F review.
