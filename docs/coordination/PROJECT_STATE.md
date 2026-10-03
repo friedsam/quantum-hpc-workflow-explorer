@@ -111,6 +111,6 @@ North-star interaction:
 - users can inspect *why* resources are working, blocked/waiting, policy-held, idle, queued, or released;
 - aggregate plots explain the full run while slow playback explains a selected moment.
 
-This is inspired by the successful LabVIEW interaction model (graphical block diagram + front-panel indicators + execution highlighting/probes), while preserving an important distinction: the Explorer DAG is a declarative simulation model, not executable HPC/QPU program code.
+A useful retrospective analogy is LabVIEW's graphical block diagram + front-panel indicators + execution highlighting/probes. This was not a source design copied for the Explorer; the similarity was recognized only after the Explorer concept already existed. The Explorer DAG remains a declarative simulation model, not executable HPC/QPU program code.
 
 Optimization may be added later as parameter-sweep/Pareto assistance, but explainability and direct manipulation remain the primary product differentiation.
