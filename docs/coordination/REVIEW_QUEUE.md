@@ -104,3 +104,38 @@ No DES changes requested.
 Status: HOLD until the above two persistence/provenance fixes are reviewed.
 
 Then C resumes integration.
+
+
+## Round 3 — integrated product pass
+
+### A — Engine/model
+Status: CLOSED/IDLE.
+Round 2C accepted. Frozen DES unchanged. Versioned design/config/profile layer + compilation manifest accepted.
+
+### B — Playback/causal explanation
+Status: CLOSED/IDLE.
+Accepted derivation contract available in integration.
+
+### D — Graphics
+Status: CLOSED/IDLE.
+Accepted full-system visual language available in integration.
+
+### C — UI/product integration
+Status: ACTIVE.
+
+Integrate:
+- design/config/profile/compiler + manifest;
+- corrected A-D presets/acceptance tests;
+- causal explanation adapter;
+- full-system debugger board;
+- shared simulation-time cursor with DAG/playback/analytical strips.
+
+Do not broaden into optimizer or UI redesign.
+
+### F — Coordinator
+Next gate after C:
+- review/port C;
+- integration CI;
+- browser E2E/visual smoke;
+- deployment root cleanup;
+- main promotion/closure.
