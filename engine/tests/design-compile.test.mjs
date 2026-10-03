@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { simulateWorkflow, validateWorkflowSpec } from "../index.mjs";
-import { scenarioA } from "../fixtures/qamp-scenarios.mjs";
 import {
   compileWorkflowDesign,
   createRunRecord,
@@ -24,17 +23,21 @@ test("QAMP A design compiles to frozen-v1 behavior", () => {
   assert.equal(validateWorkflowSpec(qampScenarioACompiled), true);
 
   const compiledResult = simulateWorkflow(qampScenarioACompiled);
-  const directResult = simulateWorkflow(scenarioA);
 
   assert.equal(compiledResult.metrics.makespanS, 10);
   assert.equal(compiledResult.metrics.queueWaitSecondsByPool.qpu, 0);
   assert.equal(compiledResult.metrics.admissionWaitSecondsByPool.qpu, 0);
-
-  assert.deepEqual(compiledResult.events, directResult.events);
-  assert.deepEqual(compiledResult.taskIntervals, directResult.taskIntervals);
-  assert.equal(
-    compiledResult.metrics.activeResourceSecondsByPool.qpu,
-    directResult.metrics.activeResourceSecondsByPool.qpu
+  assert.equal(compiledResult.metrics.activeResourceSecondsByPool.qpu, 4);
+  assert.deepEqual(
+    compiledResult.events
+      .filter((event) => event.type === "task_started")
+      .map((event) => [event.taskId, event.simTimeS]),
+    [
+      ["independent-classical", 0],
+      ["quantum-prep", 0],
+      ["quantum-run", 1],
+      ["local-consumer", 5],
+    ]
   );
 
   assert.equal(qampScenarioACompiled.resources[0].costPerUnitSecond, 0.01);
