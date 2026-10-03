@@ -45,3 +45,9 @@
 **Date:** 2026-10-02  
 **Decision:** The rebuilt Explorer must let users create or materially edit their own supported hybrid workflow, simulate it, inspect/animate the resulting execution trace, and compare alternative designs/policies. QAMP Scenarios A–D are the first acceptance/preset suite, not the product scope. The IBM Fe4S4 SQD workflow is a later real-workflow reference preset.  
 **Reason:** This is the original purpose of the Explorer documented in QAMP: apply orchestration concepts to the user's own application rather than merely replay curated scenarios. The new technical foundation should make this capability more credible, not reduce it.
+
+
+## D011 — Visual execution/debugging is the product differentiator
+**Date:** 2026-10-02  
+**Decision:** Preserve the 10-day closure goal, but treat the Explorer's primary differentiation as a human-readable visual simulator/debugger: editable DAG + synchronized slow semantic playback + full HPC/QPU state + analytical plots. Do not compete primarily on scheduler sophistication. Optional optimization should remain explainable and secondary to direct user exploration.  
+**Reason:** Mature systems already provide scheduling/resource optimization, while the Explorer can occupy a distinct usability niche similar in spirit to LabVIEW's graphical block diagram/front-panel/debugging model.
