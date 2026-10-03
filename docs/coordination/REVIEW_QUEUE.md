@@ -3,25 +3,21 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 2C design/configuration layer complete; ready for Agent F review.
+**Status:** Round 2C R2C-1/R2C-2 repair complete; ready for Agent F review.
 
 Delivered:
-- `engine/design/types.d.ts`
-- `engine/design/compile.mjs`
-- `engine/examples/qamp-a-design-compile.mjs`
-- `engine/tests/design-compile.test.mjs`
-- `docs/coordination/proposals/DESIGN_CONFIGURATION_LAYER.md`
+- persisted `schemaVersion: 1` + compiler rejection for unsupported versions;
+- `compileWorkflowDesignDetailed(...)` with explicit compilation manifest;
+- compatibility `compileWorkflowDesign(...): WorkflowSpec` preserved;
+- manifest persisted in `RunRecord`;
+- repeated-block manifest/provenance regression;
+- actor/rank hook documentation corrected: identity preserved, exact actor accounting not yet supported.
 
-Result:
-- frozen DES/v1 unchanged;
-- design/config/profile compile cleanly to existing `WorkflowSpec`;
-- bounded repeat expansion remains pre-DES;
-- actor/rank identity is optional metadata only;
-- provenance retained in exact `RunRecord`;
-- no optimizer/stochastic/rank-scaling inference added;
-- **5/5 exact branch-content runtime checks pass**.
+Focused validation: **7/7 PASS** against current branch content.
 
-Recommended status: **PORT above frozen v1**. Stop after Agent F review.
+Frozen DES/v1 unchanged. No other architecture changes made.
+
+Recommended status: **PORT**. Stop after Agent F review.
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
