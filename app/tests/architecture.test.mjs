@@ -58,7 +58,7 @@ test("accepted design compiler is separate from frozen DES runtime", async () =>
   assert.match(compiler, /CompilationManifest|manifest/);
   assert.equal(/simulateWorkflow\s*\(/.test(compiler), false);
   assert.match(app, /compileWorkflowDesignDetailed/);
-  assert.match(app, /createRunRecord/);
+  assert.match(app, /createRunRecord/);\n  assert.match(app, /detachCompilationProvenance/);
 });
 
 test("A-D presets come from the accepted scenario fixture module", async () => {

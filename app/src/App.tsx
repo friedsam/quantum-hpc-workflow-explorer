@@ -4,6 +4,7 @@ import { BuilderView } from "./components/builder/BuilderView";
 import { CompareView } from "./components/compare/CompareView";
 import { ExploreView } from "./components/explore/ExploreView";
 import { compileWorkflowDesignDetailed, createRunRecord } from "./design/compiler.mjs";
+import { detachCompilationProvenance } from "./design/detach";
 import { nextId } from "./domain/id";
 import type { SimulationResult, WorkflowSpec } from "./domain/types";
 import { validateForUi } from "./domain/validation";
@@ -39,12 +40,15 @@ export default function App() {
   const issues = useMemo(() => validateForUi(draft), [draft]);
 
   function changeDraft(next: WorkflowSpec) {
+    const directDraft = compilationContext
+      ? detachCompilationProvenance(next, compilationContext.bundle)
+      : next;
     setSelectedPresetKey("");
     setCompilationContext(null);
-    setDraft(next);
+    setDraft(directDraft);
     setResult(null);
     setNotice(
-      "Draft changed. Design compilation provenance was detached; this is now a direct WorkflowSpec draft. Prior run evidence remains saved."
+      "Draft changed. Compilation manifest/profile provenance and compiler-only task metadata were detached; this is now a direct WorkflowSpec draft. Prior run evidence remains saved."
     );
   }
 
