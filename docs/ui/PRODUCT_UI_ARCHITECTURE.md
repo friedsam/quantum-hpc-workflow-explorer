@@ -71,15 +71,13 @@ It deliberately does not score or rank a universally preferred scheduling policy
 
 ### Engine
 
-`app/src/engine/runtime.mjs` is byte-for-byte the accepted Agent-A runtime copied into this laboratory branch for validation.
+`app/src/engine/runtime.mjs` is the canonical accepted Agent-A frozen-v1 runtime. Round 3 does not modify it.
 
-`app/src/services/engineAdapter.ts` is the UI execution seam.
-
-Integration rule: if Agent F ports Agent A into a canonical shared engine location, remove the duplicate app copy and rewire this adapter. Do not retain two engine implementations.
+`app/src/services/engineAdapter.ts` remains the UI execution seam.
 
 ### Playback
 
-`app/src/playback/trace-playback.mjs` is the accepted Agent-B v1-compatible playback module.
+`app/src/playback/trace-playback.mjs` is the canonical accepted Agent-B v1-compatible playback module and is unchanged in Round 3.
 
 Production UI wording neutralizes periodic-compression labels to descriptions such as “Repeated 4-step activity ×21”; it does not claim semantic loop identity without workflow metadata.
 
@@ -249,3 +247,85 @@ PORT/rewire during integration:
 DEFER:
 - bundle-size optimization;
 - bounded-repeat authoring UI until an authoring representation is explicitly accepted.
+
+## Round 3 — integrated model/provenance/debugger layer
+
+Date: 2026-10-03  
+Green code head: `299923914aaf564712ce674551ff17e2bdefec6f`  
+Green validation run: `37092997663`
+
+### Model boundary
+
+The accepted pre-DES layer is now integrated:
+
+`WorkflowDesign + RunConfiguration + SystemProfile → pure compiler → WorkflowSpec + CompilationManifest → frozen DES`
+
+Design-backed run evidence snapshots design, run configuration, system profile, compiled WorkflowSpec, CompilationManifest, and SimulationResult.
+
+The direct WorkflowSpec path remains supported for custom authoring. Editing a design-backed compiled preset detaches manifest/profile provenance and compiler-only task metadata before treating the workflow as a direct spec.
+
+### A-D semantics
+
+The app imports the exact accepted QAMP fixture producer blob from Agent A and validates its behavioral acceptance suite.
+
+- A: local overlap; independent classical work defines the critical path.
+- B: fixed classical reservation remains allocated-idle behind complete-result synchronization; no policy hold.
+- C: communication/data movement dominates while QPU utilization remains low.
+- D: QPU capacity plus bounded admission creates both a resource queue and a distinct policy-held ready set; local consumers progress independently.
+
+The UI wraps these fixtures in versioned design/config/profile inputs with synthetic provenance. Scenario B receives accepted `collective-synchronization` semantic metadata; D receives independent actor-group hooks. Actor groups are not interpreted as persistent rank ownership.
+
+### Causal debugger contract
+
+`deriveSystemStateSnapshot(WorkflowSpec, SimulationResult, t)` is presentation-only.
+
+Exact resource plane:
+- active units;
+- allocated-idle units;
+- released units;
+- engine queue depth and queued task IDs.
+
+Separate causal plane:
+- active communication;
+- resource queue;
+- policy-held QPU work;
+- immediate dependency-gated classical work;
+- conditional collective synchronization when semantic metadata proves it.
+
+It never generates a generic blocked-rank/resource partition.
+
+### Synchronized visual debugger
+
+Explore composes four linked lenses:
+1. exact-capacity SVG;
+2. causal explanation cards;
+3. fixed-geometry React Flow DAG state lens;
+4. whole-run analytical strips.
+
+One selected simulation time drives all four and semantic playback.
+
+Runtime DAG styling changes presentation only: RUN, QUEUE, POLICY HELD, DEPENDENCY GATE, complete, and active transfer.
+
+ELK layout remains keyed only to topology/content geometry, never playback/debug time.
+
+Analytical strips show resource composition, QPU active intervals, resource queue and derived policy-held task counts. Cumulative cost remains disabled because frozen v1 supplies final cost only, not a producer-owned cost time series.
+
+### Round-3 validation
+
+GitHub Actions run `37092997663`:
+- engine: 17/17;
+- design/compiler/schema/manifest: 7/7;
+- QAMP A-D: 5/5;
+- causal state: 4/4;
+- playback: 13/13;
+- architecture: 10/10.
+
+Total: **56/56 Node tests**.
+
+Also passes TypeScript `tsc --noEmit` and Vite 8.3.2 production build.
+
+Build: 208 modules; CSS ~35.70 kB / 7.28 kB gzip; JS ~1.934 MB / 596.18 kB gzip; existing non-blocking large-chunk warning remains.
+
+### Round-3 scope boundary
+
+Still deferred: optimizer; calibrated rank-scaling; persistent actor/rank-state model; provider scheduler; authoritative cumulative-cost time series; browser E2E/visual smoke; deployment/main promotion.

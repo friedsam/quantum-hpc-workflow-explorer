@@ -290,3 +290,150 @@ Add/adjust tests so the branch verifies:
 - Vite production build.
 
 Stop after a green checkpoint for Agent F review.
+
+## Round 3 completion — 2026-10-03
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F REVIEW.**
+
+Code head before this handoff documentation:
+`299923914aaf564712ce674551ff17e2bdefec6f`
+
+Validated GitHub Actions run:
+`37092997663` — **success**
+
+### Delivered
+
+#### 1. Design / configuration / profile layer
+
+Ported Agent A's accepted Round-2C producer contract above frozen DES v1:
+
+- `app/src/design/types.ts`
+- `app/src/design/compiler.mjs`
+- `app/src/design/compiler.d.mts`
+- `app/src/design/bundle.ts`
+- `app/src/design/detach.ts`
+
+The pure compiler produces the existing frozen `WorkflowSpec`; the DES runtime was not modified.
+
+Design-backed runs retain WorkflowDesign, RunConfiguration, SystemProfile, compiled WorkflowSpec, CompilationManifest, and SimulationResult.
+
+`createRunRecord` is used for design-backed simulations. The direct `WorkflowSpec` compatibility path remains available for custom/edited workflows.
+
+Manual editing of a compiled design-backed preset deliberately detaches its manifest/profile context and removes compiler-only task metadata before continuing as a direct `WorkflowSpec`, preventing stale provenance from being presented as current.
+
+#### 2. Accepted QAMP A–D presets
+
+Replaced the prior approximate A–D UI presets with the exact accepted Agent-A fixture producer:
+- source/production blob: `5c4e64f58d5e0be4e8db5cc1697736b254f12482`
+- app path: `app/src/presets/qamp-scenarios.mjs`
+
+A–D are wrapped in design/config/profile bundles with explicit synthetic provenance and optional actor-group/semantic metadata.
+
+Visible distinctions:
+- A: local overlap / QPU off critical path;
+- B: fixed-reservation synchronization wall, no policy throttling;
+- C: communication/data-movement wall;
+- D: QPU throughput + resource queue + separate bounded-admission policy hold.
+
+#### 3. Causal explanation adapter
+
+Added `app/src/causal/systemState.mjs` plus typed declaration.
+
+Derived SystemStateSnapshot keeps exact resource state separate from causal explanation.
+
+Exact resource state:
+- active;
+- allocated-idle;
+- released;
+- explicit queued task IDs / queue depth.
+
+Causal explanation:
+- active communication;
+- resource queue;
+- policy-held QPU tasks;
+- immediate dependency-gated classical work;
+- stronger collective-synchronization label only when accepted metadata supports it.
+
+No generic blocked-rank/resource count is generated. Actor-group IDs remain hooks/provenance only; they are not persistent rank ownership.
+
+#### 4. Full-system debugger
+
+Replaced the prior simple runtime card with:
+- exact resource-capacity plane;
+- separate causal-explanation plane;
+- fixed-geometry React Flow DAG lens;
+- linked analytical strips.
+
+One simulation-time cursor drives runtime/causal state, DAG highlighting, semantic playback, and analytical-strip cursor.
+
+DAG runtime labels: RUN, QUEUE, POLICY HELD, DEPENDENCY GATE, complete, plus active transfer edges.
+
+Analytical strips show resource composition, QPU running intervals, resource queue, and policy-held task count. Cumulative cost is explicitly disabled because frozen v1 exposes final cost only, not an authoritative cost time series.
+
+No raw-event blinking and no playback-driven relayout.
+
+#### 5. Existing product functionality preserved
+
+Custom DAG authoring, task/dependency/resource/policy editing, frozen-v1 validation, deterministic simulation, semantic playback, saved runs, real-run comparison, and direct WorkflowSpec compatibility remain present.
+
+### Producer integrity
+
+Verified unchanged at the green code checkpoint:
+- frozen DES runtime blob: `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`
+- accepted playback blob: `c77ad95054aaa5315d9d62c7a3309a0b73c3e3a0`
+- accepted design compiler blob: `83522cc99720e976de9b6e6482b9b1f7b66f8e1e`
+- accepted QAMP fixture blob: `5c4e64f58d5e0be4e8db5cc1697736b254f12482`
+
+No frozen-v1 interface or DES semantic change was requested.
+
+### Validation
+
+Green run `37092997663`:
+- engine: **17/17**
+- design/compiler/schema/manifest: **7/7**
+- QAMP A–D behavioral acceptance: **5/5**
+- causal derivation: **4/4**
+- playback: **13/13**
+- architecture: **10/10**
+
+Total Node tests: **56/56**.
+
+Also green: TypeScript `tsc --noEmit`; Vite 8.3.2 production build; 208 modules transformed.
+
+Build output:
+- CSS: ~35.70 kB / 7.28 kB gzip;
+- JS: ~1.934 MB / 596.18 kB gzip;
+- existing non-fatal large-chunk warning remains.
+
+### Corrected failures during Round 3
+
+1. Architecture-test follow-up edits briefly contained literal escaped-newline text; producer/product tests preceding that test remained green. Test source was repaired.
+2. Static review found that direct editing after design compilation could retain stale compiler timing/actor metadata; `detachCompilationProvenance` now removes it before converting to the direct-WorkflowSpec path.
+3. Causal-plane review found that resource-queued work needed its own explicit card rather than appearing only as queue depth; it is now separate from policy-held work.
+
+### Files proposed for Round-3 promotion
+
+Promote/port substantially intact:
+- `app/src/design/**`
+- `app/src/causal/**`
+- `app/src/presets/qamp-scenarios.*`
+- updated `app/src/presets/presets.ts`
+- updated App / run-envelope / Builder / Explore / Compare code
+- `FullSystemDebugger.tsx`
+- `AnalyticalStrips.tsx`
+- `CompilationProvenance.tsx`
+- updated DAG runtime styling
+- Round-3 tests
+- updated CSS/package scripts.
+
+Canonical production producer locations remain `app/src/engine/runtime.mjs` and `app/src/playback/trace-playback.mjs`.
+
+### Explicitly deferred / outside this pass
+
+Optimizer; calibrated rank-scaling/accounting; persistent actor/rank-state engine; provider scheduler; authoritative cumulative-cost time series; broad landing-page redesign; deployment/main promotion; browser E2E/visual smoke; bundle/code-splitting optimization.
+
+### Promotion recommendation
+
+**PROMOTE/PORT Round 3 to `agent/integration` for Agent F review.**
+
+The requested Agent-C Round-3 scope is complete at a green checkpoint. No further Agent-C work should proceed until coordinator/browser review identifies a concrete defect.
