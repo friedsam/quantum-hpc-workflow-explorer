@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { simulateWorkflow, validateWorkflowSpec } from "../index.mjs";
 import {
   compileWorkflowDesign,
+  compileWorkflowDesignDetailed,
   createRunRecord,
 } from "../design/compile.mjs";
 import {
@@ -53,6 +54,7 @@ test("QAMP A design compiles to frozen-v1 behavior", () => {
 
 test("repeat blocks unroll deterministically before frozen DES execution", () => {
   const design = {
+    schemaVersion: 1,
     id: "repeat-design",
     name: "Bounded repeat example",
     tasks: [
@@ -83,6 +85,7 @@ test("repeat blocks unroll deterministically before frozen DES execution", () =>
   };
 
   const runConfiguration = {
+    schemaVersion: 1,
     id: "repeat-run",
     resources: [{ id: "cpu", kind: "cpu", capacity: 1 }],
     taskResources: {
@@ -93,6 +96,7 @@ test("repeat blocks unroll deterministically before frozen DES execution", () =>
   };
 
   const systemProfile = {
+    schemaVersion: 1,
     id: "repeat-profile",
     taskServiceTimes: {
       prepare: {
@@ -143,8 +147,220 @@ test("repeat blocks unroll deterministically before frozen DES execution", () =>
   assert.equal(result.metrics.makespanS, 9);
 });
 
+test("schema-version validation rejects unversioned or unsupported persisted inputs", () => {
+  const badDesign = structuredClone(qampScenarioADesign);
+  delete badDesign.schemaVersion;
+  assert.throws(
+    () =>
+      compileWorkflowDesign(
+        badDesign,
+        qampScenarioARunConfiguration,
+        qampScenarioASystemProfile
+      ),
+    /WorkflowDesign\.schemaVersion must be 1/
+  );
+
+  const badRunConfiguration = structuredClone(
+    qampScenarioARunConfiguration
+  );
+  badRunConfiguration.schemaVersion = 2;
+  assert.throws(
+    () =>
+      compileWorkflowDesign(
+        qampScenarioADesign,
+        badRunConfiguration,
+        qampScenarioASystemProfile
+      ),
+    /RunConfiguration\.schemaVersion must be 1/
+  );
+
+  const badSystemProfile = structuredClone(qampScenarioASystemProfile);
+  badSystemProfile.schemaVersion = 0;
+  assert.throws(
+    () =>
+      compileWorkflowDesign(
+        qampScenarioADesign,
+        qampScenarioARunConfiguration,
+        badSystemProfile
+      ),
+    /SystemProfile\.schemaVersion must be 1/
+  );
+});
+
+test("detailed compilation manifest maps a repeated block without ID reverse-engineering", () => {
+  const design = {
+    schemaVersion: 1,
+    id: "manifest-repeat-design",
+    name: "Manifest repeat example",
+    tasks: [
+      {
+        id: "prepare",
+        label: "Prepare",
+        timingKey: "prepare-time",
+      },
+      {
+        id: "consume",
+        label: "Consume",
+        timingKey: "consume-time",
+      },
+    ],
+    dependencies: [
+      {
+        id: "prepare-consume",
+        sourceTaskId: "prepare",
+        targetTaskId: "consume",
+        communicationKey: "inside-loop",
+      },
+    ],
+    repeatBlocks: [
+      {
+        id: "iteration",
+        count: 2,
+        taskIds: ["prepare", "consume"],
+        carryDependencies: [
+          {
+            id: "next-iteration",
+            sourceTaskId: "consume",
+            targetTaskId: "prepare",
+            communicationKey: "carry-link",
+          },
+        ],
+      },
+    ],
+  };
+
+  const runConfiguration = {
+    schemaVersion: 1,
+    id: "manifest-repeat-run",
+    resources: [
+      { id: "cpu", kind: "cpu", capacity: 1, costKey: "cpu-rate" },
+    ],
+    taskResources: {
+      prepare: { resourcePoolId: "cpu", resourceCount: 1 },
+      consume: { resourcePoolId: "cpu", resourceCount: 1 },
+    },
+    policy: { allocation: "release-aware" },
+  };
+
+  const systemProfile = {
+    schemaVersion: 1,
+    id: "manifest-repeat-profile",
+    taskServiceTimes: {
+      "prepare-time": {
+        value: { kind: "constant", seconds: 1 },
+        provenance: {
+          kind: "measured",
+          source: "prepare benchmark",
+        },
+      },
+      "consume-time": {
+        value: { kind: "constant", seconds: 2 },
+        provenance: {
+          kind: "fitted",
+          source: "consume fit",
+        },
+      },
+    },
+    dependencyCommunication: {
+      "inside-loop": {
+        value: { fixedLatencyS: 0.5 },
+        provenance: {
+          kind: "measured",
+          source: "loop communication measurement",
+        },
+      },
+      "carry-link": {
+        value: { fixedLatencyS: 0.25 },
+        provenance: {
+          kind: "synthetic",
+          source: "carry acceptance value",
+        },
+      },
+    },
+    costPerUnitSecond: {
+      "cpu-rate": {
+        value: 0.1,
+        provenance: {
+          kind: "user-entered",
+          source: "run planning input",
+        },
+      },
+    },
+  };
+
+  const { workflowSpec, manifest } = compileWorkflowDesignDetailed(
+    design,
+    runConfiguration,
+    systemProfile
+  );
+
+  assert.equal(manifest.schemaVersion, 1);
+  assert.equal(manifest.workflowSpecId, workflowSpec.id);
+
+  assert.deepEqual(
+    manifest.tasks["prepare@iteration:2"],
+    {
+      designTaskId: "prepare",
+      repeatBlockId: "iteration",
+      repeatOrdinal: 2,
+      timingKey: "prepare-time",
+      timingProvenance: {
+        kind: "measured",
+        source: "prepare benchmark",
+      },
+    }
+  );
+
+  assert.deepEqual(
+    manifest.dependencies["prepare-consume@iteration:2"],
+    {
+      kind: "design-dependency",
+      designDependencyId: "prepare-consume",
+      repeatBlockId: "iteration",
+      sourceRepeatOrdinal: 2,
+      targetRepeatOrdinal: 2,
+      communicationKey: "inside-loop",
+      communicationProvenance: {
+        kind: "measured",
+        source: "loop communication measurement",
+      },
+    }
+  );
+
+  assert.deepEqual(
+    manifest.dependencies[
+      "iteration:carry:next-iteration:1->2"
+    ],
+    {
+      kind: "repeat-carry",
+      carryDependencyId: "next-iteration",
+      repeatBlockId: "iteration",
+      sourceRepeatOrdinal: 1,
+      targetRepeatOrdinal: 2,
+      communicationKey: "carry-link",
+      communicationProvenance: {
+        kind: "synthetic",
+        source: "carry acceptance value",
+      },
+    }
+  );
+
+  assert.deepEqual(manifest.resources.cpu, {
+    runResourceId: "cpu",
+    costKey: "cpu-rate",
+    costSource: "system-profile",
+    costProvenance: {
+      kind: "user-entered",
+      source: "run planning input",
+    },
+  });
+
+  assert.equal(validateWorkflowSpec(workflowSpec), true);
+});
+
 test("SystemProfile communication resolves to frozen dependency fields and run cost override wins", () => {
   const design = {
+    schemaVersion: 1,
     id: "profile-resolution",
     name: "Profile resolution",
     tasks: [
@@ -162,6 +378,7 @@ test("SystemProfile communication resolves to frozen dependency fields and run c
   };
 
   const runConfiguration = {
+    schemaVersion: 1,
     id: "profile-resolution-run",
     resources: [{ id: "cpu", kind: "cpu", capacity: 1 }],
     taskResources: {
@@ -181,6 +398,7 @@ test("SystemProfile communication resolves to frozen dependency fields and run c
   };
 
   const systemProfile = {
+    schemaVersion: 1,
     id: "profile-resolution-system",
     taskServiceTimes: {
       a: {
@@ -237,23 +455,24 @@ test("SystemProfile communication resolves to frozen dependency fields and run c
   assert.equal(result.metrics.makespanS, 4);
 });
 
-test("RunRecord snapshots exact design/config/profile/spec/result", () => {
+test("RunRecord snapshots manifest with exact design/config/profile/spec/result", () => {
   const design = structuredClone(qampScenarioADesign);
   const runConfiguration = structuredClone(qampScenarioARunConfiguration);
   const systemProfile = structuredClone(qampScenarioASystemProfile);
-  const compiled = compileWorkflowDesign(
+  const { workflowSpec, manifest } = compileWorkflowDesignDetailed(
     design,
     runConfiguration,
     systemProfile
   );
-  const result = simulateWorkflow(compiled);
+  const result = simulateWorkflow(workflowSpec);
 
   const record = createRunRecord({
     id: "qamp-a-run-record",
     design,
     runConfiguration,
     systemProfile,
-    compiledWorkflowSpec: compiled,
+    compiledWorkflowSpec: workflowSpec,
+    compilationManifest: manifest,
     simulationResult: result,
     metadata: { purpose: "acceptance" },
   });
@@ -261,6 +480,7 @@ test("RunRecord snapshots exact design/config/profile/spec/result", () => {
   design.name = "mutated after record";
   runConfiguration.resources[0].capacity = 99;
   systemProfile.taskServiceTimes["quantum-run"].value.seconds = 99;
+  manifest.tasks["quantum-run"].timingKey = "mutated";
 
   assert.equal(record.design.name, "QAMP A — loosely coupled overlap");
   assert.equal(record.runConfiguration.resources[0].capacity, 2);
@@ -268,12 +488,17 @@ test("RunRecord snapshots exact design/config/profile/spec/result", () => {
     record.systemProfile.taskServiceTimes["quantum-run"].value.seconds,
     4
   );
+  assert.equal(
+    record.compilationManifest.tasks["quantum-run"].timingKey,
+    "quantum-run"
+  );
   assert.equal(record.compiledWorkflowSpec.id, result.workflowId);
   assert.equal(record.simulationResult.metrics.makespanS, 10);
 });
 
 test("resource-count changes do not imply task-time scaling under constant SystemProfile", () => {
   const design = {
+    schemaVersion: 1,
     id: "rank-count-no-scaling",
     name: "Rank count does not imply scaling",
     tasks: [{ id: "work", label: "Work" }],
@@ -281,6 +506,7 @@ test("resource-count changes do not imply task-time scaling under constant Syste
   };
 
   const profile = {
+    schemaVersion: 1,
     id: "constant-profile",
     taskServiceTimes: {
       work: {
@@ -294,6 +520,7 @@ test("resource-count changes do not imply task-time scaling under constant Syste
   };
 
   const config = (count) => ({
+    schemaVersion: 1,
     id: `count-${count}`,
     resources: [{ id: "cpu", kind: "cpu", capacity: 4 }],
     taskResources: {
