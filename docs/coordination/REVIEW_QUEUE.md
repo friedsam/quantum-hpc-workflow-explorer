@@ -139,3 +139,31 @@ Next gate after C:
 - browser E2E/visual smoke;
 - deployment root cleanup;
 - main promotion/closure.
+
+
+## Round 3 final review — 2026-10-03
+
+### C — UI/product integration
+Status: **CLOSED/IDLE — PROMOTE accepted.**
+
+Staging:
+- app tree promoted at `e4a617be212055c0364d57124db300961810b2e0`;
+- integration CI run `37093643908`: SUCCESS.
+
+Accepted:
+- design/config/profile compiler + manifest;
+- accepted A-D presets;
+- causal system-state explanation;
+- full-system debugger;
+- shared time cursor / DAG highlighting / analytical strips / playback;
+- custom workflow authoring and Compare preserved.
+
+### F — next gates
+
+1. browser E2E/visual smoke on `agent/integration`;
+2. inspect A-D visually/behaviorally in browser;
+3. test custom workflow author -> simulate -> inspect/playback -> modify -> compare;
+4. add reproducible dependency lock / `npm ci`;
+5. decide deployment-root migration from legacy `web/` to new `app/`;
+6. final documentation/cleanup;
+7. promote to `main` only after these gates.
