@@ -50,4 +50,4 @@
 ## D011 — Visual execution/debugging is the product differentiator
 **Date:** 2026-10-02  
 **Decision:** Preserve the 10-day closure goal, but treat the Explorer's primary differentiation as a human-readable visual simulator/debugger: editable DAG + synchronized slow semantic playback + full HPC/QPU state + analytical plots. Do not compete primarily on scheduler sophistication. Optional optimization should remain explainable and secondary to direct user exploration.  
-**Reason:** Mature systems already provide scheduling/resource optimization, while the Explorer can occupy a distinct usability niche similar in spirit to LabVIEW's graphical block diagram/front-panel/debugging model.
+**Reason:** Mature systems already provide scheduling/resource optimization, while the Explorer can occupy a distinct usability niche centered on visual execution/debugging. LabVIEW is a useful retrospective analogy for that interaction model, recognized only after the Explorer concept already existed.
