@@ -24,9 +24,16 @@ Accepted source-grounded contract:
 No frozen-v1 compatibility defect found.
 
 ### B — Playback
-**Status:** hold.
+**Status:** **Round 2B complete — DERIVE accepted; CLOSED/IDLE.**
 
-Starts after A/E reconciliation. Then test the accepted A-D real traces for human-watchable playback only.
+Accepted:
+- exact resource state remains active / allocated-idle / released;
+- causal wait state is a separate deterministic explanation layer;
+- generic blocked-rank counts are not derivable without persistent rank/task affinity;
+- communication, QPU gating, structural joins and policy-held QPU work can be derived at task/dependency level;
+- optional metadata may support stronger labels such as local-result or collective synchronization.
+
+No engine change required.
 
 ### C — UI
 **Status:** hold.
@@ -34,9 +41,13 @@ Starts after A/E reconciliation. Then test the accepted A-D real traces for huma
 Starts after A/E reconciliation. Then port the accepted A-D presets/labels into staging; no broad UI redesign in this round.
 
 ### D — Graphics
-**Status:** hold.
+**Status:** **active.**
 
-Only reactivate if A-D playback/runtime-state visualization exposes a concrete graphics defect.
+Agent B's accepted two-layer state model has been written onto the graphics branch. D should finish the full-system visual language using:
+- exact resource layer;
+- separate causal wait/explanation overlays;
+- Scenario B and D static prototypes;
+- linked debugger/time-series concept.
 
 ### F — Coordinator
 **Status:** active.
