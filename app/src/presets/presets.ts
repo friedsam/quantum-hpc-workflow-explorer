@@ -1,93 +1,119 @@
 import type { WorkflowSpec } from "../domain/types";
+import type { CompilationManifest } from "../design/types";
+import { compileWorkflowDesignDetailed } from "../design/compiler.mjs";
+import {
+  designBundleFromWorkflowSpec,
+  type WorkflowDesignBundle
+} from "../design/bundle";
+import {
+  scenarioA,
+  scenarioB,
+  scenarioC,
+  scenarioD
+} from "./qamp-scenarios.mjs";
+
+export interface MaterializedPreset {
+  spec: WorkflowSpec;
+  designBundle?: WorkflowDesignBundle;
+  compilationManifest?: CompilationManifest;
+}
 
 export interface WorkflowPreset {
   key: string;
   label: string;
   description: string;
-  spec: WorkflowSpec;
+  source: "direct" | "design";
+  spec?: WorkflowSpec;
+  designBundle?: WorkflowDesignBundle;
 }
 
-const scenarioA: WorkflowSpec = {
-  id: "scenario-a-handoff",
-  name: "Scenario A — classical / quantum handoff",
-  resources: [
-    { id: "cpu", kind: "cpu", capacity: 4, costPerUnitSecond: 0.001 },
-    { id: "qpu", kind: "qpu", capacity: 1, costPerUnitSecond: 0.2 }
+const qampA = designBundleFromWorkflowSpec(scenarioA, {
+  source: "Accepted QAMP Scenario A Round-2 fixture",
+  actorGroups: [
+    { id: "independent-workers", label: "Independent classical workers" },
+    { id: "quantum-path", label: "Local quantum-dependent path" }
   ],
-  tasks: [
-    { id: "prepare", label: "Classical prepare", resourcePoolId: "cpu", resourceCount: 2, serviceTime: { kind: "constant", seconds: 2 } },
-    { id: "sample", label: "Quantum sample", resourcePoolId: "qpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 1.5 } },
-    { id: "post", label: "Classical post-process", resourcePoolId: "cpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 1 } }
-  ],
-  dependencies: [
-    { id: "prepare-sample", sourceTaskId: "prepare", targetTaskId: "sample", fixedLatencyS: 0.1 },
-    { id: "sample-post", sourceTaskId: "sample", targetTaskId: "post", fixedLatencyS: 0.1 }
-  ],
-  policy: { allocation: "fixed", fixedReservationByPool: { cpu: 4 }, maxInFlightQuantumByPool: { qpu: 1 } },
-  assumptions: ["Synthetic Scenario A acceptance preset; service and transfer times are illustrative."]
-};
+  actorGroupIdsByTask: {
+    "independent-classical": ["independent-workers"],
+    "quantum-prep": ["quantum-path"],
+    "quantum-run": ["quantum-path"],
+    "local-consumer": ["quantum-path"]
+  },
+  semanticTypeByTask: {
+    "independent-classical": "classical-independent",
+    "quantum-prep": "quantum-preparation",
+    "quantum-run": "quantum-evaluation",
+    "local-consumer": "local-qpu-continuation"
+  }
+});
 
-const scenarioB: WorkflowSpec = {
-  id: "scenario-b-fork-join",
-  name: "Scenario B — fork / join synchronization",
-  resources: [
-    { id: "cpu", kind: "cpu", capacity: 4 },
-    { id: "qpu", kind: "qpu", capacity: 2 }
+const qampB = designBundleFromWorkflowSpec(scenarioB, {
+  source: "Accepted QAMP Scenario B Round-2 fixture",
+  actorGroups: [
+    { id: "submitters", label: "Quantum submitter paths" },
+    { id: "collective", label: "Collective continuation group" }
   ],
-  tasks: [
-    { id: "root", label: "Prepare branches", resourcePoolId: "cpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 1 } },
-    { id: "qa", label: "Quantum branch A", resourcePoolId: "qpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 2 } },
-    { id: "qb", label: "Quantum branch B", resourcePoolId: "qpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 4 } },
-    { id: "classical", label: "Classical branch", resourcePoolId: "cpu", resourceCount: 2, serviceTime: { kind: "constant", seconds: 3 } },
-    { id: "join", label: "Join / consume all results", resourcePoolId: "cpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 1 } }
-  ],
-  dependencies: [
-    { id: "root-qa", sourceTaskId: "root", targetTaskId: "qa" },
-    { id: "root-qb", sourceTaskId: "root", targetTaskId: "qb" },
-    { id: "root-classical", sourceTaskId: "root", targetTaskId: "classical" },
-    { id: "qa-join", sourceTaskId: "qa", targetTaskId: "join" },
-    { id: "qb-join", sourceTaskId: "qb", targetTaskId: "join" },
-    { id: "classical-join", sourceTaskId: "classical", targetTaskId: "join" }
-  ],
-  policy: { allocation: "release-aware" },
-  assumptions: ["Synthetic Scenario B fork/join preset. Join semantics come from DAG dependencies, not a special barrier state."]
-};
+  actorGroupIdsByTask: {
+    "prep-a": ["submitters"],
+    "prep-b": ["submitters"],
+    "quantum-a": ["submitters"],
+    "quantum-b": ["submitters"],
+    "collective-continuation": ["collective"]
+  },
+  semanticTypeByTask: {
+    "prep-a": "quantum-preparation",
+    "prep-b": "quantum-preparation",
+    "quantum-a": "quantum-evaluation",
+    "quantum-b": "quantum-evaluation",
+    "collective-continuation": "collective-synchronization"
+  }
+});
 
-const scenarioC: WorkflowSpec = {
-  id: "scenario-c-latency",
-  name: "Scenario C — communication latency stress",
-  resources: [
-    { id: "cpu", kind: "cpu", capacity: 2 },
-    { id: "qpu", kind: "qpu", capacity: 1 }
-  ],
-  tasks: [
-    { id: "prepare", label: "Prepare request", resourcePoolId: "cpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 0.5 } },
-    { id: "quantum", label: "Quantum work", resourcePoolId: "qpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 0.5 } },
-    { id: "consume", label: "Consume result", resourcePoolId: "cpu", resourceCount: 1, serviceTime: { kind: "constant", seconds: 0.5 } }
-  ],
-  dependencies: [
-    { id: "prepare-quantum", sourceTaskId: "prepare", targetTaskId: "quantum", fixedLatencyS: 3 },
-    { id: "quantum-consume", sourceTaskId: "quantum", targetTaskId: "consume", fixedLatencyS: 3 }
-  ],
-  policy: { allocation: "release-aware", maxInFlightQuantumByPool: { qpu: 1 } },
-  assumptions: ["Synthetic Scenario C latency-dominated stress preset. The 3 s dependency latencies are illustrative, not provider queue measurements."]
-};
+const cActorGroups = [1, 2, 3].map((index) => ({
+  id: "path-" + index,
+  label: "Independent path " + index
+}));
+const cActorMap = Object.fromEntries(
+  [1, 2, 3].flatMap((index) =>
+    ["producer-", "quantum-", "consumer-"].map((prefix) => [
+      prefix + index,
+      ["path-" + index]
+    ])
+  )
+);
+const qampC = designBundleFromWorkflowSpec(scenarioC, {
+  source: "Accepted QAMP Scenario C Round-2 fixture",
+  actorGroups: cActorGroups,
+  actorGroupIdsByTask: cActorMap,
+  semanticTypeByTask: Object.fromEntries([
+    ...[1, 2, 3].map((index) => ["producer-" + index, "classical-producer"]),
+    ...[1, 2, 3].map((index) => ["quantum-" + index, "quantum-evaluation"]),
+    ...[1, 2, 3].map((index) => ["consumer-" + index, "local-qpu-continuation"])
+  ])
+});
 
-const scenarioD: WorkflowSpec = {
-  id: "scenario-d-bounded-admission",
-  name: "Scenario D — bounded quantum admission",
-  resources: [{ id: "qpu", kind: "qpu", capacity: 1 }],
-  tasks: Array.from({ length: 6 }, (_, index) => ({
-    id: "q" + (index + 1),
-    label: "Quantum task " + (index + 1),
-    resourcePoolId: "qpu",
-    resourceCount: 1,
-    serviceTime: { kind: "constant" as const, seconds: 2 }
-  })),
-  dependencies: [],
-  policy: { allocation: "release-aware", maxInFlightQuantumByPool: { qpu: 2 } },
-  assumptions: ["Synthetic Scenario D / E4 policy stress preset: six 2 s QPU tasks, capacity 1, max in-flight 2."]
-};
+const dActorGroups = Array.from({ length: 6 }, (_, index) => ({
+  id: "path-" + (index + 1),
+  label: "Asynchronous path " + (index + 1)
+}));
+const dActorMap = Object.fromEntries(
+  Array.from({ length: 6 }, (_, index) => index + 1).flatMap((index) =>
+    ["prep-", "quantum-", "consumer-"].map((prefix) => [
+      prefix + index,
+      ["path-" + index]
+    ])
+  )
+);
+const qampD = designBundleFromWorkflowSpec(scenarioD, {
+  source: "Accepted QAMP Scenario D Round-2 fixture",
+  actorGroups: dActorGroups,
+  actorGroupIdsByTask: dActorMap,
+  semanticTypeByTask: Object.fromEntries([
+    ...Array.from({ length: 6 }, (_, index) => ["prep-" + (index + 1), "quantum-preparation"]),
+    ...Array.from({ length: 6 }, (_, index) => ["quantum-" + (index + 1), "quantum-evaluation"]),
+    ...Array.from({ length: 6 }, (_, index) => ["consumer-" + (index + 1), "local-qpu-continuation"])
+  ])
+});
 
 const ibmSqd: WorkflowSpec = {
   id: "ibm-sqd-fe4s4-reference",
@@ -137,16 +163,34 @@ const starter: WorkflowSpec = {
 };
 
 export const presets: WorkflowPreset[] = [
-  { key: "custom", label: "Custom starter", description: "Small editable starter workflow.", spec: starter },
-  { key: "scenario-a", label: "Scenario A", description: "Classical → quantum → classical handoff.", spec: scenarioA },
-  { key: "scenario-b", label: "Scenario B", description: "Fork/join synchronization stress case.", spec: scenarioB },
-  { key: "scenario-c", label: "Scenario C", description: "Latency-dominated synthetic stress case.", spec: scenarioC },
-  { key: "scenario-d", label: "Scenario D", description: "Bounded quantum admission / policy-wait stress case.", spec: scenarioD },
-  { key: "ibm-sqd", label: "IBM/QAMP Fe4S4 SQD", description: "Serious structural reference preset using synthetic E5 timings.", spec: ibmSqd }
+  { key: "custom", label: "Custom starter", description: "Small editable direct WorkflowSpec starter.", source: "direct", spec: starter },
+  { key: "scenario-a", label: "Scenario A", description: "Accepted loosely coupled overlap: QPU off the critical path.", source: "design", designBundle: qampA },
+  { key: "scenario-b", label: "Scenario B", description: "Accepted fixed-reservation synchronization wall.", source: "design", designBundle: qampB },
+  { key: "scenario-c", label: "Scenario C", description: "Accepted communication/data-movement wall.", source: "design", designBundle: qampC },
+  { key: "scenario-d", label: "Scenario D", description: "Accepted throughput-limited asynchronous pipeline with bounded admission.", source: "design", designBundle: qampD },
+  { key: "ibm-sqd", label: "IBM/QAMP Fe4S4 SQD", description: "Serious structural reference using synthetic scaled acceptance timings.", source: "direct", spec: ibmSqd }
 ];
 
 export function getPreset(key: string): WorkflowPreset {
   return presets.find((preset) => preset.key === key) ?? presets[0];
+}
+
+export function materializePreset(preset: WorkflowPreset): MaterializedPreset {
+  if (preset.source === "design" && preset.designBundle) {
+    const compiled = compileWorkflowDesignDetailed(
+      preset.designBundle.design,
+      preset.designBundle.runConfiguration,
+      preset.designBundle.systemProfile
+    );
+    return {
+      spec: compiled.workflowSpec,
+      designBundle: structuredClone(preset.designBundle),
+      compilationManifest: compiled.manifest
+    };
+  }
+
+  if (!preset.spec) throw new Error("Direct preset is missing WorkflowSpec.");
+  return { spec: structuredClone(preset.spec) };
 }
 
 export function cloneSpec(spec: WorkflowSpec): WorkflowSpec {

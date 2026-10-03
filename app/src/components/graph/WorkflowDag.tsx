@@ -8,6 +8,7 @@ import {
   type Edge,
   type Node
 } from "@xyflow/react";
+import type { SystemStateSnapshot } from "../../causal/systemState.mjs";
 import type { DagViewModel } from "./types";
 import { layoutDag } from "./layout";
 import { WorkflowNode } from "./WorkflowNode";
@@ -18,6 +19,8 @@ interface Props {
   onSelectTask?: (taskId: string) => void;
   onConnectTasks?: (sourceTaskId: string, targetTaskId: string) => void;
   onDeleteDependencies?: (dependencyIds: string[]) => void;
+  debugSnapshot?: SystemStateSnapshot;
+  heading?: string;
 }
 
 const nodeTypes = { workflow: WorkflowNode };
@@ -27,7 +30,9 @@ export function WorkflowDag({
   selectedTaskId,
   onSelectTask,
   onConnectTasks,
-  onDeleteDependencies
+  onDeleteDependencies,
+  debugSnapshot,
+  heading = "Workflow DAG"
 }: Props) {
   const sourceNodes = useMemo<Node[]>(
     () =>
@@ -36,6 +41,7 @@ export function WorkflowDag({
         type: "workflow",
         position: { x: 0, y: 0 },
         data: { label: node.label, detail: node.detail },
+        ariaLabel: node.label + ". " + node.detail,
         draggable: false,
         selectable: true,
         deletable: false
@@ -91,13 +97,35 @@ export function WorkflowDag({
     return () => {
       cancelled = true;
     };
-    // Selection/playback state is intentionally excluded: layout is topology/size driven only.
+    // Runtime/debug state is intentionally excluded: layout is topology/size driven only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topologyKey]);
 
   const displayedNodes = useMemo(
-    () => nodes.map((node) => ({ ...node, selected: node.id === selectedTaskId })),
-    [nodes, selectedTaskId]
+    () => nodes.map((node) => ({
+      ...node,
+      selected: node.id === selectedTaskId,
+      data: {
+        ...node.data,
+        debugState: debugSnapshot?.dag.taskStateById[node.id]
+      }
+    })),
+    [nodes, selectedTaskId, debugSnapshot]
+  );
+
+  const activeCommunicationIds = useMemo(
+    () => new Set(debugSnapshot?.dag.activeCommunicationDependencyIds ?? []),
+    [debugSnapshot]
+  );
+
+  const displayedEdges = useMemo(
+    () => edges.map((edge) => ({
+      ...edge,
+      className: activeCommunicationIds.has(edge.id)
+        ? "dag-edge communication-active"
+        : "dag-edge"
+    })),
+    [edges, activeCommunicationIds]
   );
 
   function connect(connection: Connection) {
@@ -109,10 +137,14 @@ export function WorkflowDag({
     <section className="surface workflow-surface" aria-labelledby="workflow-heading">
       <div className="surface-heading">
         <div>
-          <p className="section-kicker">Structure</p>
-          <h2 id="workflow-heading">Workflow DAG</h2>
+          <p className="section-kicker">{debugSnapshot ? "Workflow lens" : "Structure"}</p>
+          <h2 id="workflow-heading">{heading}</h2>
         </div>
-        <span className="muted-label">React Flow + deterministic ELK layered layout</span>
+        <span className="muted-label">
+          {debugSnapshot
+            ? "fixed geometry · state styling follows shared simulation cursor"
+            : "React Flow + deterministic ELK layered layout"}
+        </span>
       </div>
 
       {layoutError ? <div className="notice error" role="status">{layoutError}</div> : null}
@@ -120,7 +152,7 @@ export function WorkflowDag({
       <div className="workflow-dag" aria-label="Workflow directed acyclic graph">
         <ReactFlow
           nodes={displayedNodes}
-          edges={edges}
+          edges={displayedEdges}
           nodeTypes={nodeTypes}
           colorMode="dark"
           fitView
@@ -130,6 +162,8 @@ export function WorkflowDag({
           nodesDraggable={false}
           nodesConnectable={Boolean(onConnectTasks)}
           elementsSelectable
+          nodesFocusable
+          edgesFocusable
           onNodeClick={(_, node) => onSelectTask?.(node.id)}
           onConnect={connect}
           onEdgesDelete={(deleted) => onDeleteDependencies?.(deleted.map((edge) => edge.id))}
@@ -143,11 +177,19 @@ export function WorkflowDag({
       <div className="dag-help">
         {onConnectTasks
           ? "Connect the right handle of a source task to the left handle of a target task. Select an edge and press Delete/Backspace to remove it."
-          : "Read-only workflow topology."}
+          : debugSnapshot
+            ? "RUN, QUEUE, POLICY HELD and DEPENDENCY GATE are synchronized to the selected simulation time."
+            : "Read-only workflow topology."}
       </div>
       <div className="edge-list" aria-label="Dependencies">
         {model.edges.map((edge) => (
-          <span className="edge-chip" key={edge.id}>{edge.source} → {edge.target}</span>
+          <span
+            className={activeCommunicationIds.has(edge.id) ? "edge-chip communication-active" : "edge-chip"}
+            key={edge.id}
+          >
+            {edge.source} → {edge.target}
+            {activeCommunicationIds.has(edge.id) ? " · TRANSFER" : ""}
+          </span>
         ))}
       </div>
     </section>

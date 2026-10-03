@@ -1,15 +1,18 @@
 import { useMemo, useState } from "react";
 import type { RunRecord } from "../../uiTypes";
+import { runLabel, runResult, runSpec, isDesignRunRecord } from "../../uiTypes";
 import { Assumptions } from "../explore/ResultEvidence";
 import { buildMetricRows } from "../explore/metricRows";
 
 function RunSummary({ run }: { run: RunRecord }) {
+  const spec = runSpec(run);
   return (
     <div className="config-summary">
-      <strong>{run.label}</strong>
-      <span>{run.spec.policy.allocation}</span>
-      <span>{run.spec.tasks.length} tasks</span>
-      <span>{run.spec.resources.length} pools</span>
+      <strong>{runLabel(run)}</strong>
+      <span>{spec.policy.allocation}</span>
+      <span>{spec.tasks.length} tasks</span>
+      <span>{spec.resources.length} pools</span>
+      <span>{isDesignRunRecord(run) ? "design-backed · manifest v" + run.compilationManifest.schemaVersion : "direct WorkflowSpec"}</span>
     </div>
   );
 }
@@ -23,11 +26,14 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
 
   const comparison = useMemo(() => {
     if (!left || !right) return null;
-    const leftRows = buildMetricRows(left.spec, left.result);
-    const rightRows = buildMetricRows(right.spec, right.result);
+    const leftRows = buildMetricRows(runSpec(left), runResult(left));
+    const rightRows = buildMetricRows(runSpec(right), runResult(right));
     const leftByKey = new Map(leftRows.map((row) => [row.key, row]));
     const rightByKey = new Map(rightRows.map((row) => [row.key, row]));
-    const keys = [...new Set([...leftRows.map((row) => row.key), ...rightRows.map((row) => row.key)])];
+    const keys = [...new Set([
+      ...leftRows.map((row) => row.key),
+      ...rightRows.map((row) => row.key)
+    ])];
     return { leftByKey, rightByKey, keys };
   }, [left, right]);
 
@@ -47,7 +53,7 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
         <div>
           <p className="section-kicker">Contrast</p>
           <h2>Compare runs</h2>
-          <p>Each column is an explicit WorkflowSpec + SimulationResult snapshot. B − A is presentation-only.</p>
+          <p>Each column is an exact simulation input/result snapshot. Design-backed runs also retain design/config/profile and compilation-manifest provenance.</p>
         </div>
       </div>
 
@@ -55,13 +61,13 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
         <label>
           <span>Run A</span>
           <select value={left.id} onChange={(event) => setLeftId(event.target.value)}>
-            {runs.map((run) => <option value={run.id} key={run.id}>{run.label}</option>)}
+            {runs.map((run) => <option value={run.id} key={run.id}>{runLabel(run)}</option>)}
           </select>
         </label>
         <label>
           <span>Run B</span>
           <select value={right.id} onChange={(event) => setRightId(event.target.value)}>
-            {runs.map((run) => <option value={run.id} key={run.id}>{run.label}</option>)}
+            {runs.map((run) => <option value={run.id} key={run.id}>{runLabel(run)}</option>)}
           </select>
         </label>
       </section>
@@ -92,7 +98,11 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
                 <span role="cell">{a?.label ?? b?.label ?? key}</span>
                 <strong role="cell">{a?.formatted ?? "—"}</strong>
                 <strong role="cell">{b?.formatted ?? "—"}</strong>
-                <span role="cell">{delta === undefined || !formatter ? "—" : (delta > 0 ? "+" : "") + formatter(delta)}</span>
+                <span role="cell">
+                  {delta === undefined || !formatter
+                    ? "—"
+                    : (delta > 0 ? "+" : "") + formatter(delta)}
+                </span>
               </div>
             );
           })}
@@ -100,8 +110,8 @@ export function CompareView({ runs }: { runs: RunRecord[] }) {
       </section>
 
       <div className="two-up">
-        <Assumptions result={left.result} />
-        <Assumptions result={right.result} />
+        <Assumptions result={runResult(left)} />
+        <Assumptions result={runResult(right)} />
       </div>
     </div>
   );
