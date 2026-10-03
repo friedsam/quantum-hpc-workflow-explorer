@@ -437,3 +437,98 @@ Deliverable:
 - identify only the minimum code/interface changes needed now, if any;
 - explicit list of future capabilities this keeps open;
 - stop for Agent F review.
+
+
+## Agent A Round 2C response — 2026-10-02
+
+**Status:** **Round 2C complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Delivered
+
+- `engine/design/types.d.ts`
+  - `WorkflowDesign`, `RunConfiguration`, `SystemProfile`, `RunRecord`;
+  - lightweight provenance kinds: synthetic / user-entered / measured / fitted;
+  - optional actor-group identity and bounded repeat blocks.
+- `engine/design/compile.mjs`
+  - pure `compileWorkflowDesign(design, runConfiguration, systemProfile) -> WorkflowSpec`;
+  - deterministic bounded-repeat expansion;
+  - task/resource/policy/timing/communication/cost resolution;
+  - no simulation or optimization logic.
+- `engine/examples/qamp-a-design-compile.mjs`
+  - current QAMP Scenario A split into design + run configuration + synthetic system profile.
+- `engine/tests/design-compile.test.mjs`
+  - five architecture/compiler regression cases.
+- `docs/coordination/proposals/DESIGN_CONFIGURATION_LAYER.md`
+  - concise schema, compile rules, current-change boundary, and future capability list.
+
+### Key architecture result
+
+`WorkflowDesign` holds stable workflow intent/topology.  
+`RunConfiguration` holds capacities/reservations, task resource counts, allocation/admission policy, actor counts and optional cost overrides.  
+`SystemProfile` holds provenanced timing/communication/cost assumptions.  
+The compiler resolves these into the existing frozen `WorkflowSpec`.  
+`RunRecord` snapshots exact design/config/profile + compiled spec + `SimulationResult`.
+
+### Repeat semantics
+
+Minimal bounded repeat support:
+- each task belongs to at most one repeat block;
+- iteration-major deterministic unroll;
+- compiled IDs `taskId@repeatId:ordinal`;
+- internal dependencies duplicate per iteration;
+- incoming external edges target the first iteration;
+- outgoing external edges originate from the final iteration;
+- explicit carry dependencies connect iteration i -> i+1;
+- direct edges between separate repeat blocks are rejected for now.
+
+This remains a pre-DES DAG expansion, not dynamic control flow.
+
+### Actor/rank metadata
+
+Actor groups are semantic annotations only. They do not create Working/Blocked/Idle engine states. Stable actor-group IDs + optional run-time group counts preserve a future path to exact actor accounting outside generic DES ontology.
+
+### Rank-count guardrail
+
+Per-task `resourceCount` remains an allocation/concurrency input only.
+
+Changing resource count under a constant `SystemProfile` does **not** alter task duration. Rank-count optimization stays unsupported until a future profile explicitly provides a resource-count-dependent timing model.
+
+### Validation
+
+Exact current Git blobs were executed in the connected V8 runtime with a compatibility polyfill only for the runtime's missing `structuredClone`.
+
+Checks: **5/5 PASS**
+1. QAMP A compile -> frozen-v1 validation/simulation;
+2. deterministic bounded-repeat unroll + carry edge;
+3. communication-profile resolution + run cost-override precedence;
+4. immutable `RunRecord` snapshots;
+5. resource-count change does not imply service-time scaling.
+
+No frozen DES file or frozen v1 type was modified in Round 2C.
+
+### Minimum integration changes now
+
+Required frozen-engine changes: **none**.
+
+Optional layer to PORT above engine:
+- shared design/config/profile/run-record types;
+- pure compiler;
+- later editor/preset persistence split if Agent F/C adopt it.
+
+Current direct `WorkflowSpec` authoring can remain a compatibility path.
+
+### Promotion scope
+
+Proposed for **PORT**:
+- `engine/design/types.d.ts`
+- `engine/design/compile.mjs`
+- `engine/examples/qamp-a-design-compile.mjs`
+- `engine/tests/design-compile.test.mjs`
+- `docs/coordination/proposals/DESIGN_CONFIGURATION_LAYER.md`
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Frozen interface changes requested: none.  
+Known limitations: repeat blocks are intentionally bounded/minimal; no cross-repeat-block edge semantics; no stochastic/resource-dependent timing; no optimizer.
+
+**Recommended promotion decision: PORT the architecture/compiler above frozen v1. Stop after Agent F review.**
