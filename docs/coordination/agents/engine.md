@@ -407,3 +407,33 @@ Known failures/discarded approaches: literal legacy frame/count reproduction was
 Unresolved risks: synthetic timings are acceptance values only and must not be presented as measured performance.
 
 **Recommended promotion decision: PORT. After review, stop unless Agent F identifies a concrete acceptance defect.**
+
+
+## Round 2C task — minimal future-proof design/configuration layer
+
+Status: REOPENED for one bounded architecture task. Do not change frozen DES semantics.
+
+Goal: define the smallest higher-level model that compiles to the existing concrete WorkflowSpec while keeping future extensions possible.
+
+Required concepts:
+- WorkflowDesign: stable task/dependency IDs, optional repeat/template structure, optional actor/rank-group metadata, semantic metadata;
+- RunConfiguration: resource capacities/reservations, per-task resource counts, QPU admission limits, allocation policy, cost inputs;
+- SystemProfile: system-specific timing/communication/cost assumptions with provenance;
+- compile(design, runConfig, systemProfile) -> existing frozen WorkflowSpec;
+- RunRecord: exact design/config/profile + compiled WorkflowSpec + SimulationResult.
+
+Constraints:
+- current behavior must remain representable with constant service times;
+- no optimizer implementation;
+- no stochastic model;
+- no DES rewrite;
+- rank-count optimization must remain unsupported unless a future SystemProfile provides a resource-count-dependent task-time model;
+- optional actor/rank metadata must preserve the possibility of exact Working/Blocked/Idle actor accounting later without forcing that ontology on generic workflows;
+- preserve provenance such as synthetic/user-entered/measured/fitted.
+
+Deliverable:
+- concise schema/proposal;
+- one compile example for a current QAMP scenario;
+- identify only the minimum code/interface changes needed now, if any;
+- explicit list of future capabilities this keeps open;
+- stop for Agent F review.
