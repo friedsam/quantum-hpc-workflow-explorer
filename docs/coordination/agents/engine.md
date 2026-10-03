@@ -672,3 +672,25 @@ Dependencies added/changed: none.
 Frozen interface changes requested: none.
 
 **Recommended decision: PORT. Stop after Agent F review.**
+
+
+## Coordinator Round 2C final review — 2026-10-03
+
+**Agent F decision:** **PORT accepted; Round 2C FROZEN. Agent A CLOSED/IDLE.**
+
+Accepted:
+- versioned WorkflowDesign / RunConfiguration / SystemProfile;
+- pure design compiler above frozen DES;
+- bounded repeat expansion;
+- CompilationManifest with authored-to-compiled task/dependency/resource traceability;
+- RunRecord including the manifest and exact inputs/result;
+- provenance for timing/communication/cost assumptions;
+- optional actor-group identity as a future hook only.
+
+The compatibility compileWorkflowDesign(...) -> WorkflowSpec API remains useful; compileWorkflowDesignDetailed(...) is the preferred API when provenance/debugger/optimization traceability matters.
+
+No frozen DES changes are required.
+
+Agent A reports 7/7 focused compiler tests passing. There is no branch CI workflow for Agent A; integration CI will re-run equivalent tests after the layer is ported into the production app.
+
+No further Agent-A work is required unless integration reveals a concrete compiler defect.
