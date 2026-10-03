@@ -123,7 +123,7 @@ test("full-system debugger uses separate exact and causal planes plus linked str
   );
 
   assert.match(debuggerSource, /Capacity plane/);
-  assert.match(debuggerSource, /Causality plane/);
+  assert.match(debuggerSource, /Causality plane/);\n  assert.match(debuggerSource, /Resource queue/);
   assert.match(debuggerSource, /no blocked-rank inference/);
   assert.match(strips, /CUMULATIVE COST/);
   assert.match(strips, /disabled/);

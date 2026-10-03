@@ -20,6 +20,7 @@ export function FullSystemDebugger({ spec, snapshot }: Props) {
   const labelWidth = 150;
   const barWidth = 700;
   const height = 34 + pools.length * rowHeight;
+  const queuedPools = pools.filter((pool) => pool.queuedTaskIds.length > 0);
 
   return (
     <section className="surface debugger-board" aria-labelledby="system-debugger-heading">
@@ -98,6 +99,14 @@ export function FullSystemDebugger({ spec, snapshot }: Props) {
               </article>
             ))}
 
+            {queuedPools.map((pool) => (
+              <article className="causal-card queue" key={"queue-" + pool.resourcePoolId}>
+                <div><strong>Resource queue</strong><span className="evidence-chip">engine</span></div>
+                <p>{pool.resourcePoolId} · depth {pool.queueDepth}</p>
+                <small>{pool.queuedTaskIds.join(", ")} · admitted work waiting for resource capacity</small>
+              </article>
+            ))}
+
             {snapshot.causal.policyHeldQuantumTasks.map((task) => (
               <article className="causal-card policy" key={task.taskId}>
                 <div><strong>Policy held</strong><span className="evidence-chip derived">derived</span></div>
@@ -121,9 +130,10 @@ export function FullSystemDebugger({ spec, snapshot }: Props) {
             ))}
 
             {!snapshot.causal.activeCommunications.length &&
+             !queuedPools.length &&
              !snapshot.causal.policyHeldQuantumTasks.length &&
              !snapshot.causal.dependencyGatedClassical.length ? (
-              <div className="causal-empty">No active communication, policy hold, or immediate classical dependency gate at this cursor.</div>
+              <div className="causal-empty">No active communication, resource queue, policy hold, or immediate classical dependency gate at this cursor.</div>
             ) : null}
           </div>
         </div>

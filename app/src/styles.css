@@ -748,3 +748,5 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
     grid-template-columns: 1fr;
   }
 }
+
+.causal-card.queue { border-left-color: var(--qpu); }

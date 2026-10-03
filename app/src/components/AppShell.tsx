@@ -49,7 +49,7 @@ export function AppShell({ view, onViewChange, workflow, resultAttached, runCoun
       </nav>
 
       <div className="source-strip">
-        <strong>Source of truth:</strong> Builder creates the frozen-v1 WorkflowSpec; the ported v1 engine produces SimulationResult; UI only renders or compares returned values.
+        <strong>Source of truth:</strong> Versioned design/config/profile inputs may compile to the frozen-v1 WorkflowSpec; direct WorkflowSpec editing remains supported. The frozen DES produces SimulationResult, and the UI derives only presentation/debug views.
       </div>
 
       <main className="workspace">{children}</main>
