@@ -170,3 +170,34 @@ Prefer structured SVG/Figma/native components that remain editable. Do not integ
 Evaluate whether the current simple resource-card SVG is sufficient or should be replaced.
 
 Stop after this checkpoint for Agent F review.
+
+
+## Coordinator input from Agent B Round 2B — 2026-10-03
+
+Agent B's causal-state derivation is accepted.
+
+Design against a **two-layer runtime model**:
+
+### Exact resource layer
+- classical active/working units;
+- allocated-idle units;
+- released units;
+- QPU active units;
+- QPU resource queue.
+
+### Causal explanation layer
+- communication-active dependencies;
+- QPU-gated classical continuations;
+- structural joins / collective synchronization where preset metadata establishes that meaning;
+- policy-held QPU work / admission control.
+
+Do **not** design a generic stacked `Working + Blocked + Idle + Released = capacity` view with `Blocked` as resource units. The engine does not preserve task→rank affinity, and A-D produce concrete double-counting counterexamples.
+
+The visualization should still make waiting highly visible; show it as a causal overlay/annotation linked to DAG tasks/dependencies rather than silently reclassifying resource capacity.
+
+For Scenario B, for example, it is valid to show:
+- CPU reservation: 4 allocated-idle;
+- collective continuation: demand 4, gated by unresolved quantum results;
+- semantic label: collective synchronization wait (preset-authored meaning).
+
+This should inform the current prototypes before handoff.
