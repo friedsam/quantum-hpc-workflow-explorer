@@ -95,6 +95,16 @@ const synthetic = (notes) => ({
 export const qampScenarioASystemProfile = {
   id: "qamp-a-synthetic-profile",
   name: "Synthetic QAMP A profile",
+  costPerUnitSecond: {
+    cpu: {
+      value: 0.01,
+      provenance: synthetic("Illustrative CPU cost rate; not provider billing."),
+    },
+    qpu: {
+      value: 0.2,
+      provenance: synthetic("Illustrative QPU cost rate; not provider billing."),
+    },
+  },
   taskServiceTimes: {
     "independent-classical": {
       value: { kind: "constant", seconds: 10 },
