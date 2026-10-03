@@ -136,8 +136,7 @@ test("full-system debugger uses separate exact and causal planes plus linked str
 
 test("App orchestration remains componentized while preserving direct WorkflowSpec compatibility", async () => {
   const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
-  const lines = app.split(/\r?
-/).length;
+  const lines = app.split(/\\r?\\n/).length;
   assert.ok(lines < 230, "App.tsx has grown to " + lines + " lines");
   assert.match(app, /localEngineAdapter\.simulate\(simulationSpec\)/);
   assert.match(app, /sourceKind: "direct-workflow-spec"/);
