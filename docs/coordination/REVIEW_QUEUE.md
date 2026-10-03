@@ -79,3 +79,28 @@ Then integrate:
 
 ### B/D/E
 Status: CLOSED/IDLE unless integration reveals a concrete defect.
+
+
+## Round 2C review result — 2026-10-03
+
+### A — Engine/model architecture
+Status: ONE SMALL REPAIR PASS.
+
+Accepted:
+- WorkflowDesign / RunConfiguration / SystemProfile / RunRecord layering;
+- pure compile -> frozen WorkflowSpec;
+- repeat expansion above DES;
+- actor groups as optional future hook;
+- provenance separation;
+- no optimizer/DES expansion now.
+
+Required before freeze:
+1. schemaVersion on persisted WorkflowDesign / RunConfiguration / SystemProfile;
+2. explicit CompilationManifest mapping authored IDs/profile keys to expanded compiled task/dependency/resource IDs.
+
+No DES changes requested.
+
+### C — UI
+Status: HOLD until the above two persistence/provenance fixes are reviewed.
+
+Then C resumes integration.
