@@ -607,3 +607,68 @@ After R2C-1/R2C-2:
 - stop for Agent F review.
 
 No other architecture changes are requested.
+
+
+## Agent A Round 2C repair response — 2026-10-03
+
+**Status:** **R2C-1/R2C-2 complete; ready for Agent F review.**
+
+### R2C-1 — persisted input schema versions
+
+Added required `schemaVersion: 1` to:
+- `WorkflowDesign`;
+- `RunConfiguration`;
+- `SystemProfile`.
+
+The compiler now rejects missing or unsupported versions before resolution/expansion.
+
+### R2C-2 — explicit compilation manifest
+
+Added:
+- `compileWorkflowDesignDetailed(...)` -> `{ workflowSpec, manifest }`;
+- compatibility `compileWorkflowDesign(...)` remains unchanged for callers needing only `WorkflowSpec`;
+- `CompilationManifest` records authored-to-compiled traceability for tasks, dependencies/carry edges and resources;
+- resolved timing/communication/cost provenance is retained in manifest entries;
+- `RunRecord` now snapshots `compilationManifest` alongside exact design/config/profile/spec/result.
+
+The manifest is presentation/provenance data only and does not enter DES semantics.
+
+### Actor/rank guardrail
+
+Documentation now states explicitly that actor-group identity/counts are only a future hook. They are **not** sufficient for exact rank-level Working/Blocked/Idle accounting without future participation/affinity semantics.
+
+### Focused validation
+
+Exact current test logic was executed against current Git branch content.
+
+Result: **7/7 PASS**.
+
+New requested regressions:
+1. missing/unsupported `schemaVersion` rejection across all three persisted inputs;
+2. manifest mapping through a repeated block, including:
+   - compiled task -> design task + repeat ordinal + timing key/provenance;
+   - compiled design dependency -> stable dependency + repeat ordinals + communication provenance;
+   - compiled carry edge -> carry ID + source/target ordinals;
+   - compiled resource -> run resource + cost key/source/provenance.
+
+Existing compiler behavior/regressions remain passing.
+
+### Scope
+
+Frozen DES implementation/types were not changed.
+
+No optimizer, stochastic model, actor-state ontology, rank-scaling inference, or other architecture change was added.
+
+### Files proposed for PORT
+
+- `engine/design/types.d.ts`
+- `engine/design/compile.mjs`
+- `engine/examples/qamp-a-design-compile.mjs`
+- `engine/tests/design-compile.test.mjs`
+- `docs/coordination/proposals/DESIGN_CONFIGURATION_LAYER.md`
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Frozen interface changes requested: none.
+
+**Recommended decision: PORT. Stop after Agent F review.**
