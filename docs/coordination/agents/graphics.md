@@ -201,3 +201,98 @@ For Scenario B, for example, it is valid to show:
 - semantic label: collective synchronization wait (preset-authored meaning).
 
 This should inform the current prototypes before handoff.
+
+
+## Agent D Round 2B checkpoint — 2026-10-03
+
+**Status:** **COMPLETE — stop for Agent F review.**
+
+### Deliverables
+
+Artifact commit: `7813a0425b119d18089ef1708b16707f7b096149`
+
+- `docs/coordination/graphics/round2b/FULL_SYSTEM_VISUAL_LANGUAGE.md`
+- `docs/coordination/graphics/round2b/scenario-b-sync-wall.svg`
+- `docs/coordination/graphics/round2b/scenario-d-throughput-throttling.svg`
+
+No staging/application code was changed.
+
+### Visual-language result
+
+[verified] Agent B/F's accepted two-layer model is sufficient for the requested debugger composition without changing frozen engine v1:
+
+1. **Exact resource layer** — active, allocated-idle and released classical units; QPU active units; QPU resource queue.
+2. **Causal explanation layer** — dependency gating, accepted preset synchronization/join meaning, active communication, and policy-held QPU tasks.
+
+The runtime board is synchronized with:
+- a fixed-geometry React Flow/ELK DAG lens whose topology does not move during playback;
+- Agent-B semantic keyframe time/event provenance;
+- linked analytical strips using one movable simulation-time cursor.
+
+### Simple resource-card evaluation
+
+**Replace as the primary full-system debugger; retain as a primitive.**
+
+The old `Working / Idle / Blocked` card is not a valid top-level state decomposition under frozen v1. It conflates resource-unit accounting with task/dependency/policy waits and can double-count or invent rank affinity.
+
+The structured-SVG primitive itself remains useful for exact resource bars/cards because its stable viewBox, named semantic IDs, real SVG text and fixed geometry satisfy the accepted graphics contract.
+
+### Scenario B prototype
+
+Selected `t = 4.0 s`:
+- CPU reservation/capacity 4;
+- CPU active 0;
+- CPU allocated-idle 4;
+- CPU released 0;
+- QPU `quantum-b` running;
+- QPU resource queue 0 after same-time causal handoff;
+- active communication 0;
+- collective continuation has one unresolved quantum predecessor;
+- preset-authored causal label: **collective synchronization wait**.
+
+The prototype deliberately does **not** show “4 blocked CPU units.”
+
+### Scenario D prototype
+
+Selected `t = 4.5 s`:
+- CPU capacity 6, release-aware;
+- CPU active 1 (`consumer-2`);
+- CPU allocated-idle 0;
+- CPU released 5;
+- QPU `quantum-3` running;
+- QPU resource queue 1 (`quantum-4`);
+- policy-held QPU work 2 tasks (`quantum-5`, `quantum-6`);
+- continuations 3–6 dependency-gated on their own paths;
+- no global barrier.
+
+The prototype labels policy-held and dependency-gated quantities explicitly as **tasks**, never CPU resource units/ranks.
+
+### Analytical-output decision
+
+- Resource composition and QPU run/queue strips can be sourced from frozen-v1 intervals/queue samples.
+- A single cursor should drive runtime state, DAG highlighting and semantic playback.
+- Click/zoom should select an interval for slow semantic playback rather than create another simulation timeline.
+- **Cumulative cost time series is not authoritative in frozen v1.** The static prototypes therefore disable that strip instead of constructing a curve from final metrics. Agent F must choose a validated analysis adapter or later producer-owned series before enabling it.
+
+### Validation
+
+- Scenario B committed SVG: 12,860 bytes; local SHA-256 prefix `76607670b61e8c71`.
+- Scenario D committed SVG: 7,743 bytes; local SHA-256 prefix `bdc74868c70f0a7a`.
+- Both SVGs include `role="img"`, `<title>`, and `<desc>`.
+- Both contain the runtime, DAG and analytical-strip planes.
+- Both were rasterized with CairoSVG and visually inspected.
+- Neither prototype uses legacy `Blocked` as a runtime state.
+- Color is accompanied by labels/border/pattern semantics.
+- No production dependency was added.
+
+### Handoff
+
+- **Production change proposed now:** none; this is a design checkpoint only.
+- **Proposed for PORT/REIMPLEMENT:** two-layer visual ontology, full-system board composition, shared-time-cursor coupling, stable DAG highlighting rules, and exact-vs-causal provenance treatment.
+- **Investigation/reference only:** the two static SVG prototypes.
+- **Interface changes requested:** none.
+- **Remaining decisions for Agent F:** ownership/API for selected-time causal-explanation derivation, and producer ownership for authoritative cumulative-cost time series.
+- **Known rejected approach:** generic `Working + Blocked + Idle + Released = capacity` stacked view.
+- **Recommended promotion status:** **PORT / REIMPLEMENT** the specification into the accepted React/TypeScript scaffold; do not merge static prototypes as runtime implementation.
+
+**Stop here pending Agent F review.**
