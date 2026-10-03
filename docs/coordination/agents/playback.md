@@ -341,3 +341,63 @@ Stop after this checkpoint for Agent F review.
 No playback timing/compression, UI, graphics, or engine code was changed in Round 2B.
 
 **Agent B stops here pending Agent F review.**
+
+
+## Coordinator Round 2B review — 2026-10-03
+
+**Agent F decision:** **DERIVE accepted; Agent B CLOSED/IDLE.**
+
+### Accepted finding
+
+Frozen v1 is sufficient for the current 10-day product **provided the UI keeps two state spaces separate**:
+
+1. exact resource allocation/execution state;
+2. causal task/dependency explanation.
+
+A generic mutually-exclusive HPC partition `Working / Blocked / Idle / Released` cannot be derived rigorously from v1 because pending task demand is not bound to persistent classical resource/rank identity.
+
+### Accepted exact resource view
+
+For each classical pool:
+- Working / active units = exact;
+- Allocated-idle units = exact;
+- Released units = exact;
+- queued task identities = exact.
+
+For QPU pools:
+- active units = exact;
+- queued task identities/depth = exact.
+
+### Accepted causal overlay
+
+Deterministically derive:
+- active communication dependencies;
+- policy-held QPU tasks;
+- classical continuations gated by unresolved dependencies;
+- QPU-predecessor gating;
+- structural multi-input joins.
+
+Do not convert these task-level causal states into blocked classical resource-unit counts unless explicit authored affinity/provenance exists.
+
+### Terminology constraint
+
+Generic UI:
+- use `working/active`, `allocated-idle`, `released` for resource units;
+- use `waiting/gated by ...` for causal work state;
+- do not claim `blocked ranks` generically.
+
+Preset-specific explanatory metadata may support stronger labels such as:
+- `local QPU-result wait`;
+- `collective synchronization wait`.
+
+Exact rank-level blocked counts would require a persistent actor/allocation-affinity model and are deferred rather than added to frozen v1.
+
+### External sanity check
+
+This separation is consistent with scheduler practice: Slurm records a job state such as PENDING separately from a reason such as Dependency or Resources. This is only corroboration; the project decision is based on the A-D counterexamples.
+
+### Promotion scope
+
+PORT the Round-2B causal-state specification into integration documentation. No engine or playback code change is required.
+
+Agent B can stop unless integration reveals a concrete derivation defect.
