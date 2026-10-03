@@ -1,6 +1,7 @@
 import { compileWorkflowDesign } from "../design/compile.mjs";
 
 export const qampScenarioADesign = {
+  schemaVersion: 1,
   id: "qamp-a-design",
   name: "QAMP A — loosely coupled overlap",
   actorGroups: [
@@ -63,6 +64,7 @@ export const qampScenarioADesign = {
 };
 
 export const qampScenarioARunConfiguration = {
+  schemaVersion: 1,
   id: "qamp-a-scaled-run",
   workflowId: "qamp-a-compiled",
   name: "scaled acceptance run",
@@ -93,6 +95,7 @@ const synthetic = (notes) => ({
 });
 
 export const qampScenarioASystemProfile = {
+  schemaVersion: 1,
   id: "qamp-a-synthetic-profile",
   name: "Synthetic QAMP A profile",
   costPerUnitSecond: {
