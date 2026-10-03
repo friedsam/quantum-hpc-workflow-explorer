@@ -3,25 +3,25 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 2 QAMP A-D acceptance suite complete; ready for Agent F review.
+**Status:** Round 2C design/configuration layer complete; ready for Agent F review.
 
 Delivered:
-- `engine/fixtures/qamp-scenarios.mjs`
-- `engine/tests/qamp-scenarios.test.mjs`
-- `docs/coordination/proposals/QAMP_SCENARIO_ACCEPTANCE.md`
+- `engine/design/types.d.ts`
+- `engine/design/compile.mjs`
+- `engine/examples/qamp-a-design-compile.mjs`
+- `engine/tests/design-compile.test.mjs`
+- `docs/coordination/proposals/DESIGN_CONFIGURATION_LAYER.md`
 
-Validation:
-- frozen v1 engine unchanged;
-- **5/5 Round 2 tests pass**;
-- no representational gap found.
+Result:
+- frozen DES/v1 unchanged;
+- design/config/profile compile cleanly to existing `WorkflowSpec`;
+- bounded repeat expansion remains pre-DES;
+- actor/rank identity is optional metadata only;
+- provenance retained in exact `RunRecord`;
+- no optimizer/stochastic/rank-scaling inference added;
+- **5/5 exact branch-content runtime checks pass**.
 
-Concept coverage:
-- A local overlap / off-critical-path quantum work;
-- B dependency-driven synchronization wall with fixed reservation;
-- C communication-dominated local paths with low QPU utilization;
-- D throughput-limited bounded admission with independent consumer progress.
-
-Recommended status: **PORT**. Stop after Agent F review unless a concrete acceptance defect is identified.
+Recommended status: **PORT above frozen v1**. Stop after Agent F review.
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
