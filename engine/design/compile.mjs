@@ -170,6 +170,19 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
     }
   }
 
+  if (runConfiguration.policy.allocation === "fixed") {
+    for (const [taskId, binding] of Object.entries(runConfiguration.taskResources)) {
+      const resource = resources.get(binding.resourcePoolId);
+      if (!["cpu", "gpu"].includes(resource.kind)) continue;
+      const reservation =
+        runConfiguration.policy.fixedReservationByPool?.[resource.id] ??
+        resource.capacity;
+      if (binding.resourceCount > reservation) {
+        fail(`taskResources.${taskId}: resourceCount exceeds fixed reservation for pool ${resource.id}`);
+      }
+    }
+  }
+
   for (const [poolId, limit] of Object.entries(runConfiguration.policy.maxInFlightQuantumByPool ?? {})) {
     const resource = resources.get(poolId);
     if (!resource) fail(`maxInFlightQuantumByPool: unknown pool ${poolId}`);
@@ -242,21 +255,39 @@ function resolvedCost(resource, runConfiguration, systemProfile) {
 
 function expandTasks(design, prepared) {
   const expanded = [];
+  const emittedRepeatBlocks = new Set();
+
   for (const task of design.tasks) {
     const repeat = prepared.repeatByTask.get(task.id);
     if (!repeat) {
-      expanded.push({ designTask: task, id: task.id, repeat: null, repeatIndex: null });
-      continue;
-    }
-    for (let index = 0; index < repeat.count; index += 1) {
       expanded.push({
         designTask: task,
-        id: taskInstanceId(task.id, repeat, index),
-        repeat,
-        repeatIndex: index,
+        id: task.id,
+        repeat: null,
+        repeatIndex: null,
       });
+      continue;
+    }
+
+    if (emittedRepeatBlocks.has(repeat.id)) continue;
+    emittedRepeatBlocks.add(repeat.id);
+
+    const blockTasks = design.tasks.filter(
+      (candidate) => prepared.repeatByTask.get(candidate.id)?.id === repeat.id
+    );
+
+    for (let index = 0; index < repeat.count; index += 1) {
+      for (const blockTask of blockTasks) {
+        expanded.push({
+          designTask: blockTask,
+          id: taskInstanceId(blockTask.id, repeat, index),
+          repeat,
+          repeatIndex: index,
+        });
+      }
     }
   }
+
   return expanded;
 }
 
