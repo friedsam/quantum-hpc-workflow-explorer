@@ -25,6 +25,7 @@ export interface ActorGroup {
 }
 
 export interface WorkflowDesign {
+  schemaVersion: 1;
   id: string;
   name: string;
   tasks: DesignTask[];
@@ -68,6 +69,7 @@ export interface RepeatCarryDependency {
 }
 
 export interface RunConfiguration {
+  schemaVersion: 1;
   id: string;
   name?: string;
   workflowId?: string;
@@ -93,6 +95,7 @@ export interface TaskResourceBinding {
 }
 
 export interface SystemProfile {
+  schemaVersion: 1;
   id: string;
   name?: string;
   taskServiceTimes: Record<
@@ -112,6 +115,48 @@ export interface SystemProfile {
   metadata?: Record<string, unknown>;
 }
 
+export interface CompiledTaskManifestEntry {
+  designTaskId: string;
+  repeatBlockId?: string;
+  repeatOrdinal?: number;
+  timingKey: string;
+  timingProvenance: Provenance;
+}
+
+export interface CompiledDependencyManifestEntry {
+  kind: "design-dependency" | "repeat-carry";
+  designDependencyId?: string;
+  carryDependencyId?: string;
+  repeatBlockId?: string;
+  sourceRepeatOrdinal?: number;
+  targetRepeatOrdinal?: number;
+  communicationKey: string;
+  communicationProvenance?: Provenance;
+}
+
+export interface CompiledResourceManifestEntry {
+  runResourceId: string;
+  costKey: string;
+  costSource: "run-override" | "system-profile" | "unset";
+  costProvenance?: Provenance;
+}
+
+export interface CompilationManifest {
+  schemaVersion: 1;
+  designId: string;
+  runConfigurationId: string;
+  systemProfileId: string;
+  workflowSpecId: string;
+  tasks: Record<string, CompiledTaskManifestEntry>;
+  dependencies: Record<string, CompiledDependencyManifestEntry>;
+  resources: Record<string, CompiledResourceManifestEntry>;
+}
+
+export interface CompilationResult {
+  workflowSpec: WorkflowSpec;
+  manifest: CompilationManifest;
+}
+
 export interface RunRecord {
   schemaVersion: 1;
   id: string;
@@ -119,9 +164,16 @@ export interface RunRecord {
   runConfiguration: RunConfiguration;
   systemProfile: SystemProfile;
   compiledWorkflowSpec: WorkflowSpec;
+  compilationManifest: CompilationManifest;
   simulationResult: SimulationResult;
   metadata?: Record<string, unknown>;
 }
+
+export function compileWorkflowDesignDetailed(
+  design: WorkflowDesign,
+  runConfiguration: RunConfiguration,
+  systemProfile: SystemProfile
+): CompilationResult;
 
 export function compileWorkflowDesign(
   design: WorkflowDesign,
@@ -135,6 +187,7 @@ export function createRunRecord(input: {
   runConfiguration: RunConfiguration;
   systemProfile: SystemProfile;
   compiledWorkflowSpec: WorkflowSpec;
+  compilationManifest: CompilationManifest;
   simulationResult: SimulationResult;
   metadata?: Record<string, unknown>;
 }): RunRecord;
