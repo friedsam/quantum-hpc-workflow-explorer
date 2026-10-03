@@ -116,10 +116,10 @@ test("repeat blocks unroll deterministically before frozen DES execution", () =>
     compiled.tasks.map((task) => task.id),
     [
       "prepare@iteration:1",
-      "prepare@iteration:2",
-      "prepare@iteration:3",
       "consume@iteration:1",
+      "prepare@iteration:2",
       "consume@iteration:2",
+      "prepare@iteration:3",
       "consume@iteration:3",
     ]
   );
