@@ -58,7 +58,8 @@ test("accepted design compiler is separate from frozen DES runtime", async () =>
   assert.match(compiler, /CompilationManifest|manifest/);
   assert.equal(/simulateWorkflow\s*\(/.test(compiler), false);
   assert.match(app, /compileWorkflowDesignDetailed/);
-  assert.match(app, /createRunRecord/);\n  assert.match(app, /detachCompilationProvenance/);
+  assert.match(app, /createRunRecord/);
+  assert.match(app, /detachCompilationProvenance/);
 });
 
 test("A-D presets come from the accepted scenario fixture module", async () => {
@@ -123,7 +124,8 @@ test("full-system debugger uses separate exact and causal planes plus linked str
   );
 
   assert.match(debuggerSource, /Capacity plane/);
-  assert.match(debuggerSource, /Causality plane/);\n  assert.match(debuggerSource, /Resource queue/);
+  assert.match(debuggerSource, /Causality plane/);
+  assert.match(debuggerSource, /Resource queue/);
   assert.match(debuggerSource, /no blocked-rank inference/);
   assert.match(strips, /CUMULATIVE COST/);
   assert.match(strips, /disabled/);
@@ -134,7 +136,8 @@ test("full-system debugger uses separate exact and causal planes plus linked str
 
 test("App orchestration remains componentized while preserving direct WorkflowSpec compatibility", async () => {
   const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
-  const lines = app.split(/\r?\n/).length;
+  const lines = app.split(/\r?
+/).length;
   assert.ok(lines < 230, "App.tsx has grown to " + lines + " lines");
   assert.match(app, /localEngineAdapter\.simulate\(simulationSpec\)/);
   assert.match(app, /sourceKind: "direct-workflow-spec"/);
