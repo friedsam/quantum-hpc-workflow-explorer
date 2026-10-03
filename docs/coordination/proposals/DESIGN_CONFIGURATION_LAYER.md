@@ -59,6 +59,7 @@ Core shape:
 
 ```ts
 interface WorkflowDesign {
+  schemaVersion: 1;
   id: string;
   name: string;
   tasks: DesignTask[];
@@ -91,9 +92,11 @@ interface DesignDependency {
 
 `actorGroups` and `actorGroupIds` are annotations only. They do **not** create new DES state and do not imply `Working / Blocked / Idle`.
 
-Their purpose is to preserve stable identity so a later actor-accounting layer can track named rank/actor groups exactly without changing generic workflow semantics.
+Their purpose is to preserve stable identity for a later actor-accounting layer without changing generic workflow semantics.
 
 A `RunConfiguration` may also retain `actorGroupCounts`. Frozen v1 ignores it.
+
+This hook is **not sufficient by itself for exact rank-level Working/Blocked/Idle accounting**. Exact actor accounting will require future explicit participation/affinity semantics; the current requirement is only to avoid discarding stable actor-group identity.
 
 ## 3. Bounded repeat/template representation
 
@@ -133,6 +136,7 @@ This is deliberately not a general control-flow language. It is only bounded DAG
 
 ```ts
 interface RunConfiguration {
+  schemaVersion: 1;
   id: string;
   name?: string;
   workflowId?: string;
@@ -178,6 +182,7 @@ Changing rank/resource count while using a constant `SystemProfile` leaves task 
 
 ```ts
 interface SystemProfile {
+  schemaVersion: 1;
   id: string;
 
   taskServiceTimes: Record<
@@ -238,11 +243,12 @@ The resolved frozen `WorkflowSpec` contains execution constants. Exact assumptio
 
 ## 7. compile(design, runConfiguration, systemProfile)
 
-Executable reference:
+Executable references:
 
-`compileWorkflowDesign(design, runConfiguration, systemProfile)`
+- `compileWorkflowDesignDetailed(design, runConfiguration, systemProfile)` -> `{ workflowSpec, manifest }`
+- `compileWorkflowDesign(...)` -> compatibility wrapper returning only `workflowSpec`
 
-Output is the **existing frozen `WorkflowSpec`**, with no DES interface change.
+The `workflowSpec` is the **existing frozen `WorkflowSpec`**, with no DES interface change.
 
 Compilation performs:
 
@@ -258,6 +264,23 @@ Compilation performs:
 
 The compiler does not simulate or optimize.
 
+### Persistence/version validation
+
+`WorkflowDesign`, `RunConfiguration`, and `SystemProfile` are persisted/importable top-level inputs and therefore now require explicit `schemaVersion: 1`.
+
+The compiler rejects missing or unsupported schema versions before compilation.
+
+### Compilation manifest
+
+The detailed compiler returns a presentation/provenance-only `CompilationManifest` outside frozen DES. It records:
+
+- compiled task ID -> stable design task ID, repeat block/ordinal, timing key, timing provenance;
+- compiled dependency ID -> stable design dependency or carry ID, repeat ordinal(s), communication key, communication provenance;
+- compiled resource ID -> run resource ID, cost key, cost source and cost provenance;
+- design/config/profile IDs and the compiled WorkflowSpec ID.
+
+Downstream UI/debugger/optimizer code therefore does not need to parse generated IDs such as `task@repeat:2`.
+
 ## 8. RunRecord — exact reproducibility envelope
 
 ```ts
@@ -270,6 +293,7 @@ interface RunRecord {
   systemProfile: SystemProfile;
 
   compiledWorkflowSpec: WorkflowSpec;
+  compilationManifest: CompilationManifest;
   simulationResult: SimulationResult;
 
   metadata?: Record<string, unknown>;
@@ -334,15 +358,17 @@ Reference regression file:
 
 `engine/tests/design-compile.test.mjs`
 
-Five exact branch-content checks cover:
+Seven focused branch-content checks now cover:
 
 1. QAMP A design -> frozen-v1 compile + simulation;
 2. deterministic repeat unrolling + carry dependency;
-3. communication profile resolution + user cost override precedence;
-4. immutable `RunRecord` snapshots;
-5. explicit proof that resource-count changes do not imply task-time scaling under a constant profile.
+3. rejection of missing/unsupported persisted-input schema versions;
+4. detailed manifest mapping through a repeated block without generated-ID parsing;
+5. communication profile resolution + user cost override precedence;
+6. immutable `RunRecord` snapshots including the manifest;
+7. explicit proof that resource-count changes do not imply task-time scaling under a constant profile.
 
-Agent A executed equivalent checks directly against current Git blobs in the connected runtime: **5/5 passed**.
+Agent A executed the exact current test logic against current Git blobs in the connected runtime: **7/7 passed**.
 
 ## 11. Minimum changes needed now
 
@@ -403,3 +429,34 @@ Not added:
 ## Recommendation
 
 **PORT architecture + reference compiler/schema**, but keep it above frozen v1 and do not force immediate UI migration unless Agent F needs it for the current 10-day product.
+
+
+## Round 2C persistence/provenance repair
+
+Agent F requested only R2C-1/R2C-2.
+
+### R2C-1
+
+Implemented explicit `schemaVersion: 1` on:
+- `WorkflowDesign`;
+- `RunConfiguration`;
+- `SystemProfile`.
+
+Compiler validation rejects absent or unsupported versions.
+
+### R2C-2
+
+Implemented `compileWorkflowDesignDetailed(...)` returning:
+
+```ts
+interface CompilationResult {
+  workflowSpec: WorkflowSpec;
+  manifest: CompilationManifest;
+}
+```
+
+The original `compileWorkflowDesign(...): WorkflowSpec` remains as a compatibility wrapper.
+
+`RunRecord` now persists `compilationManifest` alongside the exact design/config/profile/spec/result snapshots.
+
+No frozen DES type, event, scheduling rule, metric, or runtime behavior changed.
