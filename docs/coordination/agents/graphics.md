@@ -106,3 +106,67 @@ No shared interface change is requested.
 The benchmark renderer/tests remain reference evidence on `agent/graphics`. Production SVG/React Flow components should be implemented in the accepted Agent-C scaffold after its coordinator review.
 
 No new graphics framework investigation is requested. Agent D can pause until Agent F/C request a concrete production visual component or Figma polishing pass.
+
+
+## Round 2B task — full-system visual language
+
+**Status:** REOPENED for one bounded graphics workup.
+
+The purpose is no longer to benchmark graphics libraries. The toolchain decision is already made.
+
+### Product goal
+
+Design a visual language for the Explorer as a **human-readable hybrid workflow simulator/debugger**.
+
+Users should be able to:
+- see the whole HPC/QPU system state at a selected simulation time;
+- slow/step through semantic execution;
+- identify where non-working capacity accumulates;
+- distinguish queueing, dependency waiting, synchronization, communication, policy throttling, idle allocation, and released capacity where the underlying model supports those distinctions;
+- correlate the current state with the workflow DAG and later with analytical time-series plots.
+
+### Inputs
+
+Use:
+- accepted QAMP A-D scenario semantics from Round 2;
+- frozen-v1 engine vocabulary;
+- the current React Flow + ELK DAG and structured-SVG runtime approach;
+- Agent B's existing semantic playback concept.
+
+Do **not** assume that old Working/Blocked/Idle labels are automatically valid engine states. Agent B is separately testing causal-state derivability. Where a visual requires a causal state that is not yet guaranteed, mark it as dependent on B/F resolution.
+
+### Required concepts to work through
+
+1. Whole-system runtime panel:
+   - HPC allocation/capacity;
+   - working/active;
+   - dependency-wait / synchronization-wait if supportable;
+   - policy-held if supportable;
+   - allocated-idle;
+   - released;
+   - QPU run + queue;
+   - active communication.
+
+2. Playback/debugger coupling:
+   - selected simulation time;
+   - semantic step/event;
+   - DAG highlighting;
+   - state changes without moving geometry;
+   - compressed repeated activity without blinking.
+
+3. Analytical output concept:
+   - time-series strip(s) for resource-state composition, QPU queue/utilization, and cumulative cost;
+   - a movable time cursor linked to the runtime panel;
+   - click/zoom into an interval for slow playback.
+
+### Deliverable
+
+Produce a **design specification plus concrete static prototypes** for at least:
+- Scenario B synchronization wall;
+- Scenario D throughput/throttling.
+
+Prefer structured SVG/Figma/native components that remain editable. Do not integrate into the staging app yet.
+
+Evaluate whether the current simple resource-card SVG is sufficient or should be replaced.
+
+Stop after this checkpoint for Agent F review.
