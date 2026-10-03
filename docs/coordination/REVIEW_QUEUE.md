@@ -59,3 +59,23 @@ Next:
 4. then activate B and C for the second half of the round.
 
 The integrated staging app remains at the current accepted state while A/E work proceeds.
+
+
+## Round 2C — model extension guardrail
+
+### A — Engine/model architecture
+Status: ACTIVE.
+
+Define the minimal WorkflowDesign + RunConfiguration + SystemProfile layer that compiles to frozen WorkflowSpec. Preserve optional actor/rank affinity, repeat structure, parameter provenance, and future performance-model hooks. Do not implement optimization or change DES semantics.
+
+### C — UI
+Status: HOLD until A Round 2C is reviewed.
+
+Then integrate:
+- accepted A-D presets;
+- B causal explanation layer;
+- D full-system debugger visual language;
+- the minimal design/config separation accepted from A.
+
+### B/D/E
+Status: CLOSED/IDLE unless integration reveals a concrete defect.
