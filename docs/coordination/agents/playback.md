@@ -259,7 +259,7 @@ No further Agent-B work is required unless integration reveals a concrete compat
 
 ## Round 2B task — causal system-state derivation
 
-**Status:** REOPENED for one bounded diagnostic task.
+**Status:** CHECKPOINT COMPLETE — awaiting Agent F review; Agent B stopped.
 
 Agent F has reconciled A/E and accepted the A-D execution mechanisms. Frozen engine v1 remains unchanged for this task.
 
@@ -311,3 +311,33 @@ Then answer explicitly:
 - recommendation: DERIVE / EXTEND ENGINE / MIXED.
 
 Stop after this checkpoint for Agent F review.
+
+### Agent B Round 2B checkpoint
+
+[verified] Deliverable committed:
+
+- `docs/coordination/agents/playback-round2b-causal-state.md`
+- checkpoint commit: `fcc7e91ae95497cc7e1ffb2f58f193793f900770`
+
+[verified] Evidence used:
+- Agent A engine head `0229d60ba28e2f728fac092e76affe74e0e614c4`;
+- engine blob `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`;
+- accepted A-D fixture blob `5c4e64f58d5e0be4e8db5cc1697736b254f12482`;
+- Agent F reconciled acceptance blob `939782b8d34a0e50962eb2772d47dfd1d4778a8a`;
+- Agent E scenario-contract blob `b8351375ddfb0103b73db3c93444319689ebed09`.
+
+[verified] Main result:
+- exact resource state can be partitioned as active / allocated-idle / released;
+- causal task state can be deterministically overlaid from DAG + trace;
+- `Blocked` cannot be a mutually exclusive classical resource-unit bucket without inventing task→resource/rank affinity;
+- Scenario D policy-held QPU task counts cannot be converted to HPC-rank counts;
+- communication wait is directly attributable;
+- QPU-predecessor gating and structural joins are derivable, but generic labels `own result` and `global synchronization` require authored semantic provenance.
+
+[verified] Concrete capacity counterexamples are documented for A-D. Example A at t=2 has CPU capacity 2 = 1 active + 1 released while a 1-unit downstream task is QPU-gated; treating that demand as a blocked CPU produces an impossible 3-unit total.
+
+[opinion] Recommendation: **DERIVE** a two-layer explanation snapshot over frozen `WorkflowSpec + SimulationResult`. No engine-v1 change is recommended. If stronger wording is required, use existing `TaskSpec.metadata` for local-result vs collective-join semantics. Exact rank-level blocked counts would require a substantive persistent affinity model and should not be added merely for presentation.
+
+No playback timing/compression, UI, graphics, or engine code was changed in Round 2B.
+
+**Agent B stops here pending Agent F review.**
