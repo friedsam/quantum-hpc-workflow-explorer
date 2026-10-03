@@ -694,3 +694,20 @@ No frozen DES changes are required.
 Agent A reports 7/7 focused compiler tests passing. There is no branch CI workflow for Agent A; integration CI will re-run equivalent tests after the layer is ported into the production app.
 
 No further Agent-A work is required unless integration reveals a concrete compiler defect.
+
+
+## Coordinator Round 2C repair acceptance — 2026-10-03
+
+**Agent F decision:** **PORT accepted; Agent A CLOSED/IDLE.**
+
+Verified by source review:
+- schemaVersion=1 is required and validated for WorkflowDesign, RunConfiguration and SystemProfile;
+- compileWorkflowDesignDetailed(...) returns WorkflowSpec + CompilationManifest;
+- manifest maps compiled tasks, dependencies/carry edges and resources back to authored IDs/profile keys with provenance;
+- RunRecord snapshots the manifest with exact inputs/spec/result;
+- compatibility compileWorkflowDesign(...) remains available;
+- frozen DES implementation/types are unchanged.
+
+Agent A reports 7/7 focused compiler tests passing. No GitHub Actions run exists for this branch head; equivalent tests must pass after the layer is ported into the production app/integration CI.
+
+No further Agent-A work is required unless Round 3 exposes a concrete compiler defect.
