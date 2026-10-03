@@ -15,6 +15,12 @@ function clone(value) {
   return structuredClone(value);
 }
 
+function validateSchemaVersion(value, label) {
+  if (!isObject(value) || value.schemaVersion !== 1) {
+    fail(`${label}.schemaVersion must be 1`);
+  }
+}
+
 function validateProvenance(provenance, label) {
   if (!isObject(provenance) || !PROVENANCE_KINDS.has(provenance.kind)) {
     fail(`${label}.provenance.kind must be synthetic, user-entered, measured, or fitted`);
@@ -45,7 +51,8 @@ function compileAssumptions(design, runConfiguration, systemProfile) {
 }
 
 function prepareDesign(design) {
-  if (!isObject(design) || !design.id || !design.name) {
+  validateSchemaVersion(design, "WorkflowDesign");
+  if (!design.id || !design.name) {
     fail("WorkflowDesign requires id and name");
   }
   if (!Array.isArray(design.tasks) || design.tasks.length === 0) {
@@ -127,7 +134,8 @@ function prepareDesign(design) {
 }
 
 function validateRunConfiguration(runConfiguration, prepared, design) {
-  if (!isObject(runConfiguration) || !runConfiguration.id) fail("RunConfiguration requires id");
+  validateSchemaVersion(runConfiguration, "RunConfiguration");
+  if (!runConfiguration.id) fail("RunConfiguration requires id");
   if (!Array.isArray(runConfiguration.resources) || runConfiguration.resources.length === 0) {
     fail("RunConfiguration requires resources");
   }
@@ -209,7 +217,8 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
 }
 
 function validateSystemProfile(systemProfile) {
-  if (!isObject(systemProfile) || !systemProfile.id) fail("SystemProfile requires id");
+  validateSchemaVersion(systemProfile, "SystemProfile");
+  if (!systemProfile.id) fail("SystemProfile requires id");
   if (!isObject(systemProfile.taskServiceTimes)) fail("SystemProfile.taskServiceTimes is required");
   if (systemProfile.dependencyCommunication !== undefined && !isObject(systemProfile.dependencyCommunication)) {
     fail("SystemProfile.dependencyCommunication must be an object");
@@ -356,13 +365,122 @@ function compileDependencies(design, prepared, systemProfile) {
   return compiled;
 }
 
-export function compileWorkflowDesign(design, runConfiguration, systemProfile) {
+function resolvedCostManifest(resource, runConfiguration, systemProfile) {
+  const costKey = resource.costKey ?? resource.id;
+  const override = runConfiguration.costOverridesByPool?.[resource.id];
+  if (override) {
+    return {
+      costKey,
+      costSource: "run-override",
+      costProvenance: clone(override.provenance),
+    };
+  }
+
+  const profileEntry = systemProfile.costPerUnitSecond?.[costKey];
+  if (profileEntry) {
+    return {
+      costKey,
+      costSource: "system-profile",
+      costProvenance: clone(profileEntry.provenance),
+    };
+  }
+
+  return { costKey, costSource: "unset" };
+}
+
+function buildDependencyManifest(design, prepared, systemProfile) {
+  const manifest = {};
+
+  for (const dep of design.dependencies) {
+    const sourceRepeat = prepared.repeatByTask.get(dep.sourceTaskId);
+    const targetRepeat = prepared.repeatByTask.get(dep.targetTaskId);
+    const endpoints = expandedDependencyEndpoints(dep, prepared);
+    const communicationKey = dep.communicationKey ?? dep.id;
+    const provenance =
+      systemProfile.dependencyCommunication?.[communicationKey]?.provenance;
+
+    endpoints.forEach((endpoint, index) => {
+      let sourceRepeatOrdinal;
+      let targetRepeatOrdinal;
+
+      if (sourceRepeat && targetRepeat) {
+        sourceRepeatOrdinal = index + 1;
+        targetRepeatOrdinal = index + 1;
+      } else if (sourceRepeat) {
+        sourceRepeatOrdinal = sourceRepeat.count;
+      } else if (targetRepeat) {
+        targetRepeatOrdinal = 1;
+      }
+
+      manifest[endpoint.id] = {
+        kind: "design-dependency",
+        designDependencyId: dep.id,
+        ...(sourceRepeat || targetRepeat
+          ? { repeatBlockId: (sourceRepeat ?? targetRepeat).id }
+          : {}),
+        ...(sourceRepeatOrdinal !== undefined
+          ? { sourceRepeatOrdinal }
+          : {}),
+        ...(targetRepeatOrdinal !== undefined
+          ? { targetRepeatOrdinal }
+          : {}),
+        communicationKey,
+        ...(provenance
+          ? { communicationProvenance: clone(provenance) }
+          : {}),
+      };
+    });
+  }
+
+  for (const repeat of prepared.repeats) {
+    for (const carry of repeat.carryDependencies ?? []) {
+      const communicationKey = carry.communicationKey ?? carry.id;
+      const provenance =
+        systemProfile.dependencyCommunication?.[communicationKey]?.provenance;
+
+      for (let index = 0; index < repeat.count - 1; index += 1) {
+        const id =
+          `${repeat.id}:carry:${carry.id}:${index + 1}->${index + 2}`;
+        manifest[id] = {
+          kind: "repeat-carry",
+          carryDependencyId: carry.id,
+          repeatBlockId: repeat.id,
+          sourceRepeatOrdinal: index + 1,
+          targetRepeatOrdinal: index + 2,
+          communicationKey,
+          ...(provenance
+            ? { communicationProvenance: clone(provenance) }
+            : {}),
+        };
+      }
+    }
+  }
+
+  return manifest;
+}
+
+export function compileWorkflowDesignDetailed(
+  design,
+  runConfiguration,
+  systemProfile
+) {
   const prepared = prepareDesign(design);
-  const resources = validateRunConfiguration(runConfiguration, prepared, design);
+  validateRunConfiguration(runConfiguration, prepared, design);
   validateSystemProfile(systemProfile);
 
+  const resourceManifest = {};
   const compiledResources = runConfiguration.resources.map((resource) => {
     const cost = resolvedCost(resource, runConfiguration, systemProfile);
+    const costManifest = resolvedCostManifest(
+      resource,
+      runConfiguration,
+      systemProfile
+    );
+    resourceManifest[resource.id] = {
+      runResourceId: resource.id,
+      ...costManifest,
+    };
+
     return {
       id: resource.id,
       kind: resource.kind,
@@ -371,7 +489,9 @@ export function compileWorkflowDesign(design, runConfiguration, systemProfile) {
     };
   });
 
-  const compiledTasks = expandTasks(design, prepared).map((instance) => {
+  const expandedTasks = expandTasks(design, prepared);
+  const taskManifest = {};
+  const compiledTasks = expandedTasks.map((instance) => {
     const task = instance.designTask;
     const binding = runConfiguration.taskResources[task.id];
     const timingKey = task.timingKey ?? task.id;
@@ -387,6 +507,18 @@ export function compileWorkflowDesign(design, runConfiguration, systemProfile) {
         ? {
             repeatBlockId: instance.repeat.id,
             repeatIndex: instance.repeatIndex,
+            repeatOrdinal: instance.repeatIndex + 1,
+          }
+        : {}),
+      timingKey,
+      timingProvenance: clone(timing.provenance),
+    };
+
+    taskManifest[instance.id] = {
+      designTaskId: task.id,
+      ...(instance.repeat
+        ? {
+            repeatBlockId: instance.repeat.id,
             repeatOrdinal: instance.repeatIndex + 1,
           }
         : {}),
@@ -410,17 +542,52 @@ export function compileWorkflowDesign(design, runConfiguration, systemProfile) {
     runConfiguration.workflowId ??
     `${design.id}::${runConfiguration.id}::${systemProfile.id}`;
 
-  return {
+  const compiledDependencies = compileDependencies(
+    design,
+    prepared,
+    systemProfile
+  );
+
+  const workflowSpec = {
     id: workflowId,
     name: runConfiguration.name
       ? `${design.name} — ${runConfiguration.name}`
       : design.name,
     resources: compiledResources,
     tasks: compiledTasks,
-    dependencies: compileDependencies(design, prepared, systemProfile),
+    dependencies: compiledDependencies,
     policy: clone(runConfiguration.policy),
     assumptions: compileAssumptions(design, runConfiguration, systemProfile),
   };
+
+  const manifest = {
+    schemaVersion: 1,
+    designId: design.id,
+    runConfigurationId: runConfiguration.id,
+    systemProfileId: systemProfile.id,
+    workflowSpecId: workflowSpec.id,
+    tasks: taskManifest,
+    dependencies: buildDependencyManifest(
+      design,
+      prepared,
+      systemProfile
+    ),
+    resources: resourceManifest,
+  };
+
+  return { workflowSpec, manifest };
+}
+
+export function compileWorkflowDesign(
+  design,
+  runConfiguration,
+  systemProfile
+) {
+  return compileWorkflowDesignDetailed(
+    design,
+    runConfiguration,
+    systemProfile
+  ).workflowSpec;
 }
 
 export function createRunRecord({
@@ -429,10 +596,20 @@ export function createRunRecord({
   runConfiguration,
   systemProfile,
   compiledWorkflowSpec,
+  compilationManifest,
   simulationResult,
   metadata,
 }) {
   if (!id) fail("RunRecord requires id");
+  validateSchemaVersion(design, "WorkflowDesign");
+  validateSchemaVersion(runConfiguration, "RunConfiguration");
+  validateSchemaVersion(systemProfile, "SystemProfile");
+  if (compilationManifest?.schemaVersion !== 1) {
+    fail("CompilationManifest.schemaVersion must be 1");
+  }
+  if (compilationManifest.workflowSpecId !== compiledWorkflowSpec?.id) {
+    fail("CompilationManifest.workflowSpecId must match compiledWorkflowSpec.id");
+  }
   if (simulationResult?.workflowId !== compiledWorkflowSpec?.id) {
     fail("RunRecord simulationResult.workflowId must match compiledWorkflowSpec.id");
   }
@@ -444,6 +621,7 @@ export function createRunRecord({
     runConfiguration: clone(runConfiguration),
     systemProfile: clone(systemProfile),
     compiledWorkflowSpec: clone(compiledWorkflowSpec),
+    compilationManifest: clone(compilationManifest),
     simulationResult: clone(simulationResult),
     ...(metadata ? { metadata: clone(metadata) } : {}),
   };
