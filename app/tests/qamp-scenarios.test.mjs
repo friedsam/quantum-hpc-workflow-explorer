@@ -7,7 +7,7 @@ import {
   scenarioC,
   scenarioD,
   qampScenarioFixtures,
-} from "./fixtures/qamp-scenarios.mjs";
+} from "../src/presets/qamp-scenarios.mjs";
 
 function eventTime(result, type, taskId) {
   const event = result.events.find(
