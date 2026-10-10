@@ -3,22 +3,27 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4A coordinator repair complete; ready for Agent F review.
+**Status:** Round 4D Scenario-A fidelity / regime task complete; ready for Agent F review.
 
 Delivered:
-- actor wait/gate claims separate from task participation;
-- wait activation/release task-event conditions + explicit reasons;
-- multiple Blocked claims coalesce while Working+Blocked remains an error;
-- Scenario B repaired to show subset working -> submitters blocked -> all ranks blocked -> full group working;
-- Scenario B QPU resource queue wait = 0; serialization uses one admitted quantum task at a time;
-- frozen DES/v1 unchanged.
+- explicit deterministic actor ordinal-set selection;
+- faithful four-rank Scenario-A actor fixture;
+- one-rank local quantum wait with complementary ranks continuing classical work;
+- baseline no QPU queue and no policy hold;
+- local result consumption without full-allocation join;
+- fixed-topology parameter regimes showing A-like no-queue -> D-like queue transition;
+- explicit proof that B-like global synchronization requires a full-group authored gate/dependency;
+- task service-time wall-time semantics documented.
 
 Validation:
+- Round 4D suite: **7/7 PASS**;
 - repaired Round 4A actor suite: **6/6 PASS**;
-- Round 2C compiler regressions: **7/7 PASS**;
-- total focused checks: **13/13 PASS**.
+- Round 2C compiler suite: **7/7 PASS**;
+- total focused checks: **20/20 PASS**.
 
-Review artifact: `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`
+Frozen DES/v1 unchanged. No UI/optimizer/provider-queue/stochastic model added.
+
+Review artifact: `docs/coordination/proposals/ROUND4D_SCENARIO_A_REGIMES.md`
 
 Recommended status: **PORT**. Stop after Agent F review.
 
