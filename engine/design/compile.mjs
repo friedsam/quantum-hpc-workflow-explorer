@@ -734,6 +734,9 @@ export function compileWorkflowDesignDetailed(
         : {}),
       timingKey,
       timingProvenance: clone(timing.provenance),
+      ...(actorAssignments.length
+        ? { actorAssignments: clone(actorAssignments) }
+        : {}),
     };
 
     return {
