@@ -950,3 +950,29 @@ Dependencies added/changed: none.
 Frozen interface changes requested: none.
 
 **Recommended decision: PORT. Stop after Agent F review.**
+
+
+## Coordinator Round 4A repaired-model review — 2026-10-10
+
+**Agent F decision:** **PORT accepted; Agent A CLOSED/IDLE.**
+
+Accepted:
+- logical task multiplicity remains distinct from actor count and per-instance resourceCount;
+- persistent actor/rank groups are modeled above frozen DES;
+- task participation is separate from dependency/gate waiting;
+- actor waits/gates compile into the manifest, not WorkflowSpec;
+- multiple blocked reasons coalesce while Working+Blocked remains invalid;
+- compact logical DAG expands to concrete WorkflowSpec without one-node-per-rank representation;
+- frozen DES remains unchanged.
+
+Scenario B now satisfies the required scaled actor sequence:
+- subset Working / rest Idle;
+- submitting actors Blocked on their quantum results;
+- full actor group Blocked on the complete-result synchronization gate;
+- full actor group Working in the collective phase.
+
+The fixture also suppresses QPU resource-queue buildup. Its internal admission wait is accepted as serialization scaffolding, not a user-facing Scenario-B bottleneck; product UI must not present Scenario B as a throttling/service-capacity case.
+
+Agent A reports 6/6 repaired actor tests and 7/7 compiler regressions passing. Integration must rerun equivalent tests after porting.
+
+No further Agent-A work is required unless downstream integration reveals a concrete defect.
