@@ -1,0 +1,3 @@
+# Round 4A — logical multiplicity and actor state
+
+Define a minimal higher-level model above the frozen DES for: task multiplicity, optional persistent MPI-rank/worker groups, actor participation across CPU/QPU/CPU stages, and compact logical DAG compilation to concrete WorkflowSpec. Keep task count, actor count, and resourceCount distinct. Use Scenario B as the acceptance case: compact preparation subset, serialized quantum phase, later full collective, and derivable actor Working/Blocked/Idle states. Do not change UI, build an optimizer, model provider queues, or render one node per rank. Stop for Agent F review.
