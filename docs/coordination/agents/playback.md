@@ -401,3 +401,54 @@ This separation is consistent with scheduler practice: Slurm records a job state
 PORT the Round-2B causal-state specification into integration documentation. No engine or playback code change is required.
 
 Agent B can stop unless integration reveals a concrete derivation defect.
+
+
+## Round 4B task — actor-aware playback and causal state
+
+**Status:** REOPENED for one bounded compatibility/design task.
+
+### Inputs
+
+Use the accepted Round-4 actor model from Agent A:
+- logical task multiplicity;
+- persistent actor groups;
+- actor participation;
+- actor wait/gate claims;
+- derived actor Working / Blocked / Idle state;
+- frozen DES unchanged.
+
+### Goal
+
+Extend the playback/causal explanation contract so actor-aware workflows can expose persistent actor state without breaking generic workflows.
+
+### Required behavior
+
+1. For workflows with actor groups:
+   - expose actor-group Working / Blocked / Idle counts at selected simulation time;
+   - preserve blocked reason(s), e.g. quantum-result and global-synchronization;
+   - keep actor state separate from resource allocation state.
+2. For workflows without actor groups:
+   - retain the existing exact-resource + causal-overlay fallback.
+3. Playback/keyframe generation:
+   - include semantic keyframes when actor-state composition changes materially;
+   - ensure Scenario B shows the sequence:
+     subset working -> submitters blocked -> all blocked -> full group working;
+   - do not turn every individual actor transition into raw-frame noise.
+4. Confirm Scenario D still distinguishes resource queue vs policy-held work and is not reinterpreted as blocked ranks unless authored actor semantics explicitly support that.
+5. Define the minimal view-model/API C will need for integration.
+
+### Boundaries
+
+- no engine changes;
+- no UI layout work;
+- no graphics redesign;
+- no invented actor state for generic workflows;
+- no one-keyframe-per-rank explosion.
+
+### Deliverable
+
+- actor-aware causal/playback view-model proposal;
+- Scenario B example keyframes/counts/reasons;
+- generic fallback behavior;
+- any code/test updates needed in playback/derivation;
+- stop for Agent F review.
