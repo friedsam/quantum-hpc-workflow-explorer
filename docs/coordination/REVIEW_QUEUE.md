@@ -308,3 +308,34 @@ Only after browser findings are clean:
 - deployment-root migration;
 - final cleanup/docs;
 - main promotion.
+
+
+## Round 4D — systematic scenario fidelity / parameter-regime pass
+
+### Browser finding
+
+Scenario B logical Builder is now substantially clearer, but review exposed two remaining conceptual issues:
+
+1. the UI does not yet make system topology obvious (parallel HPC pool vs capacity-1 serialized QPU);
+2. Scenario A is still actor-less, so it cannot faithfully show the tutorial's defining state: submitting rank blocked on its local quantum result while other ranks continue useful work.
+
+Also clarified:
+- `service time / instance` is modeled wall time, not CPU speed;
+- logical multiplicity bundles equivalent modeled work instances;
+- parameter changes can shift bottlenecks, but topology/dependency changes are still required for mechanisms such as a global synchronization wall.
+
+### A — Engine/model
+Status: ACTIVE.
+
+Task:
+- minimal actor-selection extension if required for faithful Scenario A;
+- scaled Scenario-A logical fixture with local submitter wait and continuing non-submitters;
+- parameter-regime acceptance matrix separating topology from timing/load parameters;
+- frozen DES unchanged.
+
+### B/C/D
+Status: HOLD for A review.
+
+After A:
+- C/D get one bounded presentation pass for machine-topology strip, timing terminology, redundant node labels and minor edge-routing polish;
+- then resume browser acceptance across A-D and custom parameter edits.
