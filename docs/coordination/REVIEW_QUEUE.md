@@ -339,3 +339,26 @@ Status: HOLD for A review.
 After A:
 - C/D get one bounded presentation pass for machine-topology strip, timing terminology, redundant node labels and minor edge-routing polish;
 - then resume browser acceptance across A-D and custom parameter edits.
+
+
+## Three-day prototype deadline mode — 2026-10-10
+
+Priority: browser-demonstrable A-D tutorial prototype + project-description readiness within ~3 days.
+
+Parallel tracks:
+- A ACTIVE: Scenario-A actor fidelity + topology-vs-parameter regime semantics.
+- C ACTIVE: model-independent Builder clarity pass (system topology strip, modeled-wall-time wording, multiplicity explanation, redundant-label cleanup, bounded edge-routing polish).
+- E ACTIVE: rapid official-Slurm crosswalk for future ExecutionPlan/export compatibility.
+- B/D HOLD unless a concrete playback/graphics defect appears.
+- F coordinates browser acceptance and prepares the project-description narrative from the frozen product thesis once the prototype stabilizes.
+
+Prototype gate:
+1. A-D logical DAGs recognizable;
+2. system topology visible;
+3. parameter edits visibly change qualitative behavior;
+4. actor-aware A/B where authored;
+5. C communication and D throughput distinctions remain clear;
+6. custom workflow still editable/simulatable;
+7. advanced diagnostics remain available but secondary.
+
+Slurm research is advisory for future-proofing and must not block the 3-day prototype.
