@@ -405,7 +405,7 @@ Agent B can stop unless integration reveals a concrete derivation defect.
 
 ## Round 4B task — actor-aware playback and causal state
 
-**Status:** REOPENED for one bounded compatibility/design task.
+**Status:** CHECKPOINT COMPLETE — awaiting Agent F review; Agent B stopped.
 
 ### Inputs
 
@@ -452,3 +452,24 @@ Extend the playback/causal explanation contract so actor-aware workflows can exp
 - generic fallback behavior;
 - any code/test updates needed in playback/derivation;
 - stop for Agent F review.
+
+### Agent B Round 4B checkpoint
+
+[verified] Deliverable:
+- `docs/coordination/agents/playback-round4b-actor-aware.md`
+- checkpoint commit: `4ac9e1c67878a4977f105a8dd5555e6634272f6c`
+
+[verified] Implemented:
+- actor-group Working / Blocked / Idle aggregate projection from accepted actor-state derivation;
+- blocked reason counts preserved separately and allowed to overlap;
+- actor state kept separate from resource allocation state;
+- generic actor-less fallback preserved;
+- actor composition/reason signature protects semantic keyframes from compression across material actor changes.
+
+[verified] Scenario B actor playback: 21 engine events -> 5 aggregate semantic frames at t=0,1,4,7,8 with sequence 2W/0B/2I -> 0W/2B/2I -> 0W/4B/0I -> 4W/0B/0I -> terminal idle.
+
+[verified] Scenario D generic fallback retains resource queue and policy-held quantum work separately and does not invent blocked ranks.
+
+[verified] Exact committed blobs passed 20/20 tool-runtime assertions. No frozen DES, UI, graphics, dwell timing, or playback-control changes.
+
+**Agent B stops here pending Agent F review.**
