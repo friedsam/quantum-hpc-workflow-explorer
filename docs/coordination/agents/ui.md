@@ -875,3 +875,36 @@ Round-4 model/compiler/actor additions remain above the frozen DES.
 **PROMOTE/PORT Round 4C to `agent/integration` for browser/visual review.**
 
 Stop at this checkpoint. Further Agent-C work should be driven only by Agent-F browser/E2E findings or a new bounded assignment.
+
+
+## Coordinator Round 4C final review — 2026-10-10
+
+**Agent F decision:** **PROMOTE/PORT accepted; Agent C CLOSED/IDLE.**
+
+Verified:
+- Round-4C code head `1129ef3041d95d7c50b92058c9deaabd8e2d843a` passed Agent-C CI run `38028979455`;
+- final documentation head also passed CI run `38029083301`;
+- staged integration commit `17e868fafa1c120a6c54182a2844f45f84e5ffb5` passed integration CI run `38029254083`;
+- integration CI completed install, full app tests, TypeScript and Vite build successfully.
+
+Producer integrity independently verified:
+- frozen DES app copy exactly matches Agent-A frozen DES;
+- Round-4 compiler exactly matches Agent-A accepted compiler;
+- actor-state derivation exactly matches Agent-A accepted producer;
+- trace playback and actor-aware projection exactly match Agent-B accepted producers.
+
+Accepted product behavior:
+- logical WorkflowDesign is the normal Builder surface;
+- multiplicity, resource units/instance and actor count remain distinct;
+- custom starter is design-backed;
+- A-D use compact logical presets;
+- Scenario B uses the accepted persistent-actor model;
+- default Explore is simple/logical/actor-aware;
+- expanded DES and dense diagnostics are retained under Advanced / Diagnostics;
+- one shared simulation cursor drives default and advanced state;
+- Scenario D preserves resource queue vs policy-held distinction;
+- direct WorkflowSpec remains an advanced compatibility path.
+
+No additional model/UI defect was found in source review.
+
+Remaining gate is browser visual/E2E behavior on the staged integration app. No further Agent-C work is requested unless that browser review exposes a concrete defect.
