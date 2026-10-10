@@ -3,11 +3,18 @@ import { AppShell, type ViewId } from "./components/AppShell";
 import { BuilderView } from "./components/builder/BuilderView";
 import { CompareView } from "./components/compare/CompareView";
 import { ExploreView } from "./components/explore/ExploreView";
-import { compileWorkflowDesignDetailed, createRunRecord } from "./design/compiler.mjs";
+import type { WorkflowDesignBundle } from "./design/bundle";
+import {
+  compileWorkflowDesignDetailed,
+  createRunRecord
+} from "./design/compiler.mjs";
 import { detachCompilationProvenance } from "./design/detach";
 import { nextId } from "./domain/id";
 import type { SimulationResult, WorkflowSpec } from "./domain/types";
-import { validateForUi } from "./domain/validation";
+import {
+  validateForUi,
+  type ValidationIssue
+} from "./domain/validation";
 import { getPreset, materializePreset } from "./presets/presets";
 import { localEngineAdapter } from "./services/engineAdapter";
 import type {
@@ -21,23 +28,45 @@ export default function App() {
   const initial = materializePreset(initialPreset);
 
   const [view, setView] = useState<ViewId>("builder");
-  const [selectedPresetKey, setSelectedPresetKey] = useState(initialPreset.key);
-  const [draft, setDraft] = useState<WorkflowSpec>(() => structuredClone(initial.spec));
-  const [compilationContext, setCompilationContext] = useState<CompilationContext | null>(
-    initial.designBundle && initial.compilationManifest
-      ? {
-          bundle: structuredClone(initial.designBundle),
-          manifest: structuredClone(initial.compilationManifest)
-        }
-      : null
+  const [selectedPresetKey, setSelectedPresetKey] = useState(
+    initialPreset.key
   );
+  const [draft, setDraft] = useState<WorkflowSpec>(() =>
+    structuredClone(initial.spec)
+  );
+  const [compilationContext, setCompilationContext] =
+    useState<CompilationContext | null>(
+      initial.designBundle && initial.compilationManifest
+        ? {
+            bundle: structuredClone(initial.designBundle),
+            manifest: structuredClone(initial.compilationManifest)
+          }
+        : null
+    );
   const [result, setResult] = useState<SimulationResult | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState(initial.spec.tasks[0]?.id ?? "");
+  const [selectedTaskId, setSelectedTaskId] = useState(
+    initial.designBundle?.design.tasks[0]?.id ??
+      initial.spec.tasks[0]?.id ??
+      ""
+  );
   const [runs, setRuns] = useState<RunRecord[]>([]);
-  const [notice, setNotice] = useState("Loaded editable custom starter.");
+  const [notice, setNotice] = useState(
+    "Loaded editable logical custom starter."
+  );
   const [simulating, setSimulating] = useState(false);
 
-  const issues = useMemo(() => validateForUi(draft), [draft]);
+  const issues = useMemo<ValidationIssue[]>(() => {
+    if (compilationContext?.compileError) {
+      return [
+        {
+          severity: "error",
+          path: "logical-design",
+          message: compilationContext.compileError
+        }
+      ];
+    }
+    return validateForUi(draft);
+  }, [draft, compilationContext?.compileError]);
 
   function changeDraft(next: WorkflowSpec) {
     const directDraft = compilationContext
@@ -48,8 +77,42 @@ export default function App() {
     setDraft(directDraft);
     setResult(null);
     setNotice(
-      "Draft changed. Compilation manifest/profile provenance and compiler-only task metadata were detached; this is now a direct WorkflowSpec draft. Prior run evidence remains saved."
+      "Direct WorkflowSpec draft changed. Prior run evidence remains saved."
     );
+  }
+
+  function changeDesignBundle(nextBundle: WorkflowDesignBundle) {
+    const bundle = structuredClone(nextBundle);
+    setSelectedPresetKey("");
+    setResult(null);
+
+    try {
+      const compiled = compileWorkflowDesignDetailed(
+        bundle.design,
+        bundle.runConfiguration,
+        bundle.systemProfile
+      );
+      setDraft(compiled.workflowSpec);
+      setCompilationContext({
+        bundle,
+        manifest: compiled.manifest
+      });
+      setNotice(
+        "Logical design updated and recompiled. Simulation result detached until rerun."
+      );
+    } catch (error: unknown) {
+      setCompilationContext({
+        bundle,
+        manifest: null,
+        compileError:
+          error instanceof Error
+            ? error.message
+            : "Logical design compilation failed."
+      });
+      setNotice(
+        "Logical draft is retained but invalid. Fix the reported mapping/input error before simulation."
+      );
+    }
   }
 
   function loadPreset(key: string) {
@@ -60,23 +123,29 @@ export default function App() {
     setSelectedPresetKey(preset.key);
     setDraft(next);
     setCompilationContext(
-      loaded.designBundle && loaded.compilationManifest
+      loaded.designBundle
         ? {
             bundle: structuredClone(loaded.designBundle),
-            manifest: structuredClone(loaded.compilationManifest)
+            manifest: loaded.compilationManifest
+              ? structuredClone(loaded.compilationManifest)
+              : null
           }
         : null
     );
     setResult(null);
-    setSelectedTaskId(next.tasks[0]?.id ?? "");
+    setSelectedTaskId(
+      loaded.designBundle?.design.tasks[0]?.id ??
+        next.tasks[0]?.id ??
+        ""
+    );
     setNotice(
       "Loaded " +
         preset.label +
         ". " +
         preset.description +
         (loaded.compilationManifest
-          ? " Compiled from versioned design/config/profile inputs with manifest provenance."
-          : "")
+          ? " Logical design compiled with manifest provenance."
+          : " Direct WorkflowSpec compatibility mode.")
     );
     setView("builder");
   }
@@ -112,30 +181,32 @@ export default function App() {
       const runId = nextId("run", runs.map((run) => run.id));
       const label = simulationSpec.name + " · " + runId;
 
-      const record: RunRecord = runCompilationContext
-        ? createRunRecord({
-            id: runId,
-            design: runCompilationContext.bundle.design,
-            runConfiguration: runCompilationContext.bundle.runConfiguration,
-            systemProfile: runCompilationContext.bundle.systemProfile,
-            compiledWorkflowSpec: simulationSpec,
-            compilationManifest: runCompilationContext.manifest,
-            simulationResult: nextResult,
-            metadata: {
-              label,
+      const record: RunRecord =
+        runCompilationContext?.manifest
+          ? createRunRecord({
+              id: runId,
+              design: runCompilationContext.bundle.design,
+              runConfiguration:
+                runCompilationContext.bundle.runConfiguration,
+              systemProfile: runCompilationContext.bundle.systemProfile,
+              compiledWorkflowSpec: simulationSpec,
+              compilationManifest: runCompilationContext.manifest,
+              simulationResult: nextResult,
+              metadata: {
+                label,
+                createdAt: Date.now(),
+                presetKey: selectedPresetKey || undefined
+              }
+            })
+          : ({
+              schemaVersion: 1,
+              sourceKind: "direct-workflow-spec",
+              id: runId,
               createdAt: Date.now(),
-              presetKey: selectedPresetKey || undefined
-            }
-          })
-        : ({
-            schemaVersion: 1,
-            sourceKind: "direct-workflow-spec",
-            id: runId,
-            createdAt: Date.now(),
-            label,
-            spec: structuredClone(simulationSpec),
-            result: structuredClone(nextResult)
-          } satisfies DirectRunRecord);
+              label,
+              spec: structuredClone(simulationSpec),
+              result: structuredClone(nextResult)
+            } satisfies DirectRunRecord);
 
       setDraft(structuredClone(simulationSpec));
       setCompilationContext(runCompilationContext);
@@ -171,6 +242,7 @@ export default function App() {
           selectedTaskId={selectedTaskId}
           onSelectTask={setSelectedTaskId}
           onSpecChange={changeDraft}
+          onDesignBundleChange={changeDesignBundle}
           issues={issues}
           selectedPresetKey={selectedPresetKey}
           onLoadPreset={loadPreset}

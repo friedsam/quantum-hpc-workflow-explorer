@@ -1,18 +1,21 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { DebugTaskState } from "../../causal/systemState.mjs";
 
 export interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
-  detail: string;
-  debugState?: DebugTaskState;
+  detail?: string;
+  multiplicity?: number;
+  resourceTag?: string;
+  debugState?: string;
+  statusText?: string;
 }
 
-const stateLabels: Partial<Record<DebugTaskState, string>> = {
-  running: "RUN",
-  queued: "QUEUE",
+const stateLabels: Record<string, string> = {
+  running: "RUNNING",
+  queued: "RESOURCE QUEUED",
   "policy-held": "POLICY HELD",
-  "dependency-gated": "DEPENDENCY GATE",
-  complete: "complete"
+  "dependency-gated": "WAITING",
+  complete: "COMPLETE",
+  pending: "PENDING"
 };
 
 export function WorkflowNode({ data, selected }: NodeProps) {
@@ -27,13 +30,21 @@ export function WorkflowNode({ data, selected }: NodeProps) {
   return (
     <div className={classes}>
       <Handle id="in" type="target" position={Position.Left} />
-      <div className="dag-node-content">
+      <div className="logical-node-head">
         <strong>{nodeData.label}</strong>
-        <span>{nodeData.detail}</span>
-        {state && state !== "pending" ? (
-          <span className="dag-debug-state">{stateLabels[state] ?? state}</span>
+        {nodeData.multiplicity !== undefined ? (
+          <span className="multiplicity-badge">×{nodeData.multiplicity}</span>
         ) : null}
       </div>
+      {nodeData.resourceTag ? (
+        <span className="resource-instance-tag">{nodeData.resourceTag}</span>
+      ) : null}
+      {nodeData.detail ? <span className="dag-node-detail">{nodeData.detail}</span> : null}
+      {state && state !== "pending" ? (
+        <span className="dag-debug-state">
+          {nodeData.statusText || stateLabels[state] || state}
+        </span>
+      ) : null}
       <Handle id="out" type="source" position={Position.Right} />
     </div>
   );

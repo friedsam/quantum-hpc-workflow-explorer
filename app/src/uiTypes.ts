@@ -1,10 +1,14 @@
-import type { CompilationManifest, RunRecord as DesignRunRecord } from "./design/types";
+import type {
+  CompilationManifest,
+  RunRecord as DesignRunRecord
+} from "./design/types";
 import type { WorkflowDesignBundle } from "./design/bundle";
 import type { SimulationResult, WorkflowSpec } from "./domain/types";
 
 export interface CompilationContext {
   bundle: WorkflowDesignBundle;
-  manifest: CompilationManifest;
+  manifest: CompilationManifest | null;
+  compileError?: string;
 }
 
 export interface DirectRunRecord {

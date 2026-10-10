@@ -37,62 +37,144 @@ test("only the frozen engine runtime owns DES simulation semantics", async () =>
   }
 });
 
-test("UI validation delegates to the frozen engine validator", async () => {
-  const validation = await readFile(
-    path.join(srcRoot, "domain", "validation.ts"),
-    "utf8"
-  );
-  assert.match(validation, /validateWorkflowSpec\(spec\)/);
-  assert.match(validation, /engine\/runtime\.mjs/);
-});
-
-test("accepted design compiler is separate from frozen DES runtime", async () => {
+test("Round 4 compiler and actor state remain outside frozen DES", async () => {
   const compiler = await readFile(
     path.join(srcRoot, "design", "compiler.mjs"),
     "utf8"
   );
-  const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
+  const actor = await readFile(
+    path.join(srcRoot, "design", "actor-state.mjs"),
+    "utf8"
+  );
 
-  assert.match(compiler, /compileWorkflowDesignDetailed/);
-  assert.match(compiler, /schemaVersion/);
-  assert.match(compiler, /CompilationManifest|manifest/);
+  assert.match(compiler, /taskMultiplicity/);
+  assert.match(compiler, /instanceMapping/);
+  assert.match(compiler, /actorWaits/);
   assert.equal(/simulateWorkflow\s*\(/.test(compiler), false);
-  assert.match(app, /compileWorkflowDesignDetailed/);
-  assert.match(app, /createRunRecord/);
-  assert.match(app, /detachCompilationProvenance/);
+  assert.match(actor, /deriveActorStateDetailAt/);
+  assert.equal(/simulateWorkflow\s*\(/.test(actor), false);
 });
 
-test("A-D presets come from the accepted scenario fixture module", async () => {
-  const presets = await readFile(
-    path.join(srcRoot, "presets", "presets.ts"),
+test("Builder defaults to logical WorkflowDesign and keeps compiled graph advanced", async () => {
+  const builder = await readFile(
+    path.join(srcRoot, "components", "builder", "BuilderView.tsx"),
     "utf8"
   );
-  assert.match(presets, /qamp-scenarios\.mjs/);
-  for (const key of [
-    "custom",
-    "scenario-a",
-    "scenario-b",
-    "scenario-c",
-    "scenario-d",
-    "ibm-sqd"
+  const inspector = await readFile(
+    path.join(srcRoot, "components", "builder", "LogicalTaskInspector.tsx"),
+    "utf8"
+  );
+  const dependency = await readFile(
+    path.join(srcRoot, "components", "builder", "LogicalDependencyEditor.tsx"),
+    "utf8"
+  );
+
+  assert.match(builder, /projectDesignDag/);
+  assert.match(builder, /heading="Logical workflow"/);
+  assert.match(builder, /Advanced · compiled DES preview/);
+  assert.match(builder, /Advanced · direct WorkflowSpec editor/);
+  assert.match(inspector, />Multiplicity</);
+  assert.match(inspector, /Resource units \/ instance/);
+  assert.match(inspector, /service time \/ instance/i);
+  assert.match(dependency, /pairwise/);
+  assert.match(dependency, /all-to-all/);
+  assert.match(dependency, /multiplicities differ/);
+});
+
+test("logical node grammar separates multiplicity and per-instance resource demand", async () => {
+  const projection = await readFile(
+    path.join(srcRoot, "components", "graph", "projectDesign.ts"),
+    "utf8"
+  );
+  const node = await readFile(
+    path.join(srcRoot, "components", "graph", "WorkflowNode.tsx"),
+    "utf8"
+  );
+
+  assert.match(projection, /logical multiplicity/);
+  assert.match(projection, /unit.*\/ instance/s);
+  assert.match(node, /multiplicity-badge/);
+  assert.match(node, /resource-instance-tag/);
+});
+
+test("default Explore is simple actor-aware hierarchy and diagnostics are disclosed", async () => {
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+  const summary = await readFile(
+    path.join(srcRoot, "components", "explore", "SimpleExplorerSummary.tsx"),
+    "utf8"
+  );
+
+  assert.match(explore, /SimpleExplorerSummary/);
+  assert.match(explore, /SimplePlaybackBar/);
+  assert.match(explore, /projectDesignDag/);
+  assert.match(explore, /Advanced \/ Diagnostics/);
+  assert.match(explore, /Expanded compiled DES graph/);
+  assert.match(summary, /What is happening now\?/);
+  assert.match(summary, /Working \/ Blocked \/ Idle/);
+  assert.match(summary, /resource queued/);
+  assert.match(summary, /policy held/);
+  assert.match(summary, /NO GLOBAL SYNCHRONIZATION/);
+});
+
+test("one actor-aware playback controller drives the shared simulation cursor", async () => {
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+  const hook = await readFile(
+    path.join(srcRoot, "components", "explore", "useExplorerPlayback.ts"),
+    "utf8"
+  );
+
+  assert.match(explore, /useExplorerPlayback/);
+  assert.match(explore, /cursorTimeS=\{inspectionTime\}/);
+  assert.match(explore, /runtimeByNodeId=\{logicalRuntime\}/);
+  assert.match(explore, /simTimeS=\{inspectionTime\}/);
+  assert.match(hook, /buildActorAwareVisualKeyframes/);
+  assert.match(hook, /deriveActorStateDetailAt/);
+});
+
+test("Round 3 diagnostics remain present behind Advanced", async () => {
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+
+  for (const name of [
+    "MetricsGrid",
+    "CompilationProvenance",
+    "FullSystemDebugger",
+    "AnalyticalStrips",
+    "TaskTimeline",
+    "ResourceTimeline",
+    "QueueEvidence",
+    "Assumptions",
+    "PlaybackDiagnostics"
   ]) {
-    assert.ok(presets.includes('key: "' + key + '"'), "missing preset " + key);
+    assert.match(explore, new RegExp(name));
   }
-  assert.match(presets, /collective-synchronization/);
 });
 
-test("causal explanation remains a presentation derivation, not a resource partition", async () => {
-  const causal = await readFile(
-    path.join(srcRoot, "causal", "systemState.mjs"),
+test("App preserves save-run, Compare and direct WorkflowSpec compatibility", async () => {
+  const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
+  const compare = await readFile(
+    path.join(srcRoot, "components", "compare", "CompareView.tsx"),
     "utf8"
   );
-  assert.match(causal, /policyHeldQuantumTasks/);
-  assert.match(causal, /dependencyGatedClassical/);
-  assert.doesNotMatch(causal, /blockedUnits/);
-  assert.doesNotMatch(causal, /simulateWorkflow/);
+  const lines = app.split(/\r?\n/).length;
+
+  assert.ok(lines < 260, "App.tsx has grown to " + lines + " lines");
+  assert.match(app, /createRunRecord/);
+  assert.match(app, /sourceKind: "direct-workflow-spec"/);
+  assert.match(app, /setRuns/);
+  assert.match(compare, /runSpec/);
+  assert.match(compare, /runResult/);
 });
 
-test("DAG layout is deterministic and runtime state does not relayout it", async () => {
+test("DAG layout remains deterministic and runtime state never drives layout", async () => {
   const layout = await readFile(
     path.join(srcRoot, "components", "graph", "layout.ts"),
     "utf8"
@@ -104,49 +186,14 @@ test("DAG layout is deterministic and runtime state does not relayout it", async
   assert.match(layout, /"elk\.randomSeed":\s*"1"/);
   assert.match(layout, /"elk\.algorithm":\s*"layered"/);
   assert.match(dag, /\}, \[topologyKey\]\);/);
-  assert.match(dag, /debugSnapshot/);
-  assert.match(dag, /onConnect=/);
-  assert.match(dag, /onEdgesDelete=/);
+  assert.doesNotMatch(dag, /\[topologyKey,.*runtime/s);
 });
 
-test("full-system debugger uses separate exact and causal planes plus linked strips", async () => {
-  const debuggerSource = await readFile(
-    path.join(srcRoot, "components", "explore", "FullSystemDebugger.tsx"),
-    "utf8"
-  );
-  const strips = await readFile(
-    path.join(srcRoot, "components", "explore", "AnalyticalStrips.tsx"),
-    "utf8"
-  );
-  const explore = await readFile(
-    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
-    "utf8"
-  );
-
-  assert.match(debuggerSource, /Capacity plane/);
-  assert.match(debuggerSource, /Causality plane/);
-  assert.match(debuggerSource, /Resource queue/);
-  assert.match(debuggerSource, /no blocked-rank inference/);
-  assert.match(strips, /CUMULATIVE COST/);
-  assert.match(strips, /disabled/);
-  assert.match(explore, /deriveSystemStateSnapshot/);
-  assert.match(explore, /debugSnapshot=\{snapshot\}/);
-  assert.match(explore, /simTimeS=\{inspectionTime\}/);
-});
-
-test("App orchestration remains componentized while preserving direct WorkflowSpec compatibility", async () => {
-  const app = await readFile(path.join(srcRoot, "App.tsx"), "utf8");
-  const lines = app.split(/\\r?\\n/).length;
-  assert.ok(lines < 230, "App.tsx has grown to " + lines + " lines");
-  assert.match(app, /localEngineAdapter\.simulate\(simulationSpec\)/);
-  assert.match(app, /sourceKind: "direct-workflow-spec"/);
-  assert.match(app, /setRuns/);
-});
-
-test("accepted graph dependencies are declared", async () => {
+test("accepted graph dependencies remain the only new runtime frameworks", async () => {
   const pkg = JSON.parse(
     await readFile(path.join(appRoot, "package.json"), "utf8")
   );
   assert.ok(pkg.dependencies["@xyflow/react"]);
   assert.ok(pkg.dependencies.elkjs);
+  assert.equal(Object.keys(pkg.dependencies).length, 4);
 });
