@@ -18,10 +18,23 @@ export interface Provenanced<T> {
   provenance: Provenance;
 }
 
+export type ActorGroupKind = "mpi-rank" | "worker" | "logical";
+
 export interface ActorGroup {
   id: string;
   label: string;
+  kind?: ActorGroupKind;
   metadata?: Record<string, unknown>;
+}
+
+export type ActorParticipationSelection =
+  | { kind: "all" }
+  | { kind: "one-per-instance" };
+
+export interface ActorParticipation {
+  actorGroupId: string;
+  selection: ActorParticipationSelection;
+  stateDuringTask: "working" | "blocked";
 }
 
 export interface WorkflowDesign {
@@ -41,7 +54,17 @@ export interface DesignTask {
   label: string;
   timingKey?: string;
   semanticType?: string;
+  /**
+   * Number of concrete task instances represented by this logical task.
+   * Defaults to 1. Distinct from actor count and resourceCount.
+   */
+  multiplicity?: number;
+  /**
+   * Legacy/semantic actor-group annotation retained for compatibility.
+   * Exact actor-state derivation uses actorParticipation.
+   */
   actorGroupIds?: string[];
+  actorParticipation?: ActorParticipation[];
   metadata?: Record<string, unknown>;
 }
 
@@ -50,6 +73,11 @@ export interface DesignDependency {
   sourceTaskId: string;
   targetTaskId: string;
   communicationKey?: string;
+  /**
+   * Defaults to pairwise when source/target multiplicities are equal.
+   * Required when multiplicities differ.
+   */
+  instanceMapping?: "pairwise" | "all-to-all";
   metadata?: Record<string, unknown>;
 }
 
@@ -115,12 +143,23 @@ export interface SystemProfile {
   metadata?: Record<string, unknown>;
 }
 
+export interface CompiledActorAssignment {
+  actorGroupId: string;
+  selection:
+    | { kind: "all" }
+    | { kind: "one"; actorOrdinal: number };
+  stateDuringTask: "working" | "blocked";
+}
+
 export interface CompiledTaskManifestEntry {
   designTaskId: string;
+  logicalMultiplicity: number;
+  logicalInstanceOrdinal: number;
   repeatBlockId?: string;
   repeatOrdinal?: number;
   timingKey: string;
   timingProvenance: Provenance;
+  actorAssignments?: CompiledActorAssignment[];
 }
 
 export interface CompiledDependencyManifestEntry {
@@ -130,6 +169,8 @@ export interface CompiledDependencyManifestEntry {
   repeatBlockId?: string;
   sourceRepeatOrdinal?: number;
   targetRepeatOrdinal?: number;
+  sourceLogicalInstanceOrdinal?: number;
+  targetLogicalInstanceOrdinal?: number;
   communicationKey: string;
   communicationProvenance?: Provenance;
 }
@@ -141,6 +182,13 @@ export interface CompiledResourceManifestEntry {
   costProvenance?: Provenance;
 }
 
+export interface CompiledActorGroupManifestEntry {
+  actorGroupId: string;
+  label: string;
+  kind?: ActorGroupKind;
+  count: number;
+}
+
 export interface CompilationManifest {
   schemaVersion: 1;
   designId: string;
@@ -150,6 +198,7 @@ export interface CompilationManifest {
   tasks: Record<string, CompiledTaskManifestEntry>;
   dependencies: Record<string, CompiledDependencyManifestEntry>;
   resources: Record<string, CompiledResourceManifestEntry>;
+  actorGroups: Record<string, CompiledActorGroupManifestEntry>;
 }
 
 export interface CompilationResult {
@@ -191,3 +240,29 @@ export function createRunRecord(input: {
   simulationResult: SimulationResult;
   metadata?: Record<string, unknown>;
 }): RunRecord;
+
+
+export type DerivedActorState = "working" | "blocked" | "idle";
+
+export interface ActorStateCounts {
+  actorGroupId: string;
+  simTimeS: number;
+  working: number;
+  blocked: number;
+  idle: number;
+}
+
+export function deriveActorStateAt(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult,
+  actorGroupId: string,
+  actorOrdinal: number,
+  simTimeS: number
+): DerivedActorState;
+
+export function deriveActorStateCountsAt(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult,
+  actorGroupId: string,
+  simTimeS: number
+): ActorStateCounts;
