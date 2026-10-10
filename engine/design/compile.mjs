@@ -32,6 +32,14 @@ function validateProvenanced(entry, label) {
   validateProvenance(entry.provenance, label);
 }
 
+function taskMultiplicity(task) {
+  return task.multiplicity ?? 1;
+}
+
+function logicalTaskInstanceId(taskId, multiplicity, index) {
+  return multiplicity === 1 ? taskId : `${taskId}#${index + 1}`;
+}
+
 function taskInstanceId(taskId, repeat, index) {
   return repeat ? `${taskId}@${repeat.id}:${index + 1}` : taskId;
 }
@@ -67,6 +75,9 @@ function prepareDesign(design) {
   design.tasks.forEach((task, index) => {
     if (!task?.id || tasks.has(task.id)) fail(`invalid or duplicate design task ${task?.id ?? "?"}`);
     if (!task.label) fail(`design task ${task.id}: label is required`);
+    if (!positiveInteger(taskMultiplicity(task))) {
+      fail(`design task ${task.id}: multiplicity must be a positive integer`);
+    }
     if (task.actorGroupIds !== undefined && !Array.isArray(task.actorGroupIds)) {
       fail(`design task ${task.id}: actorGroupIds must be an array`);
     }
@@ -83,6 +94,24 @@ function prepareDesign(design) {
     for (const actorGroupId of task.actorGroupIds ?? []) {
       if (!actorGroups.has(actorGroupId)) {
         fail(`design task ${task.id}: unknown actor group ${actorGroupId}`);
+      }
+    }
+
+    const participationGroups = new Set();
+    for (const participation of task.actorParticipation ?? []) {
+      if (!isObject(participation) || !actorGroups.has(participation.actorGroupId)) {
+        fail(`design task ${task.id}: actorParticipation references unknown actor group ${participation?.actorGroupId ?? "?"}`);
+      }
+      if (participationGroups.has(participation.actorGroupId)) {
+        fail(`design task ${task.id}: duplicate actorParticipation for group ${participation.actorGroupId}`);
+      }
+      participationGroups.add(participation.actorGroupId);
+
+      if (!["working", "blocked"].includes(participation.stateDuringTask)) {
+        fail(`design task ${task.id}: stateDuringTask must be working or blocked`);
+      }
+      if (!["all", "one-per-instance"].includes(participation.selection?.kind)) {
+        fail(`design task ${task.id}: actor selection must be all or one-per-instance`);
       }
     }
   }
@@ -111,6 +140,9 @@ function prepareDesign(design) {
       if (!tasks.has(taskId)) fail(`repeat block ${repeat.id}: unknown task ${taskId}`);
       if (taskIds.has(taskId)) fail(`repeat block ${repeat.id}: duplicate task ${taskId}`);
       if (repeatByTask.has(taskId)) fail(`design task ${taskId} belongs to more than one repeat block`);
+      if (taskMultiplicity(tasks.get(taskId)) !== 1) {
+        fail(`design task ${taskId}: multiplicity > 1 inside repeatBlocks is outside Round 4A scope`);
+      }
       taskIds.add(taskId);
       repeatByTask.set(taskId, repeat);
     }
@@ -128,9 +160,32 @@ function prepareDesign(design) {
     if (sourceRepeat && targetRepeat && sourceRepeat.id !== targetRepeat.id) {
       fail(`dependency ${dep.id}: cross-repeat-block edges are not supported in design-layer v1`);
     }
+
+    const sourceMultiplicity = taskMultiplicity(tasks.get(dep.sourceTaskId));
+    const targetMultiplicity = taskMultiplicity(tasks.get(dep.targetTaskId));
+    if ((sourceRepeat || targetRepeat) &&
+        (sourceMultiplicity !== 1 || targetMultiplicity !== 1)) {
+      fail(`dependency ${dep.id}: repeat-block edges cannot also use logical multiplicity in Round 4A`);
+    }
+
+    if (dep.instanceMapping !== undefined &&
+        !["pairwise", "all-to-all"].includes(dep.instanceMapping)) {
+      fail(`dependency ${dep.id}: instanceMapping must be pairwise or all-to-all`);
+    }
+
+    if (!sourceRepeat && !targetRepeat) {
+      const mapping = dep.instanceMapping ??
+        (sourceMultiplicity === targetMultiplicity ? "pairwise" : null);
+      if (!mapping) {
+        fail(`dependency ${dep.id}: instanceMapping is required when task multiplicities differ`);
+      }
+      if (mapping === "pairwise" && sourceMultiplicity !== targetMultiplicity) {
+        fail(`dependency ${dep.id}: pairwise mapping requires equal task multiplicities`);
+      }
+    }
   }
 
-  return { tasks, taskOrder, dependencies, repeatByTask, repeats };
+  return { tasks, taskOrder, dependencies, actorGroups, repeatByTask, repeats };
 }
 
 function validateRunConfiguration(runConfiguration, prepared, design) {
@@ -213,6 +268,23 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
     }
   }
 
+  for (const group of design.actorGroups ?? []) {
+    const count = runConfiguration.actorGroupCounts?.[group.id];
+    if (!positiveInteger(count)) {
+      fail(`RunConfiguration.actorGroupCounts.${group.id} is required for persistent actor group ${group.id}`);
+    }
+  }
+
+  for (const task of prepared.tasks.values()) {
+    for (const participation of task.actorParticipation ?? []) {
+      const count = runConfiguration.actorGroupCounts[participation.actorGroupId];
+      if (participation.selection.kind === "one-per-instance" &&
+          taskMultiplicity(task) > count) {
+        fail(`design task ${task.id}: multiplicity exceeds actor count for group ${participation.actorGroupId}`);
+      }
+    }
+  }
+
   return resources;
 }
 
@@ -269,12 +341,23 @@ function expandTasks(design, prepared) {
   for (const task of design.tasks) {
     const repeat = prepared.repeatByTask.get(task.id);
     if (!repeat) {
-      expanded.push({
-        designTask: task,
-        id: task.id,
-        repeat: null,
-        repeatIndex: null,
-      });
+      const multiplicity = taskMultiplicity(task);
+      for (let logicalInstanceIndex = 0;
+           logicalInstanceIndex < multiplicity;
+           logicalInstanceIndex += 1) {
+        expanded.push({
+          designTask: task,
+          id: logicalTaskInstanceId(
+            task.id,
+            multiplicity,
+            logicalInstanceIndex
+          ),
+          logicalMultiplicity: multiplicity,
+          logicalInstanceIndex,
+          repeat: null,
+          repeatIndex: null,
+        });
+      }
       continue;
     }
 
@@ -290,6 +373,8 @@ function expandTasks(design, prepared) {
         expanded.push({
           designTask: blockTask,
           id: taskInstanceId(blockTask.id, repeat, index),
+          logicalMultiplicity: 1,
+          logicalInstanceIndex: 0,
           repeat,
           repeatIndex: index,
         });
@@ -305,7 +390,66 @@ function expandedDependencyEndpoints(dep, prepared) {
   const targetRepeat = prepared.repeatByTask.get(dep.targetTaskId);
 
   if (!sourceRepeat && !targetRepeat) {
-    return [{ id: dep.id, sourceTaskId: dep.sourceTaskId, targetTaskId: dep.targetTaskId }];
+    const sourceTask = prepared.tasks.get(dep.sourceTaskId);
+    const targetTask = prepared.tasks.get(dep.targetTaskId);
+    const sourceMultiplicity = taskMultiplicity(sourceTask);
+    const targetMultiplicity = taskMultiplicity(targetTask);
+    const mapping = dep.instanceMapping ??
+      (sourceMultiplicity === targetMultiplicity ? "pairwise" : null);
+
+    if (sourceMultiplicity === 1 && targetMultiplicity === 1) {
+      return [{
+        id: dep.id,
+        sourceTaskId: dep.sourceTaskId,
+        targetTaskId: dep.targetTaskId,
+        sourceLogicalInstanceOrdinal: 1,
+        targetLogicalInstanceOrdinal: 1,
+      }];
+    }
+
+    if (mapping === "pairwise") {
+      return Array.from({ length: sourceMultiplicity }, (_, index) => ({
+        id: `${dep.id}#${index + 1}`,
+        sourceTaskId: logicalTaskInstanceId(
+          dep.sourceTaskId,
+          sourceMultiplicity,
+          index
+        ),
+        targetTaskId: logicalTaskInstanceId(
+          dep.targetTaskId,
+          targetMultiplicity,
+          index
+        ),
+        sourceLogicalInstanceOrdinal: index + 1,
+        targetLogicalInstanceOrdinal: index + 1,
+      }));
+    }
+
+    const endpoints = [];
+    for (let sourceIndex = 0;
+         sourceIndex < sourceMultiplicity;
+         sourceIndex += 1) {
+      for (let targetIndex = 0;
+           targetIndex < targetMultiplicity;
+           targetIndex += 1) {
+        endpoints.push({
+          id: `${dep.id}#${sourceIndex + 1}->${targetIndex + 1}`,
+          sourceTaskId: logicalTaskInstanceId(
+            dep.sourceTaskId,
+            sourceMultiplicity,
+            sourceIndex
+          ),
+          targetTaskId: logicalTaskInstanceId(
+            dep.targetTaskId,
+            targetMultiplicity,
+            targetIndex
+          ),
+          sourceLogicalInstanceOrdinal: sourceIndex + 1,
+          targetLogicalInstanceOrdinal: targetIndex + 1,
+        });
+      }
+    }
+    return endpoints;
   }
 
   if (sourceRepeat && targetRepeat) {
@@ -313,6 +457,10 @@ function expandedDependencyEndpoints(dep, prepared) {
       id: dependencyInstanceId(dep.id, sourceRepeat, index),
       sourceTaskId: taskInstanceId(dep.sourceTaskId, sourceRepeat, index),
       targetTaskId: taskInstanceId(dep.targetTaskId, targetRepeat, index),
+      sourceRepeatOrdinal: index + 1,
+      targetRepeatOrdinal: index + 1,
+      sourceLogicalInstanceOrdinal: 1,
+      targetLogicalInstanceOrdinal: 1,
     }));
   }
 
@@ -322,6 +470,9 @@ function expandedDependencyEndpoints(dep, prepared) {
       id: dep.id,
       sourceTaskId: taskInstanceId(dep.sourceTaskId, sourceRepeat, last),
       targetTaskId: dep.targetTaskId,
+      sourceRepeatOrdinal: sourceRepeat.count,
+      sourceLogicalInstanceOrdinal: 1,
+      targetLogicalInstanceOrdinal: 1,
     }];
   }
 
@@ -329,6 +480,9 @@ function expandedDependencyEndpoints(dep, prepared) {
     id: dep.id,
     sourceTaskId: dep.sourceTaskId,
     targetTaskId: taskInstanceId(dep.targetTaskId, targetRepeat, 0),
+    targetRepeatOrdinal: 1,
+    sourceLogicalInstanceOrdinal: 1,
+    targetLogicalInstanceOrdinal: 1,
   }];
 }
 
@@ -340,8 +494,13 @@ function compileDependencies(design, prepared, systemProfile) {
     const assumption = systemProfile.dependencyCommunication?.[communicationKey];
     const resolved = assumption ? clone(assumption.value) : {};
 
-    for (const endpoints of expandedDependencyEndpoints(dep, prepared)) {
-      compiled.push({ ...endpoints, ...resolved });
+    for (const endpoint of expandedDependencyEndpoints(dep, prepared)) {
+      compiled.push({
+        id: endpoint.id,
+        sourceTaskId: endpoint.sourceTaskId,
+        targetTaskId: endpoint.targetTaskId,
+        ...resolved,
+      });
     }
   }
 
@@ -399,30 +558,24 @@ function buildDependencyManifest(design, prepared, systemProfile) {
     const provenance =
       systemProfile.dependencyCommunication?.[communicationKey]?.provenance;
 
-    endpoints.forEach((endpoint, index) => {
-      let sourceRepeatOrdinal;
-      let targetRepeatOrdinal;
-
-      if (sourceRepeat && targetRepeat) {
-        sourceRepeatOrdinal = index + 1;
-        targetRepeatOrdinal = index + 1;
-      } else if (sourceRepeat) {
-        sourceRepeatOrdinal = sourceRepeat.count;
-      } else if (targetRepeat) {
-        targetRepeatOrdinal = 1;
-      }
-
+    endpoints.forEach((endpoint) => {
       manifest[endpoint.id] = {
         kind: "design-dependency",
         designDependencyId: dep.id,
         ...(sourceRepeat || targetRepeat
           ? { repeatBlockId: (sourceRepeat ?? targetRepeat).id }
           : {}),
-        ...(sourceRepeatOrdinal !== undefined
-          ? { sourceRepeatOrdinal }
+        ...(endpoint.sourceRepeatOrdinal !== undefined
+          ? { sourceRepeatOrdinal: endpoint.sourceRepeatOrdinal }
           : {}),
-        ...(targetRepeatOrdinal !== undefined
-          ? { targetRepeatOrdinal }
+        ...(endpoint.targetRepeatOrdinal !== undefined
+          ? { targetRepeatOrdinal: endpoint.targetRepeatOrdinal }
+          : {}),
+        ...(endpoint.sourceLogicalInstanceOrdinal !== undefined
+          ? { sourceLogicalInstanceOrdinal: endpoint.sourceLogicalInstanceOrdinal }
+          : {}),
+        ...(endpoint.targetLogicalInstanceOrdinal !== undefined
+          ? { targetLogicalInstanceOrdinal: endpoint.targetLogicalInstanceOrdinal }
           : {}),
         communicationKey,
         ...(provenance
@@ -456,6 +609,50 @@ function buildDependencyManifest(design, prepared, systemProfile) {
     }
   }
 
+  return manifest;
+}
+
+function buildActorAssignments(task, instance, runConfiguration) {
+  const assignments = [];
+
+  for (const participation of task.actorParticipation ?? []) {
+    const actorCount =
+      runConfiguration.actorGroupCounts[participation.actorGroupId];
+
+    if (participation.selection.kind === "all") {
+      assignments.push({
+        actorGroupId: participation.actorGroupId,
+        selection: { kind: "all" },
+        stateDuringTask: participation.stateDuringTask,
+      });
+      continue;
+    }
+
+    const actorOrdinal = instance.logicalInstanceIndex + 1;
+    if (actorOrdinal > actorCount) {
+      fail(`design task ${task.id}: actor ordinal ${actorOrdinal} exceeds actor count ${actorCount} for group ${participation.actorGroupId}`);
+    }
+
+    assignments.push({
+      actorGroupId: participation.actorGroupId,
+      selection: { kind: "one", actorOrdinal },
+      stateDuringTask: participation.stateDuringTask,
+    });
+  }
+
+  return assignments;
+}
+
+function buildActorGroupManifest(design, runConfiguration) {
+  const manifest = {};
+  for (const group of design.actorGroups ?? []) {
+    manifest[group.id] = {
+      actorGroupId: group.id,
+      label: group.label,
+      ...(group.kind ? { kind: group.kind } : {}),
+      count: runConfiguration.actorGroupCounts[group.id],
+    };
+  }
   return manifest;
 }
 
@@ -498,9 +695,17 @@ export function compileWorkflowDesignDetailed(
     const timing = systemProfile.taskServiceTimes[timingKey];
     if (!timing) fail(`SystemProfile missing taskServiceTimes.${timingKey} for design task ${task.id}`);
 
+    const actorAssignments = buildActorAssignments(
+      task,
+      instance,
+      runConfiguration
+    );
+
     const metadata = {
       ...(task.metadata ?? {}),
       designTaskId: task.id,
+      logicalMultiplicity: instance.logicalMultiplicity,
+      logicalInstanceOrdinal: instance.logicalInstanceIndex + 1,
       ...(task.semanticType ? { semanticType: task.semanticType } : {}),
       ...(task.actorGroupIds?.length ? { actorGroupIds: [...task.actorGroupIds] } : {}),
       ...(instance.repeat
@@ -512,10 +717,15 @@ export function compileWorkflowDesignDetailed(
         : {}),
       timingKey,
       timingProvenance: clone(timing.provenance),
+      ...(actorAssignments.length
+        ? { actorAssignments: clone(actorAssignments) }
+        : {}),
     };
 
     taskManifest[instance.id] = {
       designTaskId: task.id,
+      logicalMultiplicity: instance.logicalMultiplicity,
+      logicalInstanceOrdinal: instance.logicalInstanceIndex + 1,
       ...(instance.repeat
         ? {
             repeatBlockId: instance.repeat.id,
@@ -530,7 +740,9 @@ export function compileWorkflowDesignDetailed(
       id: instance.id,
       label: instance.repeat
         ? `${task.label} [${instance.repeatIndex + 1}/${instance.repeat.count}]`
-        : task.label,
+        : instance.logicalMultiplicity > 1
+          ? `${task.label} [${instance.logicalInstanceIndex + 1}/${instance.logicalMultiplicity}]`
+          : task.label,
       resourcePoolId: binding.resourcePoolId,
       resourceCount: binding.resourceCount,
       serviceTime: clone(timing.value),
@@ -573,6 +785,7 @@ export function compileWorkflowDesignDetailed(
       systemProfile
     ),
     resources: resourceManifest,
+    actorGroups: buildActorGroupManifest(design, runConfiguration),
   };
 
   return { workflowSpec, manifest };
