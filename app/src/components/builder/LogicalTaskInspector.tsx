@@ -74,7 +74,7 @@ export function LogicalTaskInspector({
             provenance: {
               kind: "user-entered",
               source: "Workflow Explorer Builder",
-              notes: "Edited service-time assumption."
+              notes: "Edited modeled wall-time assumption."
             }
           }
         }
@@ -122,7 +122,10 @@ export function LogicalTaskInspector({
               updateTask({ multiplicity: Number(event.target.value) })
             }
           />
-          <small>Logical task instances represented by this one node.</small>
+          <small>
+            ×N = N logical task instances represented by this node. It does
+            not imply persistent actor identity.
+          </small>
         </label>
 
         <label>
@@ -158,7 +161,7 @@ export function LogicalTaskInspector({
         </label>
 
         <label>
-          <span>Constant service time / instance (s)</span>
+          <span>Modeled wall time / instance (s)</span>
           <input
             type="number"
             min="0"
@@ -168,6 +171,10 @@ export function LogicalTaskInspector({
               updateServiceTime(Number(event.target.value))
             }
           />
+          <small>
+            Simulation assumption for one task instance; not CPU clock speed.
+            Explicit dependency communication is modeled separately.
+          </small>
         </label>
       </div>
 

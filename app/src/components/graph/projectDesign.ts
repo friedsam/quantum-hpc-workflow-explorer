@@ -15,14 +15,17 @@ export function projectDesignDag(bundle: WorkflowDesignBundle): DagViewModel {
         : undefined;
       const resourceKind = resource?.kind?.toUpperCase() ?? "UNBOUND";
       const units = binding?.resourceCount ?? 0;
+      const redundantPoolId =
+        resource &&
+        binding.resourcePoolId.toLowerCase() === resource.kind.toLowerCase();
       const resourceTag = binding
         ? resourceKind +
           " · " +
           units +
           " unit" +
           (units === 1 ? "" : "s") +
-          " / instance · " +
-          binding.resourcePoolId
+          " / instance" +
+          (redundantPoolId ? "" : " · pool " + binding.resourcePoolId)
         : "Unbound resource";
       const timingKey = task.timingKey ?? task.id;
       const seconds =
@@ -35,15 +38,17 @@ export function projectDesignDag(bundle: WorkflowDesignBundle): DagViewModel {
         resourceTag,
         detail:
           seconds === undefined
-            ? "service time unresolved"
-            : seconds + " s / instance",
+            ? "modeled wall time / instance unresolved"
+            : "modeled wall time / instance · " + seconds + " s",
         accessibleLabel:
           task.label +
           ", logical multiplicity " +
           multiplicity +
           ", " +
           resourceTag +
-          (seconds === undefined ? "" : ", service time " + seconds + " seconds per instance")
+          (seconds === undefined
+            ? ""
+            : ", modeled wall time " + seconds + " seconds per instance")
       };
     }),
     edges: bundle.design.dependencies.map((dependency) => ({

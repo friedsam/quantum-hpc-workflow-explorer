@@ -27,6 +27,31 @@ interface Props {
 
 const nodeTypes = { workflow: WorkflowNode };
 
+function isSimpleLinearDag(model: DagViewModel): boolean {
+  if (model.nodes.length < 2) return false;
+  if (model.edges.length !== model.nodes.length - 1) return false;
+
+  const incoming = new Map(model.nodes.map((node) => [node.id, 0]));
+  const outgoing = new Map(model.nodes.map((node) => [node.id, 0]));
+
+  for (const edge of model.edges) {
+    incoming.set(edge.target, (incoming.get(edge.target) ?? 0) + 1);
+    outgoing.set(edge.source, (outgoing.get(edge.source) ?? 0) + 1);
+  }
+
+  if (
+    [...incoming.values()].some((count) => count > 1) ||
+    [...outgoing.values()].some((count) => count > 1)
+  ) {
+    return false;
+  }
+
+  return (
+    [...incoming.values()].filter((count) => count === 0).length === 1 &&
+    [...outgoing.values()].filter((count) => count === 0).length === 1
+  );
+}
+
 export function WorkflowDag({
   model,
   selectedTaskId,
@@ -60,6 +85,11 @@ export function WorkflowDag({
     [model.nodes]
   );
 
+  const straightLogicalEdges = useMemo(
+    () => logical && isSimpleLinearDag(model),
+    [logical, model]
+  );
+
   const sourceEdges = useMemo<Edge[]>(
     () =>
       model.edges.map((edge) => ({
@@ -68,11 +98,11 @@ export function WorkflowDag({
         target: edge.target,
         sourceHandle: "out",
         targetHandle: "in",
-        type: "smoothstep",
+        type: straightLogicalEdges ? "straight" : "smoothstep",
         markerEnd: { type: MarkerType.ArrowClosed },
         deletable: Boolean(onDeleteDependencies)
       })),
-    [model.edges, onDeleteDependencies]
+    [model.edges, onDeleteDependencies, straightLogicalEdges]
   );
 
   const topologyKey = useMemo(
@@ -177,7 +207,9 @@ export function WorkflowDag({
         </div>
         <span className="muted-label">
           {logical
-            ? "one authored task = one node · multiplicity does not change geometry"
+            ? straightLogicalEdges
+              ? "one authored task = one node · linear logical flow"
+              : "one authored task = one node · multiplicity does not change geometry"
             : debugSnapshot
               ? "fixed geometry · state styling follows shared simulation cursor"
               : "React Flow + deterministic ELK layered layout"}
