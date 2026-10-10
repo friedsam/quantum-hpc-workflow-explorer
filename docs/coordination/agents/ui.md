@@ -1158,3 +1158,208 @@ Required:
 Do not add generalized range/complement actor editing, per-instance timing tables, optimizer/Slurm export, DES changes, or landing-page redesign.
 
 Run full app tests, TypeScript and Vite build. Stop for Agent F review/browser testing.
+
+
+## Round 4E completion — 2026-10-10
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F BROWSER REVIEW.**
+
+Green code head before this handoff:
+`c77f2c96fce59cae569f64e8d31c64dc2084c1e5`
+
+Validated GitHub Actions run:
+`38089337263` — **success**
+
+### Accepted Scenario-A producer integrated
+
+Ported Agent A's accepted Round-4D/4E producer above the frozen DES:
+
+- latest ordinal-aware design types;
+- latest pure design compiler;
+- latest actor-state derivation;
+- accepted `qamp-a-actor-regimes.mjs` baseline/regime fixture.
+
+Frozen DES remains unchanged:
+- `app/src/engine/runtime.mjs` = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`.
+
+Accepted producer hashes now used by the app:
+- compiler = `57e17471fbb84b1fc7ec1a617046ab045121e494`;
+- actor-state = `b864ef22743d661ce629f137e758f1a7575497ac`;
+- Agent-A Scenario-A source = `862fff3bb74a5a732a05b64e9368d9566295306e`;
+- app Scenario-A blob differs only by app-local compiler import path: `734fa79e8b7cc28de28d8db4f4d3f3d3a65e967c`.
+
+### Ordinal actor selection
+
+The app design/type/compiler path now accepts explicit ordinal actor selection:
+
+`{ kind: "ordinals", actorOrdinals: [...] }`.
+
+Compiler validation rejects:
+- empty ordinal lists;
+- duplicates;
+- non-positive ordinals;
+- ordinals above the configured persistent actor-group count.
+
+No generalized ranges/complements were added.
+
+### Scenario A user preset
+
+The prior actor-less logical Scenario A was replaced with the accepted actor-aware scaled fixture:
+
+- **4 persistent HPC ranks**;
+- ranks **2–4** perform independent classical work;
+- rank **1** performs local preparation/submission;
+- one local QPU request on **QPU capacity 1**;
+- rank 1 has an authored `quantum-result` wait after submission;
+- rank 1 resumes local classical work after result return;
+- no global synchronization gate;
+- no baseline `maxInFlightQuantumByPool` admission policy.
+
+Baseline accepted behavior:
+- rank state at t=0.5: **4 Working / 0 Blocked / 0 Idle**;
+- t=1.5: **3 Working / 1 Blocked / 0 Idle**;
+- t=4: **4 Working / 0 Blocked / 0 Idle**, QPU idle;
+- t=7: **4 Working / 0 Blocked / 0 Idle**, QPU idle;
+- local resumed work starts at t=3 and continues to t=8;
+- independent background work continues to t=8;
+- QPU queue wait = **0**;
+- QPU admission wait = **0**;
+- quantum branch remains off the baseline critical path.
+
+The accepted longer-QPU and fixed-topology offered-load regime fixtures are also present for regression evidence; the user-facing baseline remains the one-request Scenario A above.
+
+### Scenario B browser safety preserved
+
+Ported the already-accepted integration guard verbatim:
+
+`if (typeof process !== "undefined" && import.meta.url === ...)`
+
+Current app Scenario-B producer hash:
+`d8343e544ff693160af9f2bcae84fec3be66e703`.
+
+This prevents the Node-only direct-execution hook from referencing `process` during browser module loading.
+
+Scenario-B model semantics/timing were not changed.
+
+### Round-4D Builder clarity preserved
+
+Verified unchanged from the accepted Round-4D pass:
+
+- `SystemTopologyStrip.tsx` = `c37b826d6ee78b4330100f06de7474da3ec329f0`;
+- `LogicalTaskInspector.tsx` = `0caf1e89b045e0cd7648ddf6c767007a4ce983bc`;
+- logical projection `projectDesign.ts` = `59aff6673374aad249fd30a806843e6f7bebc655`;
+- bounded linear logical routing `WorkflowDag.tsx` = `ccd50e7356853ef4039c228faa28dfcc4016f71f`.
+
+Therefore Round-4D:
+- topology strip;
+- modeled-wall-time wording;
+- ×N explanation;
+- redundant-label cleanup;
+- straight routing for simple linear logical DAGs
+
+remain intact.
+
+### Explore / Advanced preserved
+
+No Explore product code changed in Round 4E.
+
+Verified:
+- `app/src/components/explore/ExploreView.tsx` = `a519cbd107035429c9729011d00412baaef76b45`.
+
+Actor-aware Scenario A automatically flows through the already-accepted Round-4C actor-aware Explorer/playback path because its manifest now contains authored actor groups, ordinal participation and actor waits.
+
+### Regression coverage
+
+Added the accepted Agent-A Scenario-A/regime suite to the app canonical test matrix.
+
+Round-4E assertions include:
+- explicit ordinal selection compiles to exact actor assignments;
+- ordinal out-of-range validation;
+- Scenario-A 4-rank actor frames;
+- no baseline admission policy;
+- QPU queue wait = 0;
+- QPU admission wait = 0;
+- restored-equilibrium t=4 and t=7 frames;
+- QPU idle after result return;
+- resumed local work through baseline completion;
+- longer QPU timing extends only local submitter blocking;
+- A-like multi-request topology can transition to queue pressure from timing/load parameters alone;
+- B-like global synchronization still requires explicit authored topology;
+- B/C/D user-facing preset behavior remains covered by the existing A-D product suite.
+
+### Validation
+
+Green run `38089337263`:
+
+- engine: **17/17**
+- design/compiler: **7/7**
+- actor model/state: **6/6**
+- Scenario-A/regime suite: **7/7**
+- QAMP behavior: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback: **7/7**
+- Round-4C product acceptance: **6/6**
+- architecture/UI: **12/12**
+
+Total Node tests: **85/85**.
+
+Also green:
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 222 modules transformed.
+
+Build output:
+- CSS ~42.06 kB / 8.41 kB gzip;
+- JS ~1.983 MB / 607.75 kB gzip;
+- existing non-blocking large-chunk warning remains.
+
+### Exact Round-4E code diff
+
+Only:
+- `app/package.json`;
+- `app/src/design/types.ts`;
+- `app/src/design/compiler.mjs`;
+- `app/src/design/actor-state.mjs`;
+- `app/src/presets/qamp-a-actor-regimes.mjs`;
+- `app/src/presets/qamp-a-actor-regimes.d.mts`;
+- `app/src/presets/qamp-b-actor.mjs` (browser guard only);
+- `app/src/presets/logical-presets.mjs` (Scenario A replacement only);
+- `app/tests/scenario-a-regimes.test.mjs`;
+- `app/tests/round4c-ui.test.mjs` (stale Scenario-A assertions updated).
+
+### Dependencies
+
+No dependency change. No new framework.
+
+### Interface changes requested
+
+None.
+
+Ordinal actor selection was already accepted by Agent F as an additive design-layer extension above the frozen DES.
+
+### Explicitly not added
+
+- generalized actor range/complement selection;
+- actor-authoring UI;
+- per-instance timing tables;
+- optimizer;
+- Slurm export;
+- DES changes;
+- Scenario B/C/D semantic changes;
+- landing-page redesign.
+
+### Remaining review
+
+Agent F browser review should verify:
+- Scenario A Builder shows the compact actor-aware logical design without one node per rank;
+- Scenario A playback visibly transitions 4W/0B/0I → 3W/1B/0I → restored 4W/0B/0I;
+- QPU is idle in restored equilibrium;
+- Round-4D topology strip/terminology/routing remain visually intact;
+- Scenario B still loads safely in browser.
+
+### Promotion recommendation
+
+**PROMOTE/PORT Round 4E to `agent/integration` for final A-D browser acceptance.**
+
+Stop here. Further Agent-C work should be driven only by Agent-F browser findings or a new bounded assignment.
