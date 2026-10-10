@@ -219,3 +219,24 @@ Status: ACTIVE.
 
 ### C — UI
 Status: HOLD until B wording repair and D review.
+
+
+## Round 4B graphics review — 2026-10-10
+
+### D — Graphics
+Status: CLOSED/IDLE — PORT/REIMPLEMENT accepted.
+
+Accepted:
+- simple default Explore hierarchy;
+- authored logical DAG, not expanded DES graph;
+- multiplicity ×N distinct from resource units/instance and actor count;
+- actor Working/Blocked/Idle first-class when authored;
+- compact generic fallback otherwise;
+- compact QPU running/resource-queued/policy-held state;
+- current diagnostic stack moves behind Advanced / Diagnostics.
+
+### B — Playback/causal
+Status: ONE SMALL WORDING REPAIR still pending.
+
+### C — UI
+Status: HOLD until B repair closes, then implement reconciled B/D contract.
