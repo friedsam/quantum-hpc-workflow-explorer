@@ -408,3 +408,27 @@ Next:
 2. integrate faithful actor-aware Scenario A into app;
 3. browser-test A-D tutorial demo;
 4. freeze prototype for IBM project-description deadline.
+
+
+## Round 4D A final acceptance / Round 4E integration
+
+### A — Engine/model
+Status: CLOSED/IDLE — PORT accepted.
+- ordinal actor selection accepted;
+- actor-aware Scenario A accepted;
+- baseline has no admission control;
+- restored equilibrium is preserved through baseline completion;
+- A-like -> D-like timing/load transition remains parameter-driven;
+- B-like global wall remains topology-dependent.
+
+### C — UI
+Status: ACTIVE.
+Integrate the accepted Scenario-A actor producer into the app while preserving the already-ported Builder clarity work.
+
+### B/D/E
+Status: CLOSED/IDLE.
+
+Next:
+1. C green integration;
+2. browser-test A, B, C, D and one custom parameter edit;
+3. freeze prototype and IBM project-description wording.
