@@ -462,3 +462,26 @@ Browser acceptance:
 7. Compare saved runs.
 
 If those are clean, freeze the demo for the IBM project-description deadline.
+
+
+## Round 4E final review — 2026-10-10
+
+### C — UI
+Status: CLOSED/IDLE — PROMOTE accepted.
+
+Staged integration:
+- `65277404c9cc0000e8170567874456a2ccdd6c20`;
+- CI `38089988964`: SUCCESS.
+
+Prototype now has actor-aware A and B, communication-focused C, throughput/throttling D, logical Builder clarity, simple Explore, and Advanced diagnostics.
+
+### F — immediate gate
+Final browser acceptance:
+1. A Builder + playback;
+2. B Builder + playback;
+3. C communication wall;
+4. D queue vs policy hold;
+5. custom parameter edit + rerun;
+6. Compare saved runs.
+
+If clean, freeze prototype for IBM description.
