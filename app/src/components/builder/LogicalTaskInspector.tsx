@@ -24,9 +24,13 @@ export function LogicalTaskInspector({
     );
   }
 
-  const binding = bundle.runConfiguration.taskResources[task.id];
-  const timingKey = task.timingKey ?? task.id;
-  const timing = bundle.systemProfile.taskServiceTimes[timingKey];
+  const selectedTask = task;
+  const binding =
+    bundle.runConfiguration.taskResources[selectedTask.id];
+  const timingKey =
+    selectedTask.timingKey ?? selectedTask.id;
+  const timing =
+    bundle.systemProfile.taskServiceTimes[timingKey];
 
   function updateTask(patch: Partial<DesignTask>) {
     onChange({
@@ -34,7 +38,7 @@ export function LogicalTaskInspector({
       design: {
         ...bundle.design,
         tasks: bundle.design.tasks.map((candidate) =>
-          candidate.id === task.id ? { ...candidate, ...patch } : candidate
+          candidate.id === selectedTask.id ? { ...candidate, ...patch } : candidate
         )
       }
     });
@@ -49,7 +53,7 @@ export function LogicalTaskInspector({
         ...bundle.runConfiguration,
         taskResources: {
           ...bundle.runConfiguration.taskResources,
-          [task.id]: {
+          [selectedTask.id]: {
             ...(binding ?? { resourcePoolId: "", resourceCount: 1 }),
             ...patch
           }
@@ -86,7 +90,7 @@ export function LogicalTaskInspector({
       <div className="surface-heading compact">
         <div>
           <p className="section-kicker">Logical task inspector</p>
-          <h2 id="logical-task-inspector-heading">{task.id}</h2>
+          <h2 id="logical-task-inspector-heading">{selectedTask.id}</h2>
         </div>
         <button
           className="danger-action compact-action"
@@ -101,7 +105,7 @@ export function LogicalTaskInspector({
         <label>
           <span>Label</span>
           <input
-            value={task.label}
+            value={selectedTask.label}
             onChange={(event) => updateTask({ label: event.target.value })}
           />
         </label>
@@ -113,7 +117,7 @@ export function LogicalTaskInspector({
             type="number"
             min="1"
             step="1"
-            value={task.multiplicity ?? 1}
+            value={selectedTask.multiplicity ?? 1}
             onChange={(event) =>
               updateTask({ multiplicity: Number(event.target.value) })
             }
@@ -167,10 +171,10 @@ export function LogicalTaskInspector({
         </label>
       </div>
 
-      {task.actorParticipation?.length ? (
+      {selectedTask.actorParticipation?.length ? (
         <div className="logical-actor-note">
           <strong>Authored actor participation</strong>
-          {task.actorParticipation.map((participation) => (
+          {selectedTask.actorParticipation.map((participation) => (
             <span key={participation.actorGroupId}>
               {participation.actorGroupId} · {participation.selection.kind} ·{" "}
               {participation.stateDuringTask}
