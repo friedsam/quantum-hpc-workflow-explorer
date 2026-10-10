@@ -13,6 +13,9 @@ import {
   qampScenarioBActorCompilation,
   qampScenarioBActorWorkflowSpec
 } from "./fixtures/qamp-b-actor-model.mjs";
+import {
+  logicalPresetBundles
+} from "../src/presets/logical-presets.mjs";
 
 const synthetic = () => ({
   kind: "user-entered",
@@ -217,4 +220,66 @@ test("direct WorkflowSpec compatibility still simulates without logical design",
   };
 
   assert.equal(simulateWorkflow(spec).metrics.makespanS, 3);
+});
+
+
+test("user-facing logical A-D presets compile and preserve their accepted mechanisms", () => {
+  const compiled = Object.fromEntries(
+    Object.entries(logicalPresetBundles).map(([key, bundle]) => [
+      key,
+      compileWorkflowDesignDetailed(
+        bundle.design,
+        bundle.runConfiguration,
+        bundle.systemProfile
+      ).workflowSpec
+    ])
+  );
+
+  const custom = simulateWorkflow(compiled.custom);
+  assert.equal(custom.metrics.makespanS, 2);
+
+  const a = simulateWorkflow(compiled.A);
+  assert.equal(a.metrics.makespanS, 10);
+  assert.equal(a.metrics.queueWaitSecondsByPool.qpu, 0);
+  assert.ok(
+    a.events.find(
+      (event) =>
+        event.type === "task_completed" &&
+        event.taskId === "local-consumer"
+    ).simTimeS < a.metrics.makespanS
+  );
+
+  const b = simulateWorkflow(compiled.B);
+  assert.equal(compiled.B.tasks.length, 5);
+  assert.equal(b.metrics.makespanS, 8);
+  assert.equal(b.metrics.queueWaitSecondsByPool.qpu, 0);
+  assert.ok(b.metrics.admissionWaitSecondsByPool.qpu > 0);
+
+  const cResult = simulateWorkflow(compiled.C);
+  const cService = compiled.C.tasks.reduce(
+    (sum, task) => sum + task.serviceTime.seconds,
+    0
+  );
+  assert.ok(
+    cResult.metrics.aggregateCommunicationSeconds > cService
+  );
+  assert.equal(cResult.metrics.queueWaitSecondsByPool.qpu, 0);
+  assert.ok(cResult.metrics.utilizationByPool.qpu < 0.1);
+
+  const d = simulateWorkflow(compiled.D);
+  assert.ok(d.metrics.queueWaitSecondsByPool.qpu > 0);
+  assert.ok(d.metrics.admissionWaitSecondsByPool.qpu > 0);
+  assert.ok(d.metrics.utilizationByPool.qpu > 0.9);
+
+  const firstConsumer = d.events.find(
+    (event) =>
+      event.type === "task_started" &&
+      event.taskId === "consumer#1"
+  ).simTimeS;
+  const lastQuantum = d.events.find(
+    (event) =>
+      event.type === "task_completed" &&
+      event.taskId === "quantum#6"
+  ).simTimeS;
+  assert.ok(firstConsumer < lastQuantum);
 });
