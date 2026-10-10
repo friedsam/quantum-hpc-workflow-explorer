@@ -1206,3 +1206,62 @@ Not added:
 - UI changes.
 
 **Recommended decision: PORT. Stop after Agent F review.**
+
+
+## Agent A Round 4D repair response — 2026-10-10
+
+**Status:** **Small coordinator repair complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Repairs applied
+
+1. **Tutorial source basis corrected**
+   - Round-4D documentation now grounds Scenario A in the current published tutorial rather than claiming the page lacks enough prose.
+   - Preserved tutorial contract: individual-rank quantum calls, local result consumption, no global quantum-state dependency, concurrent classical work, submitting rank does not stall others, single-lane QPU, at most one active/queued baseline job, no admission control, and immediate classical resumption after result return.
+
+2. **Baseline admission policy removed**
+   - baseline Scenario-A `RunConfiguration` no longer sets `maxInFlightQuantumByPool.qpu`;
+   - QPU capacity 1 + one request is sufficient;
+   - baseline queue wait = 0 and admission wait = 0.
+   - multi-request regime fixture retains `maxInFlightQuantumByPool.qpu = 3` only as explicit test-control scaffolding so overload manifests as resource queueing instead of policy hold.
+
+3. **Post-result classical resumption made explicit**
+   - baseline local result-consumption/resumed-classical phase increased from 0.5 s to 3 s;
+   - rank 1 works from t=3 to t=6 after the result returns;
+   - independent ranks continue until t=8;
+   - at t=4 all four actors are Working while the QPU is idle;
+   - quantum branch remains off the baseline critical path.
+
+4. **Tutorial Idle vs Explorer Blocked wording corrected**
+   - tutorial Frame 2 explicitly calls the submitting rank Idle during transfer;
+   - the scaled fixture folds transfer into submit wall time;
+   - Explorer `Blocked` begins only for the authored post-submit quantum-result wait;
+   - documentation no longer attributes the Explorer classification to the tutorial.
+
+5. **Ordinal-set limitation recorded**
+   - fixed ordinals such as `[2,3,4]` do not automatically mean "all non-submitters" if actor-group count changes;
+   - no complement/range selector was added in this repair.
+
+### Validation
+
+Exact current branch logic rerun after the repair:
+
+- Round-4D Scenario-A/regime suite: **7/7 PASS**;
+- repaired Round-4A actor suite: **6/6 PASS**;
+- Round-2C compiler suite: **7/7 PASS**;
+- total focused checks: **20/20 PASS**.
+
+### Scope
+
+Files intentionally changed in this repair:
+- `engine/examples/qamp-a-actor-regimes.mjs`;
+- `engine/tests/scenario-a-regimes.test.mjs`;
+- `docs/coordination/proposals/ROUND4D_SCENARIO_A_REGIMES.md`;
+- coordination handoff/status docs only.
+
+Frozen DES, Round-4 actor compiler semantics, UI, optimizer, provider-queue model and stochastic timing remain unchanged.
+
+Dependencies added/changed: none.  
+Investigation-only files: none.  
+Interface changes requested: none beyond the already-reviewed ordinal-set selector from Round 4D.
+
+**Recommended decision: PORT. Stop after Agent F review.**
