@@ -272,3 +272,39 @@ Next gates:
 4. repair only concrete defects;
 5. dependency lock/deployment cleanup;
 6. main promotion/closure.
+
+
+## Round 4C final review — 2026-10-10
+
+### C — UI
+Status: CLOSED/IDLE — PROMOTE accepted.
+
+Staged integration:
+- app commit `17e868fafa1c120a6c54182a2844f45f84e5ffb5`;
+- integration CI `38029254083`: SUCCESS.
+
+Accepted:
+- logical Builder;
+- multiplicity editing;
+- actor-aware Scenario B;
+- compact A/C/D logical presets;
+- simple default Explore;
+- Advanced / Diagnostics preservation;
+- shared actor-aware playback/time cursor;
+- custom authoring/save/Compare compatibility.
+
+### F — next gate
+
+Browser-test staged `agent/integration`:
+1. Scenario B default Builder/Explore;
+2. Scenario B key actor-state transitions;
+3. Scenario D queue vs policy-held state;
+4. custom logical workflow multiplicity edit -> simulate;
+5. Advanced / Diagnostics disclosure;
+6. Compare saved runs.
+
+Only after browser findings are clean:
+- add/commit dependency lock and switch CI to reproducible install;
+- deployment-root migration;
+- final cleanup/docs;
+- main promotion.
