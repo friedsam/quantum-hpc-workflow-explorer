@@ -298,7 +298,7 @@ function segmentIsTransition(segments, index) {
 function labelForSegment(segment) {
   if (segment.kind !== "compressed") return segment.baseLabel;
   if (segment.patternLength > 1) {
-    return `Repeated ${segment.patternLength}-step cycle ×${segment.repeatCount}`;
+    return `Repeated ${segment.patternLength}-step activity ×${segment.repeatCount}`;
   }
   return `${segment.baseLabel} ×${segment.repeatCount}`;
 }
