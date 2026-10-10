@@ -1,5 +1,16 @@
 const RESOURCE_KINDS = new Set(["cpu", "gpu", "qpu"]);
 const PROVENANCE_KINDS = new Set(["synthetic", "user-entered", "measured", "fitted"]);
+const ACTOR_WAIT_EVENTS = new Set(["ready", "started", "completed"]);
+const ACTOR_WAIT_INSTANCES = new Set([
+  "matching-instance",
+  "any-instance",
+  "all-instances",
+]);
+const ACTOR_WAIT_EVENT_TYPE = {
+  ready: "task_ready",
+  started: "task_started",
+  completed: "task_completed",
+};
 
 const fail = (message) => {
   throw new Error(message);
@@ -185,6 +196,59 @@ function prepareDesign(design) {
     }
   }
 
+  const actorWaitIds = new Set();
+  for (const wait of design.actorWaits ?? []) {
+    if (!wait?.id || actorWaitIds.has(wait.id)) {
+      fail(`invalid or duplicate actor wait ${wait?.id ?? "?"}`);
+    }
+    actorWaitIds.add(wait.id);
+
+    if (!actorGroups.has(wait.actorGroupId)) {
+      fail(`actor wait ${wait.id}: unknown actor group ${wait.actorGroupId}`);
+    }
+    if (!["all", "one-per-instance"].includes(wait.selection?.kind)) {
+      fail(`actor wait ${wait.id}: selection must be all or one-per-instance`);
+    }
+    if (typeof wait.reason !== "string" || wait.reason.length === 0) {
+      fail(`actor wait ${wait.id}: reason is required`);
+    }
+
+    for (const [label, condition] of [
+      ["activation", wait.activation],
+      ["release", wait.release],
+    ]) {
+      if (!isObject(condition) ||
+          condition.kind !== "task-event" ||
+          !tasks.has(condition.taskId) ||
+          !ACTOR_WAIT_EVENTS.has(condition.event) ||
+          !ACTOR_WAIT_INSTANCES.has(condition.instance)) {
+        fail(`actor wait ${wait.id}: invalid ${label} task-event condition`);
+      }
+      if (repeatByTask.has(condition.taskId)) {
+        fail(`actor wait ${wait.id}: wait conditions on repeatBlocks are outside Round 4A scope`);
+      }
+    }
+
+    if (wait.selection.kind === "one-per-instance") {
+      if (wait.activation.instance !== "matching-instance" ||
+          wait.release.instance !== "matching-instance") {
+        fail(`actor wait ${wait.id}: one-per-instance waits require matching-instance activation/release`);
+      }
+      const activationMultiplicity =
+        taskMultiplicity(tasks.get(wait.activation.taskId));
+      const releaseMultiplicity =
+        taskMultiplicity(tasks.get(wait.release.taskId));
+      if (activationMultiplicity !== releaseMultiplicity) {
+        fail(`actor wait ${wait.id}: matching-instance activation/release tasks must have equal multiplicity`);
+      }
+    } else if (
+      wait.activation.instance === "matching-instance" ||
+      wait.release.instance === "matching-instance"
+    ) {
+      fail(`actor wait ${wait.id}: all-actor waits require any-instance or all-instances conditions`);
+    }
+  }
+
   return { tasks, taskOrder, dependencies, actorGroups, repeatByTask, repeats };
 }
 
@@ -282,6 +346,16 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
           taskMultiplicity(task) > count) {
         fail(`design task ${task.id}: multiplicity exceeds actor count for group ${participation.actorGroupId}`);
       }
+    }
+  }
+
+  for (const wait of design.actorWaits ?? []) {
+    if (wait.selection.kind !== "one-per-instance") continue;
+    const count = runConfiguration.actorGroupCounts[wait.actorGroupId];
+    const multiplicity =
+      taskMultiplicity(prepared.tasks.get(wait.activation.taskId));
+    if (multiplicity > count) {
+      fail(`actor wait ${wait.id}: multiplicity exceeds actor count for group ${wait.actorGroupId}`);
     }
   }
 
@@ -643,6 +717,103 @@ function buildActorAssignments(task, instance, runConfiguration) {
   return assignments;
 }
 
+function compiledInstancesForDesignTask(expandedTasks, designTaskId) {
+  return expandedTasks.filter(
+    (instance) => instance.designTask.id === designTaskId
+  );
+}
+
+function compileActorWaitBoundary(condition, expandedTasks, logicalInstanceIndex) {
+  const instances = compiledInstancesForDesignTask(
+    expandedTasks,
+    condition.taskId
+  );
+  if (instances.length === 0) {
+    fail(`actor wait boundary: no compiled tasks for ${condition.taskId}`);
+  }
+
+  if (condition.instance === "matching-instance") {
+    const instance = instances[logicalInstanceIndex];
+    if (!instance) {
+      fail(`actor wait boundary: missing logical instance ${logicalInstanceIndex + 1} for ${condition.taskId}`);
+    }
+    return {
+      eventType: ACTOR_WAIT_EVENT_TYPE[condition.event],
+      taskIds: [instance.id],
+      quantifier: "all",
+    };
+  }
+
+  return {
+    eventType: ACTOR_WAIT_EVENT_TYPE[condition.event],
+    taskIds: instances.map((instance) => instance.id),
+    quantifier:
+      condition.instance === "any-instance" ? "any" : "all",
+  };
+}
+
+function buildActorWaitManifest(
+  design,
+  prepared,
+  expandedTasks,
+  runConfiguration
+) {
+  const manifest = {};
+
+  for (const wait of design.actorWaits ?? []) {
+    if (wait.selection.kind === "all") {
+      manifest[wait.id] = {
+        designWaitId: wait.id,
+        actorGroupId: wait.actorGroupId,
+        selection: { kind: "all" },
+        activation: compileActorWaitBoundary(
+          wait.activation,
+          expandedTasks,
+          null
+        ),
+        release: compileActorWaitBoundary(
+          wait.release,
+          expandedTasks,
+          null
+        ),
+        reason: wait.reason,
+      };
+      continue;
+    }
+
+    const multiplicity =
+      taskMultiplicity(prepared.tasks.get(wait.activation.taskId));
+    const actorCount =
+      runConfiguration.actorGroupCounts[wait.actorGroupId];
+
+    for (let index = 0; index < multiplicity; index += 1) {
+      const actorOrdinal = index + 1;
+      if (actorOrdinal > actorCount) {
+        fail(`actor wait ${wait.id}: actor ordinal ${actorOrdinal} exceeds actor count ${actorCount}`);
+      }
+      manifest[`${wait.id}#${actorOrdinal}`] = {
+        designWaitId: wait.id,
+        actorGroupId: wait.actorGroupId,
+        selection: { kind: "one", actorOrdinal },
+        logicalInstanceOrdinal: actorOrdinal,
+        activation: compileActorWaitBoundary(
+          wait.activation,
+          expandedTasks,
+          index
+        ),
+        release: compileActorWaitBoundary(
+          wait.release,
+          expandedTasks,
+          index
+        ),
+        reason: wait.reason,
+      };
+    }
+  }
+
+  return manifest;
+}
+
 function buildActorGroupManifest(design, runConfiguration) {
   const manifest = {};
   for (const group of design.actorGroups ?? []) {
@@ -789,6 +960,12 @@ export function compileWorkflowDesignDetailed(
     ),
     resources: resourceManifest,
     actorGroups: buildActorGroupManifest(design, runConfiguration),
+    actorWaits: buildActorWaitManifest(
+      design,
+      prepared,
+      expandedTasks,
+      runConfiguration
+    ),
   };
 
   return { workflowSpec, manifest };
