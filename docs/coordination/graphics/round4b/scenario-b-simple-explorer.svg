@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">Scenario B simple Explorer prototype</title>
+<desc id="desc">At simulation time 5 seconds all four MPI ranks are blocked at a synchronization wall. Quantum task two of two is running. The logical authored workflow is Preparation times two, Quantum evaluation times two, Collective times one. Multiplicity badges are separate from resource units per instance.</desc>
+<defs>
+  <pattern id="blocked" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#fff4e5"/><line x1="0" y1="0" x2="0" y2="10" stroke="#b54708" stroke-width="3" opacity=".4"/></pattern>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475467"/></marker>
+</defs>
+<style>
+text{font-family:Inter,Arial,sans-serif;fill:#18202b}.h1{font-size:28px;font-weight:750}.h2{font-size:19px;font-weight:700}.h3{font-size:15px;font-weight:700}.body{font-size:14px}.small{font-size:12px;fill:#667085}.tiny{font-size:11px;font-weight:650}.panel{fill:#fff;stroke:#d0d5dd;stroke-width:1.5}.banner{fill:#fff4e5;stroke:#b54708;stroke-width:1.5}.working{fill:#d9f2e3;stroke:#2f855a}.blocked{fill:url(#blocked);stroke:#b54708}.idle{fill:#f2f4f7;stroke:#667085}.qpu{fill:#eee5ff;stroke:#6b46c1}.node{fill:#fff;stroke:#98a2b3;stroke-width:1.5}.node-active{fill:#f4f0ff;stroke:#6b46c1;stroke-width:2}.node-wait{fill:#fff8ed;stroke:#b54708;stroke-width:2}.badge{fill:#344054}.badgeText{fill:#fff;font-size:13px;font-weight:750}.chip{fill:#f2f4f7;stroke:#d0d5dd}.control{fill:#fff;stroke:#98a2b3}.primary{fill:#175cd3;stroke:#175cd3}.primaryText{fill:#fff;font-size:13px;font-weight:700}.edge{stroke:#475467;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+</style>
+<rect width="1440" height="900" fill="#f6f7f9"/>
+<text x="44" y="48" class="h1">Scenario B · synchronization wall</text>
+<text x="44" y="72" class="small">Simple default Explorer · logical workflow + actor state · synthetic acceptance fixture</text>
+<rect x="1172" y="28" width="224" height="44" rx="11" class="control"/><text x="1284" y="55" class="h3" text-anchor="middle">Advanced / Diagnostics</text>
+
+<rect x="44" y="96" width="1352" height="78" rx="14" class="banner"/>
+<text x="64" y="122" class="tiny" fill="#b54708">WHAT IS HAPPENING NOW?</text>
+<text x="64" y="151" class="h2">SYNC WALL — 4 / 4 ranks blocked · waiting for the complete quantum result set</text>
+<rect x="1132" y="111" width="244" height="46" rx="10" fill="#fff" stroke="#d0d5dd"/>
+<text x="1150" y="129" class="small">simulation time</text><text x="1150" y="151" class="h3">5.0 s / 8.0 s</text>
+
+<rect x="44" y="196" width="660" height="230" rx="14" class="panel"/>
+<text x="64" y="226" class="h2">HPC actor group</text><text x="64" y="248" class="small">MPI ranks · 4 persistent actors</text>
+<rect x="64" y="270" width="186" height="68" rx="10" class="working"/><text x="82" y="294" class="small">Working</text><text x="232" y="324" class="h1" text-anchor="end">0</text>
+<rect x="260" y="270" width="186" height="68" rx="10" class="blocked"/><text x="278" y="294" class="small">Blocked</text><text x="428" y="324" class="h1" text-anchor="end">4</text>
+<rect x="456" y="270" width="186" height="68" rx="10" class="idle"/><text x="474" y="294" class="small">Idle</text><text x="624" y="324" class="h1" text-anchor="end">0</text>
+<text x="64" y="365" class="h3">Why blocked</text>
+<rect x="64" y="378" width="250" height="30" rx="15" fill="#fff0d5" stroke="#b54708"/><text x="189" y="398" class="tiny" text-anchor="middle">global synchronization · 4 ranks</text>
+<rect x="324" y="378" width="220" height="30" rx="15" fill="#eef4ff" stroke="#175cd3"/><text x="434" y="398" class="tiny" text-anchor="middle">own quantum result · 1 rank</text>
+<text x="558" y="398" class="small">reasons overlap</text>
+
+<rect x="724" y="196" width="672" height="230" rx="14" class="panel"/>
+<text x="744" y="226" class="h2">Quantum service</text><text x="744" y="248" class="small">Actor state and resource allocation are separate</text>
+<rect x="744" y="270" width="286" height="64" rx="10" class="qpu"/><text x="762" y="294" class="small">QPU running</text><text x="1012" y="320" class="h2" text-anchor="end">quantum #2 / 2</text>
+<rect x="1040" y="270" width="156" height="64" rx="10" class="chip"/><text x="1058" y="294" class="small">Resource queue</text><text x="1178" y="320" class="h2" text-anchor="end">0</text>
+<rect x="1206" y="270" width="166" height="64" rx="10" class="chip"/><text x="1224" y="294" class="small">Policy held</text><text x="1354" y="320" class="h2" text-anchor="end">0</text>
+<text x="744" y="366" class="h3">Resource allocation</text>
+<rect x="744" y="378" width="302" height="30" rx="8" class="chip"/><text x="758" y="398" class="tiny">CPU · active 0 · allocated-idle 4</text>
+<rect x="1056" y="378" width="250" height="30" rx="8" class="chip"/><text x="1070" y="398" class="tiny">QPU · active 1 / capacity 1</text>
+
+<rect x="44" y="450" width="1352" height="292" rx="14" class="panel"/>
+<text x="64" y="480" class="h2">Logical authored workflow</text>
+<text x="64" y="502" class="small">One authored task = one node · multiplicity and resource units stay distinct · geometry does not move during playback</text>
+
+<rect x="92" y="552" width="310" height="132" rx="12" class="node"/>
+<text x="112" y="583" class="h2">Preparation</text><rect x="334" y="566" width="48" height="28" rx="14" class="badge"/><text x="358" y="585" class="badgeText" text-anchor="middle">×2</text>
+<rect x="112" y="606" width="100" height="28" rx="14" fill="#f2f4f7" stroke="#667085"/><text x="162" y="625" class="tiny" text-anchor="middle">COMPLETE</text>
+<rect x="112" y="646" width="270" height="26" rx="7" class="chip"/><text x="126" y="664" class="tiny">CPU</text><text x="368" y="664" class="tiny" text-anchor="end">1 unit / instance</text>
+
+<rect x="565" y="552" width="310" height="132" rx="12" class="node-active"/>
+<text x="585" y="583" class="h2">Quantum evaluation</text><rect x="807" y="566" width="48" height="28" rx="14" class="badge"/><text x="831" y="585" class="badgeText" text-anchor="middle">×2</text>
+<rect x="585" y="606" width="190" height="28" rx="14" class="qpu"/><text x="680" y="625" class="tiny" text-anchor="middle">1 COMPLETE · 1 RUNNING</text>
+<rect x="585" y="646" width="270" height="26" rx="7" class="chip"/><text x="599" y="664" class="tiny">QPU</text><text x="841" y="664" class="tiny" text-anchor="end">1 unit / instance</text>
+
+<rect x="1038" y="552" width="310" height="132" rx="12" class="node-wait"/>
+<text x="1058" y="583" class="h2">Collective</text><rect x="1280" y="566" width="48" height="28" rx="14" class="badge"/><text x="1304" y="585" class="badgeText" text-anchor="middle">×1</text>
+<rect x="1058" y="606" width="116" height="28" rx="14" class="blocked"/><text x="1116" y="625" class="tiny" text-anchor="middle">WAITING</text>
+<rect x="1058" y="646" width="270" height="26" rx="7" class="chip"/><text x="1072" y="664" class="tiny">CPU</text><text x="1314" y="664" class="tiny" text-anchor="end">4 units / instance</text>
+
+<path d="M402 618H565M875 618H1038" class="edge"/>
+<rect x="884" y="520" width="140" height="28" rx="14" fill="#fff0d5" stroke="#b54708"/><text x="954" y="539" class="tiny" text-anchor="middle">SYNC WALL</text>
+
+<rect x="44" y="766" width="1352" height="104" rx="14" class="panel"/>
+<text x="64" y="795" class="h3">Playback</text>
+<rect x="160" y="782" width="92" height="36" rx="9" class="control"/><text x="206" y="805" class="tiny" text-anchor="middle">Previous</text>
+<rect x="262" y="782" width="92" height="36" rx="9" class="primary"/><text x="308" y="805" class="primaryText" text-anchor="middle">Play</text>
+<rect x="364" y="782" width="92" height="36" rx="9" class="control"/><text x="410" y="805" class="tiny" text-anchor="middle">Next</text>
+<text x="486" y="805" class="body">Quantum phase · full-group synchronization active</text>
+<line x1="160" y1="842" x2="1328" y2="842" stroke="#d0d5dd" stroke-width="8" stroke-linecap="round"/><line x1="160" y1="842" x2="890" y2="842" stroke="#175cd3" stroke-width="8" stroke-linecap="round"/><circle cx="890" cy="842" r="11" fill="#fff" stroke="#175cd3" stroke-width="3"/>
+<text x="160" y="862" class="small">0 s</text><text x="890" y="862" class="tiny" text-anchor="middle">5.0 s</text><text x="1328" y="862" class="small" text-anchor="end">8.0 s</text>
+</svg>
