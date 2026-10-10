@@ -212,3 +212,72 @@ test("generic actor-less playback requires no actor derivation provider", () => 
     )
   );
 });
+
+
+test("reason-only actor changes survive repetitive-event compression", () => {
+  const result = {
+    workflowId: "reason-change-stress",
+    events: Array.from({ length: 40 }, (_, index) => ({
+      seq: index,
+      simTimeS: index,
+      type: "task_completed",
+      taskId: "same-pattern-" + index,
+      resourcePoolId: "qpu",
+    })),
+    resourceIntervals: [],
+    taskIntervals: [],
+    queueSeries: [],
+    metrics: { makespanS: 39 },
+    assumptions: [],
+  };
+
+  const manifest = {
+    actorGroups: {
+      ranks: {
+        actorGroupId: "ranks",
+        label: "Ranks",
+        count: 1,
+      },
+    },
+  };
+
+  const deriver = (
+    _manifest,
+    _result,
+    actorGroupId,
+    actorOrdinal,
+    simTimeS
+  ) => ({
+    actorGroupId,
+    actorOrdinal,
+    simTimeS,
+    state: "blocked",
+    blockedReasons: [
+      simTimeS < 20 ? "quantum-result" : "global-synchronization",
+    ],
+  });
+
+  const frames = buildActorAwareVisualKeyframes(result, {
+    manifest,
+    deriveActorStateDetailAt: deriver,
+  });
+
+  assert.ok(frames.length < result.events.length);
+  const transition = frames.find(
+    (frame) => frame.snapshot.simTimeS === 20
+  );
+  assert.ok(transition, "reason transition at t=20 must remain explicit");
+  assert.deepEqual(
+    transition.actors.groups[0].blockedReasonCounts,
+    { "global-synchronization": 1 }
+  );
+
+  const before = frames
+    .filter((frame) => frame.snapshot.simTimeS < 20)
+    .at(-1);
+  assert.ok(before);
+  assert.deepEqual(
+    before.actors.groups[0].blockedReasonCounts,
+    { "quantum-result": 1 }
+  );
+});
