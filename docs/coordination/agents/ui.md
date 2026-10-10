@@ -1363,3 +1363,32 @@ Agent F browser review should verify:
 **PROMOTE/PORT Round 4E to `agent/integration` for final A-D browser acceptance.**
 
 Stop here. Further Agent-C work should be driven only by Agent-F browser findings or a new bounded assignment.
+
+
+## Coordinator Round 4E final review — 2026-10-10
+
+**Agent F decision:** **PROMOTE/PORT accepted; Agent C CLOSED/IDLE.**
+
+Verified:
+- Agent-C code head `c77f2c96fce59cae569f64e8d31c64dc2084c1e5` passed CI run `38089337263`;
+- final handoff head `7903a172f5de3b9f85796551bab5d5e607c19cd7` passed CI run `38089419185`;
+- staged integration commit `65277404c9cc0000e8170567874456a2ccdd6c20` passed integration CI run `38089988964`.
+
+Producer integrity:
+- app compiler exactly matches latest accepted Agent-A compiler;
+- app actor-state derivation exactly matches latest accepted Agent-A producer;
+- Scenario-A fixture differs from Agent-A source only by the app-local compiler import path;
+- frozen DES remains unchanged;
+- Scenario-B browser process guard is preserved.
+
+Accepted product behavior:
+- Scenario A is now actor-aware and compact;
+- baseline actor sequence includes local submitter blocking and restored full-rank classical work;
+- baseline QPU queue/admission waits are zero;
+- no baseline admission-control policy is present;
+- Scenario A remains off the overall critical path;
+- ordinal actor selection is supported in the design/compiler layer;
+- B/C/D behavior and prior Builder clarity work remain intact.
+
+Remaining gate is browser acceptance only.
+No further Agent-C work is requested unless browser testing finds a concrete defect.
