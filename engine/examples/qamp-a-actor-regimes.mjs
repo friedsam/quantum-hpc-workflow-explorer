@@ -58,7 +58,7 @@ export const qampScenarioAActorDesign = {
     },
     {
       id: "local-consume",
-      label: "Local result consumption",
+      label: "Local result consumption / resumed classical work",
       timingKey: "local-consume",
       semanticType: "classical-consumer",
       actorParticipation: [
@@ -109,8 +109,10 @@ export const qampScenarioAActorDesign = {
     },
   ],
   assumptions: [
-    "Scaled Scenario A actor fixture: one submitting rank waits only on its own quantum result.",
-    "Ranks 2-4 continue independent useful classical work; no full-group result gate is present.",
+    "Scaled Scenario A actor fixture grounded in the current tutorial contract: individual ranks trigger quantum jobs and consume results locally.",
+    "Ranks 2-4 continue independent useful classical work while rank 1 handles its local quantum request; no global quantum-state dependency or full-group result gate is present.",
+    "The baseline uses QPU capacity 1 with one local request and no admission-control/throttling policy.",
+    "The tutorial's transfer frame calls the submitting rank Idle during transfer; this fixture folds transfer into submission wall time and uses Blocked only for the authored post-submit quantum-result wait.",
   ],
 };
 
@@ -142,7 +144,6 @@ export const qampScenarioAActorRunConfiguration = {
   },
   policy: {
     allocation: "release-aware",
-    maxInFlightQuantumByPool: { qpu: 1 },
   },
   actorGroupCounts: {
     ranks: 4,
@@ -189,10 +190,10 @@ export function makeScenarioASingleRequestProfile({
         ),
       },
       "local-consume": {
-        value: { kind: "constant", seconds: 0.5 },
+        value: { kind: "constant", seconds: 3 },
         provenance: synthetic(
           id,
-          "Modeled wall time for local result consumption."
+          "Modeled wall time for local result consumption plus resumed useful classical continuation."
         ),
       },
     },
