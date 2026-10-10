@@ -413,3 +413,78 @@ Produce one concise document with:
 No engine/UI code. Do not propose a broad scheduler rewrite.
 
 Stop for Agent F review.
+
+
+## Round 4D checkpoint — Slurm execution-model crosswalk
+
+**Status:** **READY FOR AGENT F REVIEW; stop after this checkpoint.**
+
+Deliverable:
+
+- `docs/research/SLURM_EXECUTION_MODEL_CROSSWALK.md`
+- source commit: `d89df8f2165a70a2f6226f636f0b6c6cd8a7a275`
+
+### Primary sources
+
+Current official SchedMD documentation checked 2026-10-10:
+
+- `job_array.html` — arrays, array task identity, `%K` throttling, whole-array dependency semantics, `aftercorr`;
+- `sbatch.html` — submission/allocation, dependencies, nodes/tasks/CPU/memory/GPU/GRES request semantics;
+- `srun.html` — parallel execution/job-step semantics;
+- `heterogeneous_jobs.html`;
+- `slurmrestd.html`;
+- `gres.html`;
+- `tres.html`.
+
+### Result
+
+**No prototype-blocking design change is required.**
+
+Safe existing abstractions:
+
+- logical multiplicity ×N remains distinct from scheduler arrays;
+- stable logical-instance ordinals are useful future array identities;
+- `pairwise` dependency mapping is structurally compatible with Slurm `aftercorr`;
+- full-source joins are structurally compatible with dependency on an ArrayJobID;
+- MPI actor/rank count must remain distinct from multiplicity and maps conceptually to one allocation/job step with `ntasks=N`;
+- existing abstract `resourceCount` must not be blindly translated to Slurm CPUs/tasks/nodes/GPUs;
+- QPU work must remain able to be external to Slurm;
+- modeled service time must remain distinct from a scheduler wall-time limit.
+
+### Critical distinctions
+
+1. **×N != Slurm array by definition.** Use an array only for independently schedulable, similar batch instances that share one initial Slurm option/resource/time-limit shape.
+2. Per-instance input values can share an array using stable index identity; resource/time-request heterogeneity should normally be partitioned into homogeneous execution groups.
+3. Pairwise N→N maps naturally to `aftercorr`; N→1 join maps to a single job depending on the entire array; global N→N release maps to the downstream array depending on the entire upstream array.
+4. MPI phases are cooperating tasks/job steps, not arrays.
+5. `--array=%K` only bounds Slurm-managed running array elements; it does not automatically bound remote QPU work after a launcher exits.
+6. External cloud QPU execution is outside Slurm's own resource queue unless a site explicitly represents/integrates it as a Slurm-managed resource.
+
+### Minimal future hook
+
+The document proposes a scheduler-neutral `ExecutionPlan` with:
+
+- execution unit mode: `single | array | parallel-step | external`;
+- optional instance count/parameter manifest/concurrency intent;
+- explicit nodes/tasks/CPUs-per-task/memory/GPU/generic-resource intent;
+- whole-source vs corresponding-instance dependency scope;
+- completion vs success condition;
+- optional wall-time limit with separate provenance;
+- explicit warning that this is **scheduling intent, not an exact schedule**.
+
+### Deferred until after prototype
+
+All Slurm command/script generation, homogeneous-group partition logic, wall-time policy, node/memory/GPU binding details, heterogeneous-job emission, `slurmrestd` client/auth/version handling, live cluster discovery, data staging, and provider/QPU-specific integration.
+
+### Validation / scope
+
+- research/documentation only;
+- no engine code changed;
+- no UI code changed;
+- no shared interface changed;
+- no dependencies added;
+- advisory only and does not block the ~3-day prototype.
+
+### Promotion recommendation
+
+**PORT** the conceptual constraints into future ExecutionPlan/export design after the prototype. Do not port Slurm syntax into the DES or current UI model.
