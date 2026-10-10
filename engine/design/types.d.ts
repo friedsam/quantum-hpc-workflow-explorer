@@ -37,6 +37,29 @@ export interface ActorParticipation {
   stateDuringTask: "working" | "blocked";
 }
 
+export type ActorWaitTaskEvent = "ready" | "started" | "completed";
+export type ActorWaitInstanceCondition =
+  | "matching-instance"
+  | "any-instance"
+  | "all-instances";
+
+export interface ActorWaitTaskEventCondition {
+  kind: "task-event";
+  taskId: string;
+  event: ActorWaitTaskEvent;
+  instance: ActorWaitInstanceCondition;
+}
+
+export interface ActorWaitClaim {
+  id: string;
+  actorGroupId: string;
+  selection: ActorParticipationSelection;
+  activation: ActorWaitTaskEventCondition;
+  release: ActorWaitTaskEventCondition;
+  reason: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface WorkflowDesign {
   schemaVersion: 1;
   id: string;
@@ -44,6 +67,7 @@ export interface WorkflowDesign {
   tasks: DesignTask[];
   dependencies: DesignDependency[];
   actorGroups?: ActorGroup[];
+  actorWaits?: ActorWaitClaim[];
   repeatBlocks?: RepeatBlock[];
   assumptions?: string[];
   metadata?: Record<string, unknown>;
@@ -175,6 +199,29 @@ export interface CompiledDependencyManifestEntry {
   communicationProvenance?: Provenance;
 }
 
+export type CompiledActorWaitEventType =
+  | "task_ready"
+  | "task_started"
+  | "task_completed";
+
+export interface CompiledActorWaitBoundary {
+  eventType: CompiledActorWaitEventType;
+  taskIds: string[];
+  quantifier: "any" | "all";
+}
+
+export interface CompiledActorWaitClaim {
+  designWaitId: string;
+  actorGroupId: string;
+  selection:
+    | { kind: "all" }
+    | { kind: "one"; actorOrdinal: number };
+  logicalInstanceOrdinal?: number;
+  activation: CompiledActorWaitBoundary;
+  release: CompiledActorWaitBoundary;
+  reason: string;
+}
+
 export interface CompiledResourceManifestEntry {
   runResourceId: string;
   costKey: string;
@@ -199,6 +246,7 @@ export interface CompilationManifest {
   dependencies: Record<string, CompiledDependencyManifestEntry>;
   resources: Record<string, CompiledResourceManifestEntry>;
   actorGroups: Record<string, CompiledActorGroupManifestEntry>;
+  actorWaits: Record<string, CompiledActorWaitClaim>;
 }
 
 export interface CompilationResult {
@@ -244,6 +292,14 @@ export function createRunRecord(input: {
 
 export type DerivedActorState = "working" | "blocked" | "idle";
 
+export interface DerivedActorStateDetail {
+  actorGroupId: string;
+  actorOrdinal: number;
+  simTimeS: number;
+  state: DerivedActorState;
+  blockedReasons: string[];
+}
+
 export interface ActorStateCounts {
   actorGroupId: string;
   simTimeS: number;
@@ -251,6 +307,14 @@ export interface ActorStateCounts {
   blocked: number;
   idle: number;
 }
+
+export function deriveActorStateDetailAt(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult,
+  actorGroupId: string,
+  actorOrdinal: number,
+  simTimeS: number
+): DerivedActorStateDetail;
 
 export function deriveActorStateAt(
   manifest: CompilationManifest,
