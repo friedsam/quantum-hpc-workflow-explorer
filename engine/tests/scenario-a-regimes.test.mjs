@@ -152,6 +152,10 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
     }
   );
   assert.equal(resourceActiveAt(result, "qpu", 4), false);
+  assert.deepEqual(
+    deriveActorStateCountsAt(manifest, result, "ranks", 7),
+    { actorGroupId: "ranks", simTimeS: 7, working: 4, blocked: 0, idle: 0 }
+  );
 
   assert.equal(
     qampScenarioAActorRunConfiguration.policy
@@ -174,7 +178,7 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
   );
   assert.equal(
     eventTime(result, "task_completed", "local-consume"),
-    6
+    8
   );
   assert.equal(
     eventTime(
