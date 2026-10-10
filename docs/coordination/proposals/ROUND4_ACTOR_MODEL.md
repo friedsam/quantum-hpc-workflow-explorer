@@ -97,12 +97,13 @@ interface ActorParticipation {
   actorGroupId: string;
   selection:
     | { kind: "all" }
-    | { kind: "one-per-instance" };
+    | { kind: "one-per-instance" }
+    | { kind: "ordinals"; actorOrdinals: number[] }; // Round 4D additive extension
   stateDuringTask: "working" | "blocked";
 }
 ```
 
-Round 4A Scenario B uses task participation only for actual actor work:
+Round 4A Scenario B uses task participation only for actual actor work. Round 4D adds explicit ordinal-set selection for bounded actor subsets without rank nodes:
 
 - `prepare#1/#2` -> ranks 1/2 Working;
 - `quantum#1/#2` -> no actor participation; the QPU produces results while submitters wait;
@@ -351,7 +352,7 @@ Multiplicity expands before DES. Actor participation/wait state is derived outsi
 ## 10. Deliberate limits
 
 Not implemented:
-- arbitrary actor subsets/ranges beyond `all` and deterministic one-per-instance;
+- range/complement selector languages beyond explicit deterministic ordinal sets;
 - wait conditions on repeat blocks;
 - multiplicity >1 nested inside repeat blocks;
 - overlapping Working actor tasks;
@@ -387,3 +388,14 @@ Coverage includes:
 ## Recommendation
 
 **PORT** the repaired additive design/compiler/actor derivation layer. Frozen DES remains unchanged.
+
+
+## Round 4D additive note
+
+Scenario-A fidelity required one additional deterministic actor selector:
+
+```ts
+{ kind: "ordinals"; actorOrdinals: number[] }
+```
+
+This is a higher-level actor-selection extension only. Existing Round-4A Scenario-B semantics and frozen DES remain unchanged. See `ROUND4D_SCENARIO_A_REGIMES.md`.
