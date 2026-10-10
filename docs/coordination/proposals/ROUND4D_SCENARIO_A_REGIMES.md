@@ -139,7 +139,7 @@ At t=1.5:
 - Blocked 1;
 - Idle 0.
 
-At t=4:
+At t=4 and t=7:
 - Working 4;
 - Blocked 0;
 - Idle 0;
