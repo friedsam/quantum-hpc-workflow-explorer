@@ -3,19 +3,25 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 2C R2C-1/R2C-2 repair complete; ready for Agent F review.
+**Status:** Round 4A logical multiplicity / actor-state model complete; ready for Agent F review.
 
 Delivered:
-- persisted `schemaVersion: 1` + compiler rejection for unsupported versions;
-- `compileWorkflowDesignDetailed(...)` with explicit compilation manifest;
-- compatibility `compileWorkflowDesign(...): WorkflowSpec` preserved;
-- manifest persisted in `RunRecord`;
-- repeated-block manifest/provenance regression;
-- actor/rank hook documentation corrected: identity preserved, exact actor accounting not yet supported.
+- additive logical task multiplicity above frozen DES;
+- persistent actor-group counts distinct from task multiplicity/resourceCount;
+- explicit actor participation across CPU/QPU/CPU stages;
+- pairwise/all-to-all logical dependency expansion;
+- compact actor assignments in CompilationManifest;
+- derived actor Working/Blocked/Idle state from manifest + SimulationResult;
+- compact Scenario B acceptance model with four persistent ranks and five compiled tasks.
 
-Focused validation: **7/7 PASS** against current branch content.
+Validation:
+- Round 4A actor suite: **4/4 PASS**;
+- Round 2C compiler regressions: **7/7 PASS**;
+- total focused checks: **11/11 PASS**.
 
-Frozen DES/v1 unchanged. No other architecture changes made.
+Frozen DES/v1 unchanged. No UI/optimizer/provider-queue/rank-node work added.
+
+Review artifact: `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`
 
 Recommended status: **PORT**. Stop after Agent F review.
 
