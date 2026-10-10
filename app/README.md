@@ -1,6 +1,6 @@
 # Quantum–HPC Workflow Explorer — Agent C UI
 
-Status: Round-3 integrated model + causal debugger checkpoint on `agent/ui`.
+Status: Round-4C simple logical + actor-aware Explorer checkpoint on `agent/ui`.
 
 This `app/` directory is a self-contained React + TypeScript + Vite implementation of the product flow:
 
@@ -131,3 +131,38 @@ The frozen engine consumes an already-expanded DAG. A user-facing bounded-repeat
 - The cumulative-cost strip is intentionally disabled until an authoritative producer-owned cost time series exists.
 
 Latest green Round-3 code run before the handoff documentation: `37092997663` at head `299923914aaf564712ce674551ff17e2bdefec6f`.
+
+
+## Round 4C default product
+
+The default product surface is now authored-model first.
+
+Builder:
+- logical WorkflowDesign DAG;
+- one node per logical task;
+- visible multiplicity `×N`;
+- resource demand shown separately as units / instance;
+- service-time assumption edited through SystemProfile;
+- logical dependency mapping is pairwise/all-to-all and ambiguous unequal multiplicity is rejected rather than inferred.
+
+Explore:
+- plain-language current-state banner;
+- actor Working / Blocked / Idle only when actor semantics are authored;
+- generic path/system fallback otherwise;
+- compact QPU running / resource-queued / policy-held state;
+- sync/no-sync callout;
+- logical DAG;
+- simple Previous / Play-Pause / Next and shared time rail.
+
+Expanded DES graphs, metrics, exact resource diagnostics, analytical strips, timelines, queue evidence and source-event/keyframe provenance remain under **Advanced / Diagnostics**.
+
+Scenario B is the accepted actor-aware case:
+`Preparation ×2 → Quantum ×2 → Collective ×1` with four persistent MPI ranks.
+
+Scenarios A/C/D are compact logical actor-less cases and never invent rank counts.
+
+Latest Round-4C green code run:
+- GitHub Actions `38028979455`;
+- **77/77 Node tests**;
+- TypeScript pass;
+- Vite 8.3.4 build pass.

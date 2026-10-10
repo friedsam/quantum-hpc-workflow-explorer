@@ -637,3 +637,241 @@ Add/adjust tests for:
 - Vite build.
 
 Stop after a green checkpoint for Agent F review. Browser visual testing follows on `agent/integration`.
+
+
+## Round 4C completion — 2026-10-10
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F REVIEW.**
+
+Green code head before handoff documentation:
+`1129ef3041d95d7c50b92058c9deaabd8e2d843a`
+
+Validated GitHub Actions run:
+`38028979455` — **success**
+
+### Product correction delivered
+
+Round 4C inverts the Round-3 hierarchy as requested:
+
+- normal Builder works on authored `WorkflowDesign`, not expanded DES tasks;
+- normal Explore shows the logical workflow and simple human-readable state;
+- expanded `WorkflowSpec` / DES graph and dense diagnostics are behind **Advanced / Diagnostics**;
+- direct `WorkflowSpec` remains an advanced compatibility path.
+
+No DES rewrite or new graphics framework was introduced.
+
+### Accepted Round-4 producers ported
+
+Canonical app producer hashes at the green checkpoint:
+
+- frozen DES: `app/src/engine/runtime.mjs` = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`
+- Round-4 compiler: `app/src/design/compiler.mjs` = `bb487feede9ca0eb2b9f499aea44a21d7fbdb83b`
+- actor-state derivation: `app/src/design/actor-state.mjs` = `72d62283115faf63ab941ba643d06771feb81c9d`
+- actor-aware trace playback: `app/src/playback/trace-playback.mjs` = `6fd71816ab071e35f43830957fd99afdbafc8965`
+- actor-aware projection: `app/src/playback/actor-aware-view.mjs` = `eacb5add590136c5c586ffb3b341a537b9542bd9`
+
+The frozen DES blob is unchanged.
+
+### Builder
+
+Design-backed workflows now render the logical authored DAG.
+
+Logical node presentation separates:
+- task label;
+- multiplicity `×N`;
+- resource type/pool;
+- `N units / instance`;
+- service-time assumption per instance.
+
+Logical task inspector edits:
+- label;
+- Multiplicity (default 1);
+- resource pool;
+- resource units / instance;
+- constant service-time/profile assumption.
+
+These remain independent from actor-group count.
+
+Logical resource/config editing preserves:
+- CPU/GPU/QPU pools;
+- capacity;
+- modeled cost assumption;
+- fixed/release-aware policy;
+- fixed reservation;
+- QPU max-in-flight;
+- actor-group counts where an actor model exists.
+
+Logical dependency editing supports:
+- default pairwise mapping for equal multiplicity;
+- explicit pairwise;
+- explicit all-to-all;
+- communication assumptions in the SystemProfile.
+
+Unequal multiplicity with no explicit mapping remains an invalid logical draft and is surfaced through compiler validation instead of guessed.
+
+The normal custom starter is now logical/design-backed.
+
+Direct `WorkflowSpec` editing is preserved only in the advanced compatibility path.
+
+### Logical A-D presets
+
+User-facing presets now use compact authored models:
+
+- A: local classical overlap plus local quantum path;
+- B: accepted Round-4 actor fixture — Preparation ×2 → Quantum ×2 → Collective ×1, 4 persistent MPI ranks;
+- C: Producer ×3 → Quantum ×3 → Consumer ×3 with communication-dominated pairwise paths and no global sync;
+- D: Preparation ×6 → Quantum ×6 → Continuation ×6, QPU capacity 1, max-in-flight 2, no global sync.
+
+A/C/D are actor-less by design and use the generic fallback; no actor/rank counts are invented.
+
+Scenario B uses the accepted actor participation/wait model:
+- result wait for each submitting actor;
+- all-actor global-result gate;
+- all actors participate in the collective continuation.
+
+All scale/timing values remain explicitly synthetic acceptance assumptions.
+
+### Default Explorer hierarchy
+
+The normal Explore view now shows, in order:
+
+1. **What is happening now?** plain-language banner.
+2. Actor Working / Blocked / Idle when authored actor semantics exist.
+3. Otherwise compact generic workflow/path progress.
+4. Compact QPU state: running / resource queued / policy held plus sync/no-sync callout.
+5. Logical authored DAG with multiplicity badges and resource-per-instance tags.
+6. Previous / Play-Pause / Next plus one shared simulation-time rail.
+
+Scenario C's banner explicitly reports active data movement/communication.
+
+Scenario B's actor model is the visible explanatory layer; its internal QPU admission serialization remains secondary QPU state, not the primary bottleneck explanation.
+
+Scenario D remains generic and visibly separates QPU running, resource queue and policy-held work while stating no global synchronization.
+
+### Actor-aware playback
+
+The app now uses one actor-aware playback controller for both the simple view and diagnostics.
+
+Accepted behavior retained:
+- actor summaries;
+- Working / Blocked / Idle projection;
+- blocked-reason counts that may overlap;
+- actor composition/reason changes protected as semantic boundaries;
+- generic actor-less fallback;
+- neutral repeated-activity wording;
+- no raw-event autoplay.
+
+One selected simulation time drives:
+- actor/generic summary;
+- QPU summary;
+- logical DAG runtime state;
+- simple playback rail;
+- advanced debugger;
+- analytical strips;
+- expanded DES DAG;
+- playback diagnostics.
+
+Playback changes state styling only; ELK geometry remains topology/content driven.
+
+### Advanced / Diagnostics
+
+The following Round-3 surfaces remain available behind one disclosure:
+
+- MetricsGrid;
+- CompilationProvenance;
+- expanded compiled DES graph;
+- playback source-event/keyframe/provenance details;
+- FullSystemDebugger;
+- AnalyticalStrips;
+- TaskTimeline;
+- ResourceTimeline;
+- QueueEvidence;
+- Assumptions.
+
+No Round-3 diagnostic functionality was removed.
+
+### Validation
+
+Green run `38028979455`:
+
+- frozen engine: **17/17**
+- design/compiler: **7/7**
+- actor model/state: **6/6**
+- QAMP behavioral suite: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback/projection: **7/7**
+- Round-4C product acceptance: **6/6**
+- architecture: **11/11**
+
+Total Node tests: **77/77**.
+
+Also green:
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 220 modules transformed.
+
+Build output:
+- CSS ~40.98 kB / 8.23 kB gzip;
+- JS ~1.975 MB / 605.90 kB gzip;
+- existing non-fatal large-chunk warning remains.
+
+### Round-4C failures corrected
+
+1. Agent-A declarations were initially copied verbatim from `.d.ts` into `types.ts`; TypeScript rejected declaration-only functions in a runtime TS module. Function declarations now live only in the existing `.d.mts` adapters; the shared TS file contains types/interfaces only.
+2. A self-imposed App line-count assertion was too tight for the bounded logical-design orchestration; the guard was adjusted without refactoring unrelated product code.
+3. TypeScript did not preserve a selected-task null narrowing inside nested editor callbacks; the selected task is now captured after the guard.
+4. Generic Scenario-C simple-state wording initially reported only idle compute during transfers; the banner now explicitly reports active communication/data movement.
+5. User-facing logical preset objects were moved to importable producer data so the exact A/C/D presets loaded by the UI are compiled/simulated in tests.
+
+### Files proposed for promotion
+
+Round-4C product implementation:
+- `app/src/design/types.ts`
+- `app/src/design/compiler.mjs`
+- `app/src/design/actor-state.*`
+- `app/src/playback/trace-playback.*`
+- `app/src/playback/actor-aware-view.*`
+- `app/src/presets/qamp-b-actor.*`
+- `app/src/presets/logical-presets.*`
+- updated `app/src/presets/presets.ts`
+- updated `app/src/App.tsx`
+- updated `app/src/uiTypes.ts`
+- logical Builder components under `app/src/components/builder/`
+- logical graph projection/runtime components under `app/src/components/graph/`
+- simple Explorer/playback/state components under `app/src/components/explore/`
+- updated `app/src/styles.css`
+- Round-4 actor/playback/product tests and package scripts.
+
+### Dependencies
+
+No new production framework/dependency added.
+
+Production remains:
+- React / React DOM;
+- `@xyflow/react`;
+- `elkjs`.
+
+### Interface changes requested
+
+None.
+
+Round-4 model/compiler/actor additions remain above the frozen DES.
+
+### Explicitly deferred
+
+- generalized actor participation/wait authoring UI beyond the accepted/preset model;
+- optimizer;
+- calibrated rank scaling;
+- provider scheduler;
+- persistent actor state inside DES;
+- one-node-per-rank rendering;
+- browser visual/E2E testing (Agent F next gate);
+- deployment/main promotion;
+- bundle/code-splitting optimization.
+
+### Promotion recommendation
+
+**PROMOTE/PORT Round 4C to `agent/integration` for browser/visual review.**
+
+Stop at this checkpoint. Further Agent-C work should be driven only by Agent-F browser/E2E findings or a new bounded assignment.

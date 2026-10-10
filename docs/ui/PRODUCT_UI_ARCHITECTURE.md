@@ -329,3 +329,104 @@ Build: 208 modules; CSS ~35.70 kB / 7.28 kB gzip; JS ~1.934 MB / 596.18 kB gzip;
 ### Round-3 scope boundary
 
 Still deferred: optimizer; calibrated rank-scaling; persistent actor/rank-state model; provider scheduler; authoritative cumulative-cost time series; browser E2E/visual smoke; deployment/main promotion.
+
+
+## Round 4C — authored-model-first product hierarchy
+
+Date: 2026-10-10  
+Green code head: `1129ef3041d95d7c50b92058c9deaabd8e2d843a`  
+Green CI: `38028979455`
+
+### Default authoring model
+
+The Builder now renders `WorkflowDesign.tasks` for design-backed workflows.
+
+Logical task identity, multiplicity, actor count and resource units are separate dimensions:
+
+`logical task → multiplicity ×N → compiled task instances`
+
+`actor group → persistent explanatory identities`
+
+`resourceCount → resource units consumed by each concrete task instance`
+
+They are never inferred from one another.
+
+Direct `WorkflowSpec` editing remains an advanced compatibility path.
+
+### Default visualization model
+
+The normal Explore surface is intentionally smaller than Round 3.
+
+Primary:
+1. plain-language current state;
+2. actor Working / Blocked / Idle when authored;
+3. generic progress when actor-less;
+4. QPU running / resource queue / policy hold / synchronization callout;
+5. logical DAG;
+6. simple playback + shared time rail.
+
+Secondary:
+one **Advanced / Diagnostics** disclosure contains the expanded DES graph and the complete Round-3 diagnostic stack.
+
+### Actor-aware Scenario B
+
+The accepted logical model is:
+
+- Preparation ×2;
+- Quantum evaluation ×2;
+- Collective ×1;
+- MPI rank actor group count 4;
+- pairwise preparation→quantum;
+- all-to-all quantum→collective;
+- per-submitter quantum-result waits;
+- all-rank global-result gate.
+
+Expected explanatory sequence remains:
+
+- 2 working / 0 blocked / 2 idle;
+- 0 working / 2 blocked / 2 idle;
+- 0 working / 4 blocked / 0 idle with global synchronization;
+- 4 working / 0 blocked / 0 idle.
+
+Resource/QPU admission semantics remain DES facts, but they are not substituted for actor waiting semantics.
+
+### Actor-less fallback
+
+A/C/D have no persistent actor model in the default UI.
+
+The Explorer therefore shows only defensible workflow/resource facts:
+- task/path progress;
+- QPU running;
+- resource queue;
+- policy hold;
+- communication;
+- explicit no-global-sync metadata where authored.
+
+It never synthesizes Working/Blocked/Idle actor counts.
+
+### Playback coupling
+
+`buildActorAwareVisualKeyframes` protects actor composition and blocked-reason changes from compression.
+
+The same selected simulation time drives:
+- simple state;
+- logical DAG status;
+- QPU status;
+- advanced causal/resource debugger;
+- analytical strips;
+- compiled DAG;
+- playback diagnostics.
+
+Auto-layout remains independent of playback.
+
+### Validation
+
+Round-4C green run `38028979455`:
+- 77/77 Node tests;
+- TypeScript pass;
+- Vite 8.3.4 build pass;
+- 220 modules transformed.
+
+No new UI/graphics dependency was added.
+
+React Flow's current accessibility guidance continues to support focusable nodes/edges and ARIA labeling, which the graph surface preserves. Browser-level visual/a11y smoke testing remains the integration-stage gate.
