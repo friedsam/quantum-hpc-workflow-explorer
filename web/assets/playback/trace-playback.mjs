@@ -309,8 +309,30 @@ function labelForSegment(segment) {
  */
 export function buildVisualKeyframes(simulationResult, options = {}) {
   const cfg = validateOptions(options);
-  const groups = buildSemanticGroups(simulationResult);
+  let groups = buildSemanticGroups(simulationResult);
   if (groups.length === 0) return [];
+
+  const semanticSignatureAtTime = options?.semanticSignatureAtTime;
+  if (
+    semanticSignatureAtTime !== undefined &&
+    typeof semanticSignatureAtTime !== "function"
+  ) {
+    throw new TypeError("semanticSignatureAtTime must be a function");
+  }
+
+  if (semanticSignatureAtTime) {
+    groups = groups.map((group) => {
+      const extraSignature = semanticSignatureAtTime(group.simTimeS);
+      if (extraSignature === undefined || extraSignature === null || extraSignature === "") {
+        return group;
+      }
+      return Object.freeze({
+        ...group,
+        signature: `${group.signature}||presentation:${String(extraSignature)}`,
+      });
+    });
+  }
+
   const segments = compressSemanticGroups(groups, cfg);
   const keyframes = [];
   let presentationTimeMs = 0;
