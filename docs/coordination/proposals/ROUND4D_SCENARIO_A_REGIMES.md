@@ -6,15 +6,22 @@ Frozen DES: **unchanged**
 
 ## Source basis
 
-The legacy Scenario-A page in this repository is a six-frame player and does not itself contain enough prose to define actor semantics. This checkpoint therefore uses Agent F's Round-4D acceptance instructions as the authoritative Scenario-A behavioral contract:
+The current published Scenario-A tutorial is the acceptance source for this fixture:
 
-- one/few submitting ranks may block on their own quantum result;
-- non-submitting ranks continue useful classical work;
-- there is no global result gate;
-- baseline QPU service does not create queue/admission pressure;
-- local result consumption resumes without a full-allocation join.
+https://hpc-quantum.github.io/Documentation-website/scenario-a/
 
-No old screenshot count is treated as engine truth.
+Its explicit contract includes:
+- quantum jobs triggered by individual ranks;
+- results consumed locally;
+- no rank depends on global quantum state to proceed;
+- many ranks execute classical work concurrently;
+- a submitting rank does not stall others;
+- QPU execution is single-lane;
+- at most one quantum job is active or queued in the baseline;
+- no admission control or throttling is required;
+- after result return, the submitting rank resumes classical work immediately.
+
+The tutorial also distinguishes transfer from result waiting. In Frame 2 it calls the submitting rank **Idle while the job is transferred**. The Explorer actor projection does not relabel that tutorial transfer interval. This scaled fixture folds transfer into the submit phase wall time; its explicit `Blocked` state begins only for the authored post-submit quantum-result wait.
 
 ## 1. Minimum actor-selection extension
 
@@ -96,7 +103,7 @@ No full-group actor wait exists.
 
 - CPU capacity = 4;
 - QPU capacity = 1;
-- QPU max-in-flight = 1;
+- no QPU admission/throttling limit in the baseline;
 - background resourceCount = 3;
 - submit resourceCount = 1;
 - quantum resourceCount = 1;
@@ -107,16 +114,17 @@ No full-group actor wait exists.
 - independent classical background = 8 s;
 - submit/preparation = 1 s;
 - QPU service = 2 s;
-- local consume = 0.5 s.
+- local result consumption / resumed classical continuation = 3 s.
 
 Result:
 - background runs [0,8);
 - submit runs [0,1);
 - quantum runs [1,3);
-- local consume runs [3,3.5);
+- local result consumption / resumed classical continuation runs [3,6);
 - QPU queue wait = 0;
 - QPU admission wait = 0;
-- local consume starts before independent background completes;
+- at t=4 all four actors are Working while the QPU is idle;
+- the quantum branch completes before the independent background phase at t=8;
 - no full-allocation join exists.
 
 ### Actor frames
@@ -131,14 +139,13 @@ At t=1.5:
 - Blocked 1;
 - Idle 0.
 
-At t=3.25:
+At t=4:
 - Working 4;
 - Blocked 0;
-- Idle 0.
+- Idle 0;
+- QPU idle.
 
-After local consumption completes while background work continues:
-- submitting actor can become Idle;
-- non-submitters remain Working.
+The post-result interval [3,6) explicitly represents the submitting rank resuming useful classical work while ranks 2-4 remain in their independent classical phase. This matches the tutorial's restored-equilibrium behavior without adding a global join.
 
 This is the intended local-blocking behavior: only the submitting rank loses useful work while awaiting its result.
 
@@ -204,7 +211,9 @@ One independent background actor remains.
 
 QPU:
 - capacity 1;
-- max in-flight 3.
+- max in-flight 3 **only as test-control scaffolding** so overload appears as QPU resource queueing rather than policy/admission hold.
+
+This bound is not part of Scenario-A baseline semantics; the one-request baseline has no admission-control limit.
 
 Only deterministic `SystemProfile` wall-time parameters change.
 
@@ -329,6 +338,12 @@ Total focused checks after Round 4D: **20/20 PASS**.
 MPI's standard semantics distinguish rank/process identity and collective synchronization behavior; an MPI collective is not automatically a barrier. The project therefore keeps actor identity/waits explicit rather than inferring global blockage from generic MPI participation.
 
 Queueing-theory stability results likewise distinguish offered arrival work from service opportunity; backlog is expected when sustained arrival exceeds service opportunity. Round 4D uses only a deterministic finite analogue of that principle.
+
+## Generalization limitation
+
+The explicit ordinal-set selector is intentionally bounded. A fixed selection such as `[2,3,4]` means exactly those actor ordinals; it does **not** automatically mean "all non-submitters" if a user later changes the actor-group count from 4 to 1000.
+
+Round 4D does not add complement/range semantics. Generalized actor authoring will need an explicit future selector model if that use case is promoted beyond scaled presets.
 
 ## 9. Frozen DES boundary
 
