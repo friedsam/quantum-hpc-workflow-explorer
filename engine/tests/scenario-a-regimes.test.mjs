@@ -42,6 +42,16 @@ function runningInterval(result, taskId) {
   );
 }
 
+function resourceActiveAt(result, poolId, simTimeS) {
+  return result.resourceIntervals.some(
+    (interval) =>
+      interval.resourcePoolId === poolId &&
+      interval.state === "active" &&
+      interval.startS <= simTimeS &&
+      simTimeS < interval.endS
+  );
+}
+
 function maxQueueDepth(result, poolId) {
   return Math.max(
     0,
@@ -131,15 +141,22 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
       manifest,
       result,
       "ranks",
-      3.25
+      4
     ),
     {
       actorGroupId: "ranks",
-      simTimeS: 3.25,
+      simTimeS: 4,
       working: 4,
       blocked: 0,
       idle: 0,
     }
+  );
+  assert.equal(resourceActiveAt(result, "qpu", 4), false);
+
+  assert.equal(
+    qampScenarioAActorRunConfiguration.policy
+      .maxInFlightQuantumByPool,
+    undefined
   );
 
   assert.equal(
@@ -154,6 +171,10 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
   assert.equal(
     eventTime(result, "task_started", "local-consume"),
     3
+  );
+  assert.equal(
+    eventTime(result, "task_completed", "local-consume"),
+    6
   );
   assert.equal(
     eventTime(
