@@ -255,7 +255,7 @@ test("longer QPU wall time with one local request lengthens only the local block
       1,
       4
     ),
-    "idle"
+    "working"
   );
   assert.equal(
     deriveActorStateAt(
