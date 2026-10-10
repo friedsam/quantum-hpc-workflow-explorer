@@ -470,3 +470,170 @@ Non-blocking risks/deferred:
 - no broad landing-page redesign.
 
 No further Agent-C work is requested until browser/E2E review identifies a concrete defect.
+
+
+## Round 4C task — implement the simple actor-aware Explorer
+
+**Status:** REOPENED for the production integration pass.
+
+### Accepted inputs
+
+Read from `agent/integration`:
+- `docs/coordination/ROUND4_ACTOR_MODEL.md`
+- `docs/coordination/ACTOR_AWARE_PLAYBACK.md`
+- `docs/coordination/SIMPLE_EXPLORER_VISUAL.md`
+
+Read accepted producer implementations from:
+- `agent/engine` — Round-4 logical multiplicity, actor participation/waits, actor-state derivation;
+- `agent/playback` — Round-4B actor-aware playback/projection and neutral repeated-activity wording.
+
+### Product correction
+
+The Round-3 app exposed compiled DES fixtures and diagnostics as the primary product. Round 4C must invert that hierarchy.
+
+The **default user experience** is based on the authored logical model.
+The expanded WorkflowSpec/DES graph and dense diagnostic panels remain available under **Advanced / Diagnostics**.
+
+### Required implementation
+
+#### 1. Port the accepted logical/actor model
+
+Port/rehome into `app/src/design/**`:
+- logical task `multiplicity` (default 1);
+- actor groups/counts;
+- actor participation;
+- actor wait/gate claims;
+- dependency instance mapping;
+- manifest actor assignments/waits;
+- actor-state derivation.
+
+Frozen DES runtime remains unchanged.
+
+#### 2. Builder: show/edit the logical DAG
+
+For design-backed workflows, the Builder DAG must render `WorkflowDesign.tasks`, not compiled `WorkflowSpec.tasks`.
+
+Each logical task node must clearly separate:
+- label;
+- multiplicity `×N`;
+- resource demand `N units / instance`;
+- resource type/pool.
+
+Task inspector:
+- expose editable `Multiplicity` with default 1;
+- keep `Resource units / instance` separate;
+- keep service time/system-profile assumption editable through the existing design/profile path or a minimal equivalent;
+- do not render one node per instance/rank.
+
+Dependency editing must preserve supported mapping semantics:
+- pairwise for equal multiplicity by default;
+- explicit all-to-all where required;
+- if a user creates an unsupported/ambiguous unequal-multiplicity dependency, surface validation rather than invent semantics.
+
+Preserve direct WorkflowSpec compatibility only as a fallback/advanced path. Prefer the logical design layer for the normal custom starter so multiplicity is available to ordinary users.
+
+#### 3. Replace A-D user-facing presets with logical presets
+
+Do not show the old scaled DES fixture nodes as the scenario DAG.
+
+Scenario B default authored DAG:
+- Preparation ×2;
+- Quantum evaluation ×2;
+- Collective ×1;
+- persistent rank group count 4;
+- accepted actor waits/gates;
+- compile internally to the accepted Round-4 Scenario-B WorkflowSpec/trace.
+
+Scale values remain synthetic acceptance values, clearly labeled.
+
+A/C/D should likewise use compact logical authored nodes and multiplicity where appropriate rather than exposing every compiled task instance. Preserve their accepted behavioral mechanisms.
+
+#### 4. Explorer default surface
+
+Implement the accepted D hierarchy:
+
+1. **What is happening now?** plain-language banner.
+2. Actor-group Working / Blocked / Idle when authored actor semantics exist.
+3. Otherwise compact generic path/system progress; never invent actor counts.
+4. Compact QPU state:
+   - running;
+   - resource queued;
+   - policy held;
+   - sync/no-sync callout when supported.
+5. Logical authored DAG with `×N` badges and per-instance resource tags.
+6. Simple Previous / Play-Pause / Next + shared simulation-time rail.
+
+Keep geometry fixed while playback state changes.
+
+Scenario B default must show the actor-aware sequence:
+- 2W / 0B / 2I;
+- 0W / 2B / 2I;
+- 0W / 4B / 0I with global synchronization;
+- 4W / 0B / 0I.
+
+Do not present Scenario B's internal admission hold as its visible bottleneck.
+
+Scenario D must continue to distinguish:
+- QPU running;
+- resource queued;
+- policy held;
+- no global synchronization.
+
+#### 5. Advanced / Diagnostics
+
+Move the existing Round-3 diagnostic stack behind one disclosure/tab:
+- MetricsGrid;
+- CompilationProvenance;
+- FullSystemDebugger;
+- AnalyticalStrips;
+- TaskTimeline;
+- ResourceTimeline;
+- QueueEvidence;
+- Assumptions;
+- expanded compiled DES graph;
+- source-event/keyframe/provenance details.
+
+Do not delete this functionality.
+
+#### 6. Actor-aware playback
+
+Port/rehome B's accepted actor-aware projection:
+- actor summaries;
+- overlapping blocked-reason counts;
+- semantic keyframe protection when actor composition/reasons change;
+- generic actor-less fallback;
+- neutral `Repeated N-step activity ×M` wording.
+
+One shared time cursor must drive:
+- default actor/path state;
+- logical DAG status;
+- advanced diagnostics;
+- playback.
+
+### Explicit non-goals
+
+- no optimizer;
+- no calibrated rank-scaling model;
+- no provider scheduler;
+- no new graphics framework;
+- no one-node-per-rank rendering;
+- no DES rewrite;
+- no broad marketing/landing-page redesign;
+- no deployment/main promotion yet.
+
+### Validation
+
+Add/adjust tests for:
+- multiplicity compiler behavior;
+- actor wait/state derivation;
+- Scenario-B actor sequence;
+- Scenario-D queue vs policy-held fallback;
+- logical-vs-compiled DAG separation;
+- task multiplicity editing and validation;
+- direct custom workflow simulation;
+- existing Compare/save-run behavior;
+- playback regressions including neutral repeated-activity wording;
+- TypeScript;
+- Vite build.
+
+Stop after a green checkpoint for Agent F review. Browser visual testing follows on `agent/integration`.
