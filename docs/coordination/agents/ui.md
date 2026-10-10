@@ -908,3 +908,57 @@ Accepted product behavior:
 No additional model/UI defect was found in source review.
 
 Remaining gate is browser visual/E2E behavior on the staged integration app. No further Agent-C work is requested unless that browser review exposes a concrete defect.
+
+
+## Round 4D parallel UI task — deadline-safe Builder clarity pass
+
+**Status:** REOPENED in parallel with Agent A. Do not depend on Agent A's Scenario-A model repair.
+
+### Deadline context
+
+A browser-demonstrable prototype of the tutorial scenarios is needed within approximately 3 days.
+
+### Goal
+
+Improve the current logical Builder's immediate comprehensibility without changing model semantics.
+
+### Required changes
+
+1. Add a compact **system topology strip** near the logical DAG:
+   - one card per resource pool;
+   - make parallel capacity explicit, e.g. `HPC / CPU pool · 4 parallel units`;
+   - make QPU capacity explicit, e.g. `QPU · 1 execution lane`;
+   - use current RunConfiguration only; do not infer hardware not represented by the model.
+
+2. Change user-facing timing wording from `service time / instance` to **`modeled wall time / instance`**.
+   - Add concise help text: this is a simulation assumption for one task instance, not CPU clock speed.
+   - If communication is modeled explicitly on dependencies, keep it separate.
+
+3. Explain multiplicity directly in the Builder:
+   - `×N = N logical task instances represented by this node`;
+   - do not imply instances must have persistent actor identity.
+
+4. Remove redundant node metadata where possible:
+   - avoid labels such as `CPU · 1 unit / instance · cpu` when pool ID adds no useful information;
+   - preserve pool ID in inspector/advanced detail if needed.
+
+5. Fix the visible kinked/awkward edge routing in the simple three-node Scenario-B DAG if this can be done by a bounded ELK/React Flow layout/port adjustment without introducing hand-coded coordinates or playback-dependent geometry.
+
+6. Keep Advanced / Diagnostics unchanged.
+
+### Boundaries
+
+- no actor/schema changes;
+- do not change A-D semantics or timings;
+- do not wait for Agent A;
+- no new framework;
+- no redesign of the landing page;
+- no optimizer/Slurm code;
+- no one-node-per-instance expansion.
+
+### Validation
+
+Run existing full app tests, TypeScript and Vite build.
+Add only focused assertions needed for topology strip / terminology if useful.
+
+Stop for Agent F browser review.
