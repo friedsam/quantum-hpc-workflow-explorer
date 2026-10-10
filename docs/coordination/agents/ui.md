@@ -962,3 +962,150 @@ Run existing full app tests, TypeScript and Vite build.
 Add only focused assertions needed for topology strip / terminology if useful.
 
 Stop for Agent F browser review.
+
+
+## Round 4D parallel UI completion — 2026-10-10
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F BROWSER REVIEW.**
+
+Green code head before this handoff:
+`046ee9b462788bda9bdcbcdedc40c4d12e363030`
+
+Validated GitHub Actions run:
+`38088263060` — **success**
+
+### Bounded changes delivered
+
+#### System-topology strip
+
+Added `app/src/components/builder/SystemTopologyStrip.tsx` immediately above the logical DAG.
+
+It renders exactly one card per current `RunConfiguration.resources` entry:
+- CPU/GPU pools show configured capacity as parallel units;
+- QPU pools show configured capacity as execution lanes;
+- fixed reservation or QPU max-in-flight is shown only when present in current policy;
+- nonredundant pool IDs are retained;
+- no hardware outside RunConfiguration is inferred.
+
+The strip also gives the two Builder definitions needed for deadline clarity:
+- `×N = N logical task instances represented by one node`; multiplicity does not imply actor count or resource demand;
+- `modeled wall time / instance` is a simulation assumption for one task instance, not CPU clock speed; dependency communication remains separate.
+
+#### Timing terminology
+
+Logical Builder/default logical-DAG wording now uses:
+- **Modeled wall time / instance (s)** in the task inspector;
+- **modeled wall time / instance · N s** on logical nodes.
+
+The inspector includes the explicit CPU-clock-speed clarification.
+
+Internal model fields and frozen DES `serviceTime` semantics were not changed.
+
+#### Multiplicity explanation
+
+The logical task inspector now states directly:
+
+`×N = N logical task instances represented by this node.`
+
+It also states that multiplicity does not imply persistent actor identity.
+
+#### Redundant node metadata cleanup
+
+Logical node resource tags no longer repeat a pool ID when it is semantically identical to the resource kind.
+
+Example:
+- before: `CPU · 1 unit / instance · cpu`
+- after: `CPU · 1 unit / instance`
+
+A distinct/nonredundant pool ID remains visible as `pool <id>`.
+The inspector still exposes the exact pool ID.
+
+#### Bounded Scenario-B edge routing polish
+
+Simple **linear logical DAGs only** now use React Flow's built-in `straight` edge type.
+
+- Scenario B's three-node authored chain therefore avoids the visible smooth-step kink.
+- branching logical DAGs remain `smoothstep`;
+- compiled/Advanced graphs remain `smoothstep`;
+- ELK still owns node layout;
+- no coordinates are hand-coded;
+- playback/runtime state does not affect routing or geometry.
+
+### Advanced / Diagnostics
+
+Unchanged.
+
+Verified current hash:
+- `app/src/components/explore/ExploreView.tsx` = `a519cbd107035429c9729011d00412baaef76b45`
+
+### Model/producer integrity
+
+Unchanged:
+- frozen DES = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`
+- Round-4 compiler = `bb487feede9ca0eb2b9f499aea44a21d7fbdb83b`
+- actor-state derivation = `72d62283115faf63ab941ba643d06771feb81c9d`
+- logical A-D preset producer = `54df751c0632fb846486922f4469640e7341cd9d`
+
+No model semantics, scenario timings, actor schema, DES, or preset producer values changed.
+
+### Exact code diff from Round-4D start
+
+Only:
+- `app/src/components/builder/BuilderView.tsx`
+- `app/src/components/builder/LogicalTaskInspector.tsx`
+- `app/src/components/builder/SystemTopologyStrip.tsx`
+- `app/src/components/graph/WorkflowDag.tsx`
+- `app/src/components/graph/projectDesign.ts`
+- `app/src/styles.css`
+- `app/tests/architecture.test.mjs`
+
+### Validation
+
+Green run `38088263060`:
+
+- engine: **17/17**
+- design/compiler: **7/7**
+- actor model/state: **6/6**
+- QAMP behavior: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback: **7/7**
+- Round-4C product acceptance: **6/6**
+- architecture/UI: **12/12**
+
+Total Node tests: **78/78**.
+
+Also green:
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 221 modules transformed.
+
+Build output:
+- CSS ~42.06 kB / 8.41 kB gzip;
+- JS ~1.978 MB / 606.65 kB gzip;
+- existing non-blocking large-chunk warning remains.
+
+### Corrected failure
+
+First Round-4D CI run failed only because one architecture assertion still expected the removed phrase `service time / instance`. The assertion was updated to the new user-facing terminology; no product behavior changed in that fix.
+
+### Dependencies
+
+No dependency change. No new framework.
+
+### Interface changes requested
+
+None.
+
+### Remaining review item
+
+Browser review should confirm:
+- topology strip is immediately readable at normal viewport widths;
+- Scenario-B straight logical edges remove the visible kink without harming other logical layouts;
+- wording density is appropriate.
+
+### Promotion recommendation
+
+**PROMOTE/PORT** this bounded clarity pass to `agent/integration` after Agent-F browser review.
+
+Stop here; Scenario-A fidelity remains Agent A's independent Round-4D repair track.
