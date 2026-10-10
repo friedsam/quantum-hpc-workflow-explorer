@@ -364,6 +364,9 @@ export const qampScenarioAMultiRequestRunConfiguration = {
   actorGroupCounts: {
     ranks: 4,
   },
+  assumptions: [
+    "The multi-request regime test deliberately sets max in-flight to 3 so overload appears as QPU resource queueing rather than policy/admission hold; this is test-control scaffolding, not Scenario-A baseline semantics.",
+  ],
 };
 
 export function makeScenarioAMultiRequestProfile({
