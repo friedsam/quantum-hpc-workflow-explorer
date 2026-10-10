@@ -488,3 +488,22 @@ All Slurm command/script generation, homogeneous-group partition logic, wall-tim
 ### Promotion recommendation
 
 **PORT** the conceptual constraints into future ExecutionPlan/export design after the prototype. Do not port Slurm syntax into the DES or current UI model.
+
+
+## Coordinator Round 4D Slurm crosswalk review — 2026-10-10
+
+**Agent F decision:** **PORT conceptual constraints; Agent E CLOSED/IDLE.**
+
+Accepted against current official SchedMD documentation:
+- ×N remains scheduler-neutral and is only a potential job-array candidate;
+- stable logical-instance ordinals are useful future array identities;
+- Slurm arrays require common initial options and expose per-element array IDs;
+- `aftercorr` is structurally compatible with corresponding-instance dependencies, while whole-array dependencies support join/global-release structures;
+- MPI rank count remains distinct from multiplicity and maps conceptually to parallel tasks/job steps rather than arrays;
+- current `resourceCount` must not be translated blindly to Slurm ntasks/CPUs/nodes/GPUs;
+- modeled wall time is not equivalent to Slurm `--time`;
+- array `%K` throttling does not necessarily bound external QPU in-flight work;
+- `slurmrestd` is a future transport/API surface, not a scheduling semantic;
+- future output should be called an ExecutionPlan / scheduling intent, not an exact schedule.
+
+No prototype code change is required. Slurm export, homogeneous partitioning, wall-time policy, resource binding, heterogeneous-job emission, and live REST integration remain post-prototype.
