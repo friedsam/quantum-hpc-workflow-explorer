@@ -1132,3 +1132,29 @@ Agent-C CI:
 Port only the seven bounded Round-4D app/test files; do not replace the whole app tree because integration contains later browser-runtime fixes.
 
 Remaining gate: browser visual check of topology-strip readability and straight-edge appearance.
+
+
+## Round 4E task — integrate accepted actor-aware Scenario A
+
+**Status:** REOPENED for one bounded integration pass. Prototype deadline remains ~3 days.
+
+Use the latest accepted `agent/engine` Round-4D producer, including ordinal actor selection and the latest Scenario-A fixture after Agent-F review.
+
+Required:
+1. Port ordinal actor selection into app design types/declarations, compiler and actor-state derivation. Frozen DES stays unchanged.
+2. Replace the current actor-less Scenario-A user preset with the accepted actor-aware scaled fixture:
+   - 4 persistent HPC ranks;
+   - rank 1 local preparation/submission -> one QPU request -> resumed local classical work;
+   - ranks 2-4 independent classical work;
+   - QPU capacity 1;
+   - no global synchronization;
+   - no baseline max-in-flight/admission policy;
+   - queue wait = 0 and admission wait = 0;
+   - after result return and until baseline completion: 4 Working / 0 Blocked / 0 Idle, QPU idle.
+3. Keep the logical DAG compact; do not create one node per rank.
+4. Preserve the accepted Round-4D Builder clarity work and the browser-safe Scenario-B module guard.
+5. Add regression coverage for ordinal selection, Scenario-A actor frames, no baseline admission policy, no QPU queue/admission wait, restored-equilibrium frame, and unchanged B/C/D behavior.
+
+Do not add generalized range/complement actor editing, per-instance timing tables, optimizer/Slurm export, DES changes, or landing-page redesign.
+
+Run full app tests, TypeScript and Vite build. Stop for Agent F review/browser testing.
