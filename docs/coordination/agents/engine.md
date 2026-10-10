@@ -1043,3 +1043,166 @@ No stochastic timing model is required.
 7. frozen DES unchanged.
 
 Stop for Agent F review.
+
+
+## Agent A Round 4D response — 2026-10-10
+
+**Status:** **Round 4D complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Minimal model extension
+
+Added explicit deterministic actor ordinal-set selection:
+
+```ts
+{ kind: "ordinals"; actorOrdinals: number[] }
+```
+
+This is available for task participation and actor wait claims.
+
+Validation:
+- non-empty;
+- unique positive 1-based ordinals;
+- each ordinal <= persistent actor-group count.
+
+No range/complement language and no rank nodes were added.
+
+### Faithful scaled Scenario A
+
+New executable fixture:
+- `engine/examples/qamp-a-actor-regimes.mjs`.
+
+Persistent actor group:
+- four HPC ranks.
+
+Baseline authored behavior:
+- rank 1 performs local quantum preparation/submission;
+- ranks 2-4 perform independent useful classical work;
+- rank 1 alone waits on its own quantum result;
+- QPU request has no actor participation;
+- rank 1 locally consumes its result;
+- no full-group wait/gate exists;
+- no full-allocation join exists.
+
+Baseline timing:
+- background wall time 8 s;
+- submit wall time 1 s;
+- QPU service wall time 2 s;
+- local consume wall time 0.5 s.
+
+Result:
+- QPU queue wait = 0;
+- QPU admission wait = 0;
+- local consume starts t=3 while background continues until t=8.
+
+Actor frames:
+- t=0.5 -> Working 4 / Blocked 0 / Idle 0;
+- t=1.5 -> Working 3 / Blocked 1 / Idle 0;
+- t=3.25 -> Working 4 / Blocked 0 / Idle 0.
+
+### Parameter-regime result
+
+#### One-request topology, timing only
+
+Baseline QPU service 2 s:
+- submitting rank blocks 2 s;
+- queue = 0;
+- no global wall.
+
+Long-QPU profile 5 s:
+- same design/run configuration;
+- submitting rank blocks 5 s;
+- queue = 0;
+- no global wall;
+- ranks 2-4 continue Working.
+
+Therefore longer QPU wall time alone does not make A -> B.
+
+#### Fixed three-request topology, timing only
+
+Same `WorkflowDesign` and `RunConfiguration` for both profiles.
+
+Below-capacity profile:
+- submit wall times 1/3/5 s;
+- QPU service 1/1/1 s;
+- quantum starts 1/3/5 s;
+- QPU queue wait = 0;
+- admission wait = 0;
+- A-like local independent waits.
+
+Overload profile:
+- submit wall times 1/2/3 s;
+- QPU service 3/3/3 s;
+- quantum starts 1/4/7 s;
+- QPU queue wait = 6 s;
+- max QPU queue depth = 2;
+- admission wait = 0;
+- QPU utilization > 0.8;
+- no global wait.
+
+This is the parameter-only A-like -> D-like queue/throughput transition.
+
+#### B-like synchronization
+
+The accepted Scenario-B actor fixture is the topology counterexample:
+- explicit full-group `global-synchronization` wait;
+- full-result collective dependency;
+- all four actors Blocked before collective work resumes.
+
+That behavior requires authored dependency/gate semantics. It is not produced by QPU service time alone.
+
+### Timing semantics clarified
+
+`SystemProfile.taskServiceTimes[*].value.seconds` is modeled wall-clock duration of one concrete task instance.
+
+It is not CPU speed or per-instruction time and is not implicitly divided by `resourceCount`.
+
+If a logical phase internally contains MPI communication:
+1. its measured/fitted/synthetic wall time may include that communication; or
+2. communication may be represented explicitly as dependencies/phases when it is the phenomenon under study.
+
+No stochastic or rank-speedup model was added.
+
+### Validation
+
+Exact current branch logic executed against current Git blobs:
+
+- Round-4D Scenario-A/regime suite: **7/7 PASS**;
+- repaired Round-4A actor suite: **6/6 PASS**;
+- Round-2C compiler regressions: **7/7 PASS**;
+- total focused checks: **20/20 PASS**.
+
+### External verification
+
+Two external facts were used only to sanity-check the framing:
+- MPI collectives are not inherently barriers; synchronization must be explicit when required.
+- standard queue-stability reasoning distinguishes arrival/offered load from service opportunity; sustained arrival above service opportunity produces backlog.
+
+The deterministic regime fixtures do not claim stochastic queue-rate estimation.
+
+### Files proposed for PORT
+
+- `engine/design/types.d.ts`;
+- `engine/design/compile.mjs`;
+- `engine/design/actor-state.mjs`;
+- `engine/examples/qamp-a-actor-regimes.mjs`;
+- `engine/tests/scenario-a-regimes.test.mjs`;
+- `docs/coordination/proposals/ROUND4D_SCENARIO_A_REGIMES.md`;
+- small consistency update to `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`.
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Frozen DES interface changes requested: none.  
+Higher-level schema change requested for integration: explicit ordinal-set actor selection.
+
+### Known limits
+
+Not added:
+- actor ranges/complements;
+- one node per rank;
+- optimizer;
+- provider queues;
+- stochastic timing;
+- automatic performance scaling;
+- UI changes.
+
+**Recommended decision: PORT. Stop after Agent F review.**
