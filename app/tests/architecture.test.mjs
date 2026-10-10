@@ -75,13 +75,13 @@ test("Builder defaults to logical WorkflowDesign and keeps compiled graph advanc
   assert.match(builder, /Advanced · direct WorkflowSpec editor/);
   assert.match(inspector, />Multiplicity</);
   assert.match(inspector, /Resource units \/ instance/);
-  assert.match(inspector, /service time \/ instance/i);
+  assert.match(inspector, /Modeled wall time \/ instance/);
   assert.match(dependency, /pairwise/);
   assert.match(dependency, /all-to-all/);
   assert.match(dependency, /multiplicities differ/);
 });
 
-test("logical node grammar separates multiplicity and per-instance resource demand", async () => {
+test("logical node grammar separates multiplicity, per-instance demand and modeled wall time", async () => {
   const projection = await readFile(
     path.join(srcRoot, "components", "graph", "projectDesign.ts"),
     "utf8"
@@ -90,11 +90,21 @@ test("logical node grammar separates multiplicity and per-instance resource dema
     path.join(srcRoot, "components", "graph", "WorkflowNode.tsx"),
     "utf8"
   );
+  const inspector = await readFile(
+    path.join(srcRoot, "components", "builder", "LogicalTaskInspector.tsx"),
+    "utf8"
+  );
 
   assert.match(projection, /logical multiplicity/);
   assert.match(projection, /unit.*\/ instance/s);
+  assert.match(projection, /modeled wall time \/ instance/);
+  assert.match(projection, /redundantPoolId/);
+  assert.doesNotMatch(projection, /service time unresolved/i);
   assert.match(node, /multiplicity-badge/);
   assert.match(node, /resource-instance-tag/);
+  assert.match(inspector, /×N = N logical task instances represented by this node/);
+  assert.match(inspector, /not CPU clock speed/);
+  assert.match(inspector, /communication is modeled separately/i);
 });
 
 
@@ -195,7 +205,7 @@ test("App preserves save-run, Compare and direct WorkflowSpec compatibility", as
   assert.match(compare, /runResult/);
 });
 
-test("DAG layout remains deterministic and runtime state never drives layout", async () => {
+test("DAG layout remains deterministic and linear logical routing is bounded", async () => {
   const layout = await readFile(
     path.join(srcRoot, "components", "graph", "layout.ts"),
     "utf8"
@@ -208,6 +218,8 @@ test("DAG layout remains deterministic and runtime state never drives layout", a
   assert.match(layout, /"elk\.algorithm":\s*"layered"/);
   assert.match(dag, /\}, \[topologyKey\]\);/);
   assert.doesNotMatch(dag, /\[topologyKey,.*runtime/s);
+  assert.match(dag, /isSimpleLinearDag/);
+  assert.match(dag, /straightLogicalEdges \? "straight" : "smoothstep"/);
 });
 
 test("accepted graph dependencies remain the only new runtime frameworks", async () => {
