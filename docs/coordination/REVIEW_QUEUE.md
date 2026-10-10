@@ -3,17 +3,15 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4D Scenario-A fidelity / regime task complete; ready for Agent F review.
+**Status:** Round 4D small fidelity repair complete; ready for Agent F review.
 
-Delivered:
-- explicit deterministic actor ordinal-set selection;
-- faithful four-rank Scenario-A actor fixture;
-- one-rank local quantum wait with complementary ranks continuing classical work;
-- baseline no QPU queue and no policy hold;
-- local result consumption without full-allocation join;
-- fixed-topology parameter regimes showing A-like no-queue -> D-like queue transition;
-- explicit proof that B-like global synchronization requires a full-group authored gate/dependency;
-- task service-time wall-time semantics documented.
+Repaired:
+- source basis now uses the current published Scenario-A tutorial contract;
+- baseline Scenario A has no admission-control/throttling policy;
+- post-result rank-1 classical continuation is explicit and meaningful;
+- at t=4 all four actors are Working and QPU is idle;
+- tutorial transfer-Idle wording is distinguished from Explorer post-submit Blocked wait;
+- fixed ordinal-set generalization limitation documented.
 
 Validation:
 - Round 4D suite: **7/7 PASS**;
@@ -21,7 +19,7 @@ Validation:
 - Round 2C compiler suite: **7/7 PASS**;
 - total focused checks: **20/20 PASS**.
 
-Frozen DES/v1 unchanged. No UI/optimizer/provider-queue/stochastic model added.
+Frozen DES/v1 unchanged. No additional model/UI work added.
 
 Review artifact: `docs/coordination/proposals/ROUND4D_SCENARIO_A_REGIMES.md`
 
