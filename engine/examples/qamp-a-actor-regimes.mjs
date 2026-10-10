@@ -369,7 +369,7 @@ export function makeScenarioAMultiRequestProfile({
   id,
   submitSeconds,
   quantumSeconds,
-  backgroundSeconds = 12,
+  backgroundSeconds = 9,
 } = {}) {
   if (!id || !Array.isArray(submitSeconds) ||
       submitSeconds.length !== 3 ||
