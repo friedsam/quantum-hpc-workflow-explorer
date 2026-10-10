@@ -384,3 +384,27 @@ Required before port:
 
 Known non-blocking limitation:
 - explicit ordinal subsets do not automatically scale when actor-group count changes. Defer complement/range actor authoring until after the 3-day prototype unless it becomes a concrete blocker.
+
+
+## Round 4D C/E reviews — 2026-10-10
+
+### C — UI
+Status: CLOSED/IDLE — PORT accepted.
+- bounded clarity files staged to integration;
+- system topology strip, modeled-wall-time wording, multiplicity explanation, redundant-label cleanup, and simple-linear straight edges accepted;
+- browser visual check remains.
+
+### E — Research
+Status: CLOSED/IDLE — conceptual PORT accepted.
+- Slurm crosswalk validates current scheduler-neutral design;
+- no 3-day prototype schema/code change required;
+- future target is ExecutionPlan/scheduling intent, not exact schedule.
+
+### A — Engine/model
+Status: SMALL REPAIR still pending from Round-4D review.
+
+Next:
+1. accept/port A repair;
+2. integrate faithful actor-aware Scenario A into app;
+3. browser-test A-D tutorial demo;
+4. freeze prototype for IBM project-description deadline.
