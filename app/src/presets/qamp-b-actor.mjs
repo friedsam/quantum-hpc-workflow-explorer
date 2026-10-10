@@ -172,7 +172,7 @@ export const qampScenarioBActorCompilation = compileWorkflowDesignDetailed(
 export const qampScenarioBActorWorkflowSpec =
   qampScenarioBActorCompilation.workflowSpec;
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (typeof process !== "undefined" && import.meta.url === `file://${process.argv[1]}`) {
   console.log(
     JSON.stringify(qampScenarioBActorCompilation, null, 2)
   );
