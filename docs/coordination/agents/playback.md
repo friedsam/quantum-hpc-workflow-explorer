@@ -473,3 +473,27 @@ Extend the playback/causal explanation contract so actor-aware workflows can exp
 [verified] Exact committed blobs passed 20/20 tool-runtime assertions. No frozen DES, UI, graphics, dwell timing, or playback-control changes.
 
 **Agent B stops here pending Agent F review.**
+
+
+## Coordinator Round 4B final review — 2026-10-10
+
+**Agent F decision:** **PORT / REIMPLEMENT accepted; Agent B CLOSED/IDLE.**
+
+Verified repair:
+- generic periodic playback label is now `Repeated N-step activity ×M`;
+- regression explicitly rejects the word `cycle`;
+- compression logic, dwell timing, actor projection and engine semantics are unchanged.
+
+Accepted Round-4B playback contract:
+- actor-aware workflows expose aggregate Working / Blocked / Idle counts;
+- overlapping blocked reasons remain separately counted and may sum above blocked actor count;
+- actor state stays separate from resource allocation state;
+- generic workflows retain actor-less resource/causal fallback;
+- actor composition and reason changes protect semantic keyframe boundaries;
+- Scenario B yields five aggregate actor-aware frames;
+- Scenario D keeps resource queue and policy-held work distinct.
+
+Integration constraint remains:
+Scenario B's admission hold is internal serialization scaffolding and must not be presented in the simple default UI as the scenario's bottleneck.
+
+No further Agent-B work is requested unless Round-4C integration exposes a concrete playback defect.
