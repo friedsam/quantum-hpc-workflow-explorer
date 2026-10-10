@@ -1,17 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { deriveSystemStateSnapshot } from "../../causal/systemState.mjs";
+import { deriveActorStateDetailAt } from "../../design/actor-state.mjs";
 import type { SimulationResult, WorkflowSpec } from "../../domain/types";
+import {
+  attachActorStateToSystemSnapshot
+} from "../../playback/actor-aware-view.mjs";
 import type { CompilationContext } from "../../uiTypes";
 import { WorkflowDag } from "../graph/WorkflowDag";
+import { deriveLogicalDagRuntime } from "../graph/logicalRuntime";
+import { projectDesignDag } from "../graph/projectDesign";
 import { projectWorkflowDag } from "../graph/projectWorkflow";
 import { CompilationProvenance } from "../shared/CompilationProvenance";
 import { AnalyticalStrips } from "./AnalyticalStrips";
 import { FullSystemDebugger } from "./FullSystemDebugger";
 import { MetricsGrid } from "./MetricsGrid";
-import { PlaybackPanel } from "./PlaybackPanel";
+import { PlaybackDiagnostics } from "./PlaybackDiagnostics";
 import { QueueEvidence, Assumptions } from "./ResultEvidence";
 import { ResourceTimeline } from "./ResourceTimeline";
+import { SimpleExplorerSummary } from "./SimpleExplorerSummary";
+import { SimplePlaybackBar } from "./SimplePlaybackBar";
 import { TaskTimeline } from "./TaskTimeline";
+import { useExplorerPlayback } from "./useExplorerPlayback";
 
 interface Props {
   spec: WorkflowSpec;
@@ -20,47 +29,186 @@ interface Props {
   onReturnToBuilder: () => void;
 }
 
+function SimulatedExplore({
+  spec,
+  result,
+  compilationContext
+}: {
+  spec: WorkflowSpec;
+  result: SimulationResult;
+  compilationContext: CompilationContext | null;
+}) {
+  const [inspectionTimeS, setInspectionTimeS] = useState(0);
+
+  useEffect(() => {
+    setInspectionTimeS(0);
+  }, [result]);
+
+  const playbackTimeChanged = useCallback((simTimeS: number) => {
+    setInspectionTimeS(simTimeS);
+  }, []);
+
+  const inspectionTime = Math.min(
+    inspectionTimeS,
+    result.metrics.makespanS
+  );
+
+  const genericSnapshot = useMemo(
+    () => deriveSystemStateSnapshot(spec, result, inspectionTime),
+    [spec, result, inspectionTime]
+  );
+
+  const manifest = compilationContext?.manifest ?? null;
+
+  const snapshot = useMemo(
+    () =>
+      attachActorStateToSystemSnapshot(
+        genericSnapshot,
+        manifest ?? undefined,
+        result,
+        manifest ? deriveActorStateDetailAt : undefined
+      ),
+    [genericSnapshot, manifest, result]
+  );
+
+  const playback = useExplorerPlayback(
+    result,
+    manifest,
+    inspectionTime,
+    playbackTimeChanged
+  );
+
+  const logicalDag = useMemo(
+    () =>
+      compilationContext
+        ? projectDesignDag(compilationContext.bundle)
+        : null,
+    [compilationContext]
+  );
+
+  const logicalRuntime = useMemo(
+    () =>
+      compilationContext && manifest
+        ? deriveLogicalDagRuntime(
+            compilationContext.bundle.design,
+            manifest,
+            genericSnapshot
+          )
+        : undefined,
+    [compilationContext, manifest, genericSnapshot]
+  );
+
+  return (
+    <div className="view-stack simple-explorer">
+      <div className="view-heading simple-explore-heading">
+        <div>
+          <p className="section-kicker">Explore</p>
+          <h2>
+            {compilationContext?.bundle.design.name ?? spec.name}
+          </h2>
+          <p>
+            Logical workflow state first. Expanded DES/resource evidence is
+            available under Advanced / Diagnostics.
+          </p>
+        </div>
+      </div>
+
+      <SimpleExplorerSummary
+        bundle={compilationContext?.bundle ?? null}
+        manifest={manifest}
+        spec={spec}
+        snapshot={snapshot}
+      />
+
+      {logicalDag ? (
+        <WorkflowDag
+          model={logicalDag}
+          runtimeByNodeId={logicalRuntime}
+          heading="Logical workflow"
+          logical
+        />
+      ) : (
+        <WorkflowDag
+          model={projectWorkflowDag(spec)}
+          debugSnapshot={genericSnapshot}
+          heading="Direct WorkflowSpec"
+        />
+      )}
+
+      <SimplePlaybackBar
+        result={result}
+        cursorTimeS={inspectionTime}
+        onTimeChange={setInspectionTimeS}
+        playback={playback}
+      />
+
+      <details className="advanced-diagnostics explore-advanced">
+        <summary>Advanced / Diagnostics</summary>
+        <div className="advanced-stack">
+          <p className="field-note advanced-intro">
+            Expanded DES structure, exact resource accounting, metrics,
+            provenance and source-event details.
+          </p>
+
+          {compilationContext && manifest ? (
+            <CompilationProvenance
+              bundle={compilationContext.bundle}
+              manifest={manifest}
+              compact
+            />
+          ) : null}
+
+          <MetricsGrid spec={spec} result={result} />
+
+          <WorkflowDag
+            model={projectWorkflowDag(spec)}
+            debugSnapshot={genericSnapshot}
+            heading="Expanded compiled DES graph"
+          />
+
+          <PlaybackDiagnostics playback={playback} />
+
+          <FullSystemDebugger
+            spec={spec}
+            snapshot={genericSnapshot}
+          />
+
+          <AnalyticalStrips
+            spec={spec}
+            result={result}
+            simTimeS={inspectionTime}
+            onTimeChange={setInspectionTimeS}
+          />
+
+          <TaskTimeline spec={spec} result={result} />
+          <ResourceTimeline result={result} />
+
+          <div className="two-up">
+            <QueueEvidence result={result} />
+            <Assumptions result={result} />
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export function ExploreView({
   spec,
   result,
   compilationContext,
   onReturnToBuilder
 }: Props) {
-  const [inspectionTimeS, setInspectionTimeS] = useState(0);
-
-  useEffect(() => {
-    setInspectionTimeS(0);
-  }, [result?.workflowId]);
-
-  const playbackTimeChanged = useCallback((simTimeS: number) => {
-    setInspectionTimeS(simTimeS);
-  }, []);
-
-  const inspectionTime = result
-    ? Math.min(inspectionTimeS, result.metrics.makespanS)
-    : 0;
-
-  const snapshot = useMemo(
-    () =>
-      result
-        ? deriveSystemStateSnapshot(spec, result, inspectionTime)
-        : null,
-    [spec, result, inspectionTime]
-  );
-
-  if (!result || !snapshot) {
+  if (!result) {
     return (
       <section className="empty-state">
         <p className="section-kicker">No attached result</p>
-        <h2>This draft has not been simulated.</h2>
+        <h2>This workflow has not been simulated.</h2>
         <p>
           Run a valid workflow in Builder. The UI does not estimate
           replacement metrics.
         </p>
-        <button
-          className="primary-action"
-          onClick={onReturnToBuilder}
-        >
+        <button className="primary-action" onClick={onReturnToBuilder}>
           Return to Builder
         </button>
       </section>
@@ -68,84 +216,11 @@ export function ExploreView({
   }
 
   return (
-    <div className="view-stack">
-      <div className="view-heading">
-        <div>
-          <p className="section-kicker">Inspect</p>
-          <h2>Explore / causal debugger</h2>
-          <p>
-            One simulation-time cursor drives exact resource state,
-            causal explanations, DAG highlighting, analytical strips and
-            semantic playback.
-          </p>
-        </div>
-      </div>
-
-      {compilationContext ? (
-        <CompilationProvenance
-          bundle={compilationContext.bundle}
-          manifest={compilationContext.manifest}
-          compact
-        />
-      ) : null}
-
-      <MetricsGrid spec={spec} result={result} />
-
-      <PlaybackPanel
-        result={result}
-        cursorTimeS={inspectionTime}
-        onTimeChange={playbackTimeChanged}
-      />
-
-      <section
-        className="surface time-inspector"
-        aria-labelledby="time-inspector-heading"
-      >
-        <div>
-          <p className="section-kicker">Shared simulation cursor</p>
-          <h2 id="time-inspector-heading">
-            {inspectionTime.toFixed(2)} s
-          </h2>
-        </div>
-        <input
-          aria-label="Simulation time"
-          type="range"
-          min="0"
-          max={result.metrics.makespanS}
-          step={Math.max(result.metrics.makespanS / 200, 0.01)}
-          value={inspectionTime}
-          onChange={(event) =>
-            setInspectionTimeS(Number(event.target.value))
-          }
-        />
-        <span className="muted-label">
-          Playback, this slider and the analytical strips share this
-          cursor. Geometry remains fixed.
-        </span>
-      </section>
-
-      <FullSystemDebugger spec={spec} snapshot={snapshot} />
-
-      <WorkflowDag
-        model={projectWorkflowDag(spec)}
-        debugSnapshot={snapshot}
-        heading="Workflow DAG lens"
-      />
-
-      <AnalyticalStrips
-        spec={spec}
-        result={result}
-        simTimeS={inspectionTime}
-        onTimeChange={setInspectionTimeS}
-      />
-
-      <TaskTimeline spec={spec} result={result} />
-      <ResourceTimeline result={result} />
-
-      <div className="two-up">
-        <QueueEvidence result={result} />
-        <Assumptions result={result} />
-      </div>
-    </div>
+    <SimulatedExplore
+      key={result.workflowId}
+      spec={spec}
+      result={result}
+      compilationContext={compilationContext}
+    />
   );
 }

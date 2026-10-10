@@ -48,8 +48,22 @@ export interface AnimationFrameDriver {
   destroy(): void;
 }
 
-export function buildVisualKeyframes(result: SimulationResult, options?: Record<string, unknown>): readonly VisualKeyframe[];
-export function createPlaybackController(keyframes: readonly VisualKeyframe[], options?: { speed?: number }): PlaybackController;
+export interface PlaybackBuildOptions {
+  repeatThreshold?: number;
+  detailGroupsAtRunStart?: number;
+  detailGroupsAtRunEnd?: number;
+  dwellMs?: Partial<Record<"transition" | "detail" | "compressed" | "terminal", number>>;
+  semanticSignatureAtTime?: (simTimeS: number) => string | null | undefined;
+}
+
+export function buildVisualKeyframes(
+  result: SimulationResult,
+  options?: PlaybackBuildOptions
+): readonly VisualKeyframe[];
+export function createPlaybackController(
+  keyframes: readonly VisualKeyframe[],
+  options?: { speed?: number }
+): PlaybackController;
 export function createAnimationFrameDriver(
   controller: PlaybackController,
   render: (state: PlaybackState) => void,

@@ -5,6 +5,9 @@ const compilerTaskMetadataKeys = new Set([
   "designTaskId",
   "semanticType",
   "actorGroupIds",
+  "logicalMultiplicity",
+  "logicalInstanceOrdinal",
+  "actorAssignments",
   "repeatBlockId",
   "repeatIndex",
   "repeatOrdinal",
@@ -32,7 +35,9 @@ export function detachCompilationProvenance(
     );
     return {
       ...task,
-      ...(Object.keys(metadata).length ? { metadata } : { metadata: undefined })
+      ...(Object.keys(metadata).length
+        ? { metadata }
+        : { metadata: undefined })
     };
   });
 
@@ -40,7 +45,7 @@ export function detachCompilationProvenance(
     ...(spec.assumptions ?? []).filter(
       (assumption) => !compilerAssumptions.has(assumption)
     ),
-    "Direct WorkflowSpec edit: prior CompilationManifest/SystemProfile provenance was detached before this draft was modified."
+    "Direct WorkflowSpec edit: prior design/compiler/profile provenance was detached before this draft was modified."
   ];
 
   return {
