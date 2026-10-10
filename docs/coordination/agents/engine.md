@@ -1265,3 +1265,28 @@ Investigation-only files: none.
 Interface changes requested: none beyond the already-reviewed ordinal-set selector from Round 4D.
 
 **Recommended decision: PORT. Stop after Agent F review.**
+
+
+## Coordinator Round 4D final review — 2026-10-10
+
+**Agent F decision:** **PORT accepted; Agent A CLOSED/IDLE.**
+
+Accepted:
+- deterministic ordinal-set actor selection for task participation and actor waits;
+- actor-aware Scenario A with local submitter wait, independent non-submitters, no global gate, and one QPU lane;
+- no baseline admission/throttling policy;
+- parameter-only A-like -> D-like queue transition on a fixed multi-request topology;
+- explicit authored topology required for B-like global synchronization;
+- modeled task time is task-instance wall time, not CPU speed;
+- frozen DES unchanged.
+
+Tutorial fidelity was independently checked against the current published Scenario-A page.
+
+Coordinator demo-quality adjustment:
+- resumed classical work now continues from t=3 until t=8 so the baseline remains in restored equilibrium after the result instead of reintroducing a spurious idle rank before scenario completion;
+- at t=4 and t=7 the actor projection is 4 Working / 0 Blocked / 0 Idle with QPU idle.
+
+Known non-blocking limitation:
+- explicit ordinal subsets do not automatically scale when actor-group count changes. Generalized range/complement authoring is deferred until after the 3-day prototype.
+
+Port the latest producer files/fixture including the coordinator duration adjustment.
