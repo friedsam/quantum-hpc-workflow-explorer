@@ -29,7 +29,8 @@ export interface ActorGroup {
 
 export type ActorParticipationSelection =
   | { kind: "all" }
-  | { kind: "one-per-instance" };
+  | { kind: "one-per-instance" }
+  | { kind: "ordinals"; actorOrdinals: number[] };
 
 export interface ActorParticipation {
   actorGroupId: string;
@@ -150,6 +151,11 @@ export interface SystemProfile {
   schemaVersion: 1;
   id: string;
   name?: string;
+  /**
+   * Modeled wall time for one concrete task instance. This is not a CPU
+   * instruction-speed parameter. Internal communication may be folded into
+   * this wall time or represented explicitly by dependencies/phases.
+   */
   taskServiceTimes: Record<
     string,
     Provenanced<{ kind: "constant"; seconds: number }>
@@ -171,7 +177,8 @@ export interface CompiledActorAssignment {
   actorGroupId: string;
   selection:
     | { kind: "all" }
-    | { kind: "one"; actorOrdinal: number };
+    | { kind: "one"; actorOrdinal: number }
+    | { kind: "ordinals"; actorOrdinals: number[] };
   stateDuringTask: "working" | "blocked";
 }
 
@@ -215,7 +222,8 @@ export interface CompiledActorWaitClaim {
   actorGroupId: string;
   selection:
     | { kind: "all" }
-    | { kind: "one"; actorOrdinal: number };
+    | { kind: "one"; actorOrdinal: number }
+    | { kind: "ordinals"; actorOrdinals: number[] };
   logicalInstanceOrdinal?: number;
   activation: CompiledActorWaitBoundary;
   release: CompiledActorWaitBoundary;
