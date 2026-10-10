@@ -432,3 +432,33 @@ Next:
 1. C green integration;
 2. browser-test A, B, C, D and one custom parameter edit;
 3. freeze prototype and IBM project-description wording.
+
+
+## Round 4E final review — 2026-10-10
+
+### C — UI
+Status: CLOSED/IDLE — PROMOTE accepted.
+
+Staged integration:
+- commit `65277404c9cc0000e8170567874456a2ccdd6c20`;
+- integration CI `38089988964`: SUCCESS.
+
+Prototype now includes:
+- actor-aware Scenario A;
+- actor-aware Scenario B;
+- communication-dominated Scenario C;
+- throughput/queue/policy Scenario D;
+- logical Builder with topology strip and modeled-wall-time terminology;
+- simple Explore + Advanced diagnostics.
+
+### F — immediate next gate
+Browser acceptance:
+1. Scenario A Builder;
+2. Scenario A playback states;
+3. Scenario B Builder/playback;
+4. Scenario C communication wall;
+5. Scenario D queue vs policy hold;
+6. one custom parameter edit and rerun;
+7. Compare saved runs.
+
+If those are clean, freeze the demo for the IBM project-description deadline.
