@@ -321,6 +321,8 @@ test("detailed compilation manifest maps a repeated block without ID reverse-eng
       repeatBlockId: "iteration",
       sourceRepeatOrdinal: 2,
       targetRepeatOrdinal: 2,
+      sourceLogicalInstanceOrdinal: 1,
+      targetLogicalInstanceOrdinal: 1,
       communicationKey: "inside-loop",
       communicationProvenance: {
         kind: "measured",
