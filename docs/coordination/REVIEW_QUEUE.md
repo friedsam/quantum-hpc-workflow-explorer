@@ -167,3 +167,37 @@ Accepted:
 5. decide deployment-root migration from legacy `web/` to new `app/`;
 6. final documentation/cleanup;
 7. promote to `main` only after these gates.
+
+
+## Round 4B — actor-aware playback + simple Explorer visual
+
+### A — Engine/model
+Status: CLOSED/IDLE. Repaired Round 4A accepted.
+
+Accepted additions above frozen DES:
+- task multiplicity;
+- persistent actor/rank groups;
+- actor participation;
+- actor wait/gate claims;
+- derived Working / Blocked / Idle actor state;
+- compact logical DAG -> concrete WorkflowSpec compilation.
+
+### B — Playback/causal
+Status: ACTIVE.
+
+Make playback/causal snapshots actor-aware when authored actor semantics exist, retain generic fallback otherwise, and preserve Scenario-D queue/policy distinctions.
+
+### D — Graphics
+Status: ACTIVE.
+
+Design the simple default Explorer around logical DAG + actor/system state. Current dense diagnostics become Advanced/Diagnostics.
+
+### C — UI
+Status: HOLD until B/D review.
+
+### F — Coordinator
+Next:
+1. review B and D independently;
+2. reconcile view model + visual grammar;
+3. activate C for implementation;
+4. browser-test the simplified product.
