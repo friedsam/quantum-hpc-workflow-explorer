@@ -976,3 +976,70 @@ The fixture also suppresses QPU resource-queue buildup. Its internal admission w
 Agent A reports 6/6 repaired actor tests and 7/7 compiler regressions passing. Integration must rerun equivalent tests after porting.
 
 No further Agent-A work is required unless downstream integration reveals a concrete defect.
+
+
+## Round 4D task — Scenario A fidelity and regime-transition semantics
+
+**Status:** REOPENED for one bounded model/preset pass.
+
+### Why
+
+Browser review exposed that Scenario B is now structurally understandable, but the current Scenario A preset is still generic/actor-less and cannot reproduce the tutorial's defining actor behavior:
+
+- one submitting rank may block on its own quantum result;
+- other ranks continue useful classical work;
+- no global synchronization wall;
+- QPU service remains below offered load in the baseline.
+
+The accepted actor model currently supports only `all` and `one-per-instance` participation/waits. That may be insufficient to express “one/few submitting ranks while the complementary rank subset keeps working” in one persistent actor group.
+
+### Goal
+
+Find the **smallest actor-selection/model extension, if any, needed to represent Scenario A faithfully** while preserving the accepted frozen DES and Round-4 architecture.
+
+### Required acceptance case
+
+Use one scaled actor group representing the HPC rank allocation (for example 4 ranks, not hard-coded generically).
+
+Represent a default Scenario A in which:
+- most/all ranks perform classical work;
+- one rank submits a quantum request and becomes Blocked only on its own result;
+- non-submitting ranks continue useful classical work;
+- no global synchronization wait exists;
+- one QPU lane executes the request;
+- default timing produces no QPU resource queue and no policy hold;
+- local result consumption resumes without a full-allocation join.
+
+If exact actor accounting requires a bounded actor selection beyond `all` / `one-per-instance`, propose and implement the smallest deterministic form (for example explicit ordinal set/range or complement selection). Do not create one actor node per rank.
+
+### Parameter-regime requirement
+
+Document and test which behavior changes can emerge by changing **parameters only** while holding topology fixed.
+
+At minimum distinguish:
+- longer QPU service time with one local request -> submitting actor blocked longer but no queue/global wall;
+- multiple/staggered local requests whose offered load stays below QPU service capacity -> still A-like;
+- offered load exceeding QPU service capacity -> queue/throughput regime (D-like);
+- adding/retaining an explicit full-group result gate -> synchronization-wall behavior (B-like).
+
+Do not claim A becomes B from QPU time alone if the global dependency is absent.
+
+### Timing semantics
+
+Clarify that task service time is **modeled wall time for the task instance**, not “CPU speed” or per-instruction time. If a logical phase internally contains MPI communication, that cost is either:
+- folded into the modeled phase wall time; or
+- represented explicitly by dependencies/phases when the user wants to study it.
+
+No stochastic timing model is required.
+
+### Deliverables
+
+1. minimal schema/model change if required;
+2. faithful scaled Scenario-A logical fixture/preset;
+3. actor-state frame sequence for A;
+4. parameter-regime acceptance matrix/tests;
+5. statement of what remains topology vs parameter;
+6. no UI changes;
+7. frozen DES unchanged.
+
+Stop for Agent F review.
