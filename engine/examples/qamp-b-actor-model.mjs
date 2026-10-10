@@ -35,13 +35,6 @@ export const qampScenarioBActorDesign = {
       multiplicity: 2,
       timingKey: "quantum",
       semanticType: "quantum-evaluation",
-      actorParticipation: [
-        {
-          actorGroupId: "ranks",
-          selection: { kind: "one-per-instance" },
-          stateDuringTask: "blocked",
-        },
-      ],
     },
     {
       id: "collective",
@@ -55,6 +48,44 @@ export const qampScenarioBActorDesign = {
           stateDuringTask: "working",
         },
       ],
+    },
+  ],
+  actorWaits: [
+    {
+      id: "submitter-result-wait",
+      actorGroupId: "ranks",
+      selection: { kind: "one-per-instance" },
+      activation: {
+        kind: "task-event",
+        taskId: "prepare",
+        event: "completed",
+        instance: "matching-instance",
+      },
+      release: {
+        kind: "task-event",
+        taskId: "quantum",
+        event: "completed",
+        instance: "matching-instance",
+      },
+      reason: "quantum-result",
+    },
+    {
+      id: "global-result-gate",
+      actorGroupId: "ranks",
+      selection: { kind: "all" },
+      activation: {
+        kind: "task-event",
+        taskId: "quantum",
+        event: "completed",
+        instance: "any-instance",
+      },
+      release: {
+        kind: "task-event",
+        taskId: "quantum",
+        event: "completed",
+        instance: "all-instances",
+      },
+      reason: "global-synchronization",
     },
   ],
   dependencies: [
@@ -73,7 +104,8 @@ export const qampScenarioBActorDesign = {
   ],
   assumptions: [
     "Synthetic scaled Scenario B actor fixture; no provider queue model.",
-    "Two of four persistent ranks prepare/submit quantum work; the later collective includes all four ranks.",
+    "Two of four persistent ranks prepare/submit quantum work; wait gates model dependency blocking separately from QPU execution participation.",
+    "The QPU phase is serialized with one admitted quantum task at a time so resource-queue buildup is suppressed while the later collective still depends on the complete result set.",
   ],
 };
 
@@ -93,7 +125,7 @@ export const qampScenarioBActorRunConfiguration = {
   policy: {
     allocation: "fixed",
     fixedReservationByPool: { cpu: 4 },
-    maxInFlightQuantumByPool: { qpu: 2 },
+    maxInFlightQuantumByPool: { qpu: 1 },
   },
   actorGroupCounts: {
     ranks: 4,
