@@ -201,3 +201,21 @@ Next:
 2. reconcile view model + visual grammar;
 3. activate C for implementation;
 4. browser-test the simplified product.
+
+
+## Round 4B playback review — 2026-10-10
+
+### B — Playback/causal
+Status: ONE SMALL REPAIR.
+
+Accepted actor-aware view model and keyframe behavior. Required only:
+- rename heuristic compressed multi-step label from "cycle" to neutral "activity";
+- update corresponding playback test(s).
+
+No semantic/model changes requested.
+
+### D — Graphics
+Status: ACTIVE.
+
+### C — UI
+Status: HOLD until B wording repair and D review.
