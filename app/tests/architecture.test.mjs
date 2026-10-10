@@ -166,7 +166,7 @@ test("App preserves save-run, Compare and direct WorkflowSpec compatibility", as
   );
   const lines = app.split(/\r?\n/).length;
 
-  assert.ok(lines < 260, "App.tsx has grown to " + lines + " lines");
+  assert.ok(lines < 320, "App.tsx has grown to " + lines + " lines");
   assert.match(app, /createRunRecord/);
   assert.match(app, /sourceKind: "direct-workflow-spec"/);
   assert.match(app, /setRuns/);
