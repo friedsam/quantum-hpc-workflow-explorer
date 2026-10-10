@@ -711,3 +711,136 @@ Verified by source review:
 Agent A reports 7/7 focused compiler tests passing. No GitHub Actions run exists for this branch head; equivalent tests must pass after the layer is ported into the production app/integration CI.
 
 No further Agent-A work is required unless Round 3 exposes a concrete compiler defect.
+
+
+## Agent A Round 4A response — 2026-10-10
+
+**Status:** **Round 4A complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Delivered
+
+- `engine/design/types.d.ts`
+  - additive logical task multiplicity;
+  - persistent actor-group kind/count model;
+  - explicit actor participation;
+  - dependency instance mapping;
+  - manifest logical-instance and actor-assignment types;
+  - actor-state derivation API types.
+- `engine/design/compile.mjs`
+  - multiplicity compilation to concrete WorkflowSpec tasks;
+  - pairwise / all-to-all logical dependency expansion;
+  - actor-group/count validation;
+  - compact actor assignments in CompilationManifest;
+  - no DES changes.
+- `engine/design/actor-state.mjs`
+  - derives persistent logical actor `working / blocked / idle` from manifest + exact SimulationResult.
+- `engine/examples/qamp-b-actor-model.mjs`
+  - compact Scenario B: preparation x2 -> serialized quantum x2 -> full collective x1 over four persistent logical ranks.
+- `engine/tests/actor-model.test.mjs`
+  - Scenario B Round 4A acceptance tests.
+- `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`
+  - model contract, derivation semantics, acceptance result, explicit limits.
+
+### Core distinction
+
+The model keeps three independent quantities:
+
+1. logical task multiplicity;
+2. persistent actor count;
+3. per-concrete-task DES `resourceCount`.
+
+Scenario B demonstrates this with 3 authored tasks -> 5 compiled tasks, 4 actors, and resourceCount values 1/1/4.
+
+No rank is emitted as a WorkflowSpec task merely because it exists.
+
+### Actor participation/state
+
+Round 4A supports only:
+- `selection: all`;
+- `selection: one-per-instance`;
+- `stateDuringTask: working | blocked`.
+
+Derivation:
+- Working = participating actor while a working-marked task is running;
+- Blocked = participating actor from ready -> completion for a blocked-marked task;
+- Idle = no active claim;
+- overlapping actor claims throw.
+
+The actor projection is explanatory state above DES, not a new engine ontology.
+
+### Scenario B acceptance
+
+Persistent ranks = 4.
+
+Compact logical tasks:
+- prepare multiplicity 2;
+- quantum multiplicity 2;
+- collective multiplicity 1.
+
+Compiled behavior:
+- prepare #1/#2 start 0;
+- quantum #1 start 1;
+- quantum #2 start 4 on QPU capacity 1;
+- collective starts 7 only after both quantum results;
+- makespan 8;
+- QPU queue wait 3;
+- admission wait 0.
+
+Derived actor counts:
+- t=0.5 -> Working 2 / Blocked 0 / Idle 2;
+- t=2 -> Working 0 / Blocked 2 / Idle 2;
+- t=5 -> Working 0 / Blocked 1 / Idle 3;
+- t=7.5 -> Working 4 / Blocked 0 / Idle 0.
+
+### Validation
+
+Exact current branch blobs were executed in the connected runtime.
+
+- Round 4A actor suite: **4/4 PASS**.
+- Existing Round 2C design/compiler regression suite: **7/7 PASS** after the additive manifest fields.
+
+Total focused checks: **11/11 PASS**.
+
+### Compatibility / schema
+
+Frozen `WorkflowSpec`, `SimulationResult`, engine scheduling/events/metrics were not modified.
+
+Persisted higher-level schema remains `schemaVersion: 1` because Round 4A fields are additive/optional and existing version-1 designs retain multiplicity=1/no actor participation behavior.
+
+### External terminology verification
+
+MPI 4.1 supports the identity boundary used here:
+- ranks identify MPI processes within communicator groups;
+- communicator groups define collective participation;
+- collective completion is not inherently a global barrier.
+
+Therefore Scenario B synchronization remains an explicit DAG dependency, not an assumed MPI-collective semantic.
+
+### Explicit limits
+
+Not implemented:
+- arbitrary actor subsets/ranges;
+- one node per rank;
+- actor-level message traffic;
+- dynamic actor migration;
+- optimizer;
+- provider queues;
+- UI changes;
+- multiplicity >1 nested inside repeatBlocks.
+
+### Promotion scope
+
+Proposed for **PORT**:
+- `engine/design/types.d.ts`
+- `engine/design/compile.mjs`
+- `engine/design/actor-state.mjs`
+- `engine/examples/qamp-b-actor-model.mjs`
+- `engine/tests/actor-model.test.mjs`
+- additive expectation update in `engine/tests/design-compile.test.mjs`
+- `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Frozen DES interface changes requested: none.
+
+**Recommended decision: PORT. Stop after Agent F review.**
