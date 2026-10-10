@@ -3,23 +3,20 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4A logical multiplicity / actor-state model complete; ready for Agent F review.
+**Status:** Round 4A coordinator repair complete; ready for Agent F review.
 
 Delivered:
-- additive logical task multiplicity above frozen DES;
-- persistent actor-group counts distinct from task multiplicity/resourceCount;
-- explicit actor participation across CPU/QPU/CPU stages;
-- pairwise/all-to-all logical dependency expansion;
-- compact actor assignments in CompilationManifest;
-- derived actor Working/Blocked/Idle state from manifest + SimulationResult;
-- compact Scenario B acceptance model with four persistent ranks and five compiled tasks.
+- actor wait/gate claims separate from task participation;
+- wait activation/release task-event conditions + explicit reasons;
+- multiple Blocked claims coalesce while Working+Blocked remains an error;
+- Scenario B repaired to show subset working -> submitters blocked -> all ranks blocked -> full group working;
+- Scenario B QPU resource queue wait = 0; serialization uses one admitted quantum task at a time;
+- frozen DES/v1 unchanged.
 
 Validation:
-- Round 4A actor suite: **4/4 PASS**;
+- repaired Round 4A actor suite: **6/6 PASS**;
 - Round 2C compiler regressions: **7/7 PASS**;
-- total focused checks: **11/11 PASS**.
-
-Frozen DES/v1 unchanged. No UI/optimizer/provider-queue/rank-node work added.
+- total focused checks: **13/13 PASS**.
 
 Review artifact: `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`
 
