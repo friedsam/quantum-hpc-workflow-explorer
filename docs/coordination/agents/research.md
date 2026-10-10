@@ -358,3 +358,58 @@ Accepted vocabulary constraints:
 No frozen-v1 compatibility defect is identified by this contract.
 
 Agent F will reconcile this matrix against Agent A's executable fixtures. No further Agent-E work is required unless that reconciliation exposes a source question.
+
+
+## Round 4D research task — rapid Slurm execution-model crosswalk
+
+**Status:** REOPENED for one bounded research task. Prototype deadline: approximately 3 days.
+
+### Goal
+
+Determine which Explorer abstractions should deliberately align with Slurm so that a future optimized workflow can be exported as an execution plan / scheduling intent without redesigning the product.
+
+Use current official SchedMD documentation as primary sources.
+
+### Study
+
+At minimum:
+- job arrays and array throttling;
+- array task identity / per-instance input;
+- dependencies, especially pairwise/corresponding-array and full-array completion dependencies;
+- `sbatch` vs `srun` / job steps;
+- `--ntasks`, `--cpus-per-task`, nodes, memory and GPU/TRES/GRES resource requests;
+- heterogeneous jobs;
+- dependency semantics relevant to fan-out / pairwise / join;
+- `slurmrestd` submission/control surface;
+- where Slurm decides actual placement/start time vs what a client can specify.
+
+### Map against current Explorer
+
+For each relevant concept, map:
+- current Explorer field/semantic;
+- closest Slurm representation;
+- exact mismatch/gap;
+- whether the gap matters for the 3-day prototype;
+- recommended future `ExecutionPlan` field if needed.
+
+Pay particular attention to:
+- logical task multiplicity `×N` vs Slurm arrays;
+- per-instance parameters/timing heterogeneity;
+- when one array remains appropriate vs when to partition into homogeneous groups;
+- pairwise N->N and N->1 join semantics;
+- MPI parallel phases vs independent array instances;
+- QPU work that may be external to Slurm.
+
+### Deliverable
+
+Produce one concise document with:
+1. mapping table;
+2. "safe to align now" recommendations;
+3. "defer until post-prototype" recommendations;
+4. minimal scheduler-neutral `ExecutionPlan` sketch;
+5. explicit warning not to call that plan an exact schedule;
+6. source links/citations to official Slurm docs.
+
+No engine/UI code. Do not propose a broad scheduler rewrite.
+
+Stop for Agent F review.
