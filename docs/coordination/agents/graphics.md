@@ -296,3 +296,57 @@ The prototype labels policy-held and dependency-gated quantities explicitly as *
 - **Recommended promotion status:** **PORT / REIMPLEMENT** the specification into the accepted React/TypeScript scaffold; do not merge static prototypes as runtime implementation.
 
 **Stop here pending Agent F review.**
+
+
+## Round 4B task — simple user-facing Explorer visual
+
+**Status:** REOPENED for one bounded product-graphics task.
+
+### Context
+
+Browser testing showed the current integrated Explore page is technically rich but not understandable as the primary user experience. The accepted Round-4 actor model now restores logical multiplicity and persistent rank/actor state.
+
+### Goal
+
+Design the **simple default Explorer surface**. Current dense diagnostics remain available later under Advanced/Diagnostics.
+
+### Required principles
+
+1. Show the logical authored workflow, not the expanded DES fixture.
+2. A logical task with multiplicity N is one node with a visible count badge, e.g. `×200`.
+3. Keep `resource units per instance` visually distinct from multiplicity.
+4. For actor-aware workflows, make Working / Blocked / Idle actor counts first-class.
+5. Keep actor state separate from allocation/resource state.
+6. Keep one stable system geometry during playback.
+7. Make “what is happening now?” understandable within a few seconds.
+8. Advanced details such as compilation provenance, raw task timelines, queue samples, and expanded DES graph must not dominate the default view.
+
+### Scenario B prototype
+
+Design a primary view that visibly communicates:
+- HPC actor group with 4 test ranks (scales conceptually to 1000);
+- logical DAG: Preparation ×2 -> Quantum evaluation ×2 -> Collective ×1;
+- current actor counts Working / Blocked / Idle;
+- blocked reason(s);
+- QPU state;
+- simple playback controls / shared time;
+- full-group synchronization wall when active.
+
+### Scenario D prototype
+
+Design a primary view that communicates:
+- asynchronous paths compactly;
+- QPU running;
+- resource queued;
+- policy held;
+- no global synchronization;
+- resumed classical work as results return independently.
+
+### Deliverable
+
+- concise default-vs-advanced information hierarchy;
+- concrete static prototypes for Scenario B and D;
+- node/tag grammar for multiplicity vs resource units;
+- recommendation for what current Round-3 panels move to Advanced;
+- no staging code changes;
+- stop for Agent F review.
