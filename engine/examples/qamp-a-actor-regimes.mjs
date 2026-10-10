@@ -190,7 +190,7 @@ export function makeScenarioASingleRequestProfile({
         ),
       },
       "local-consume": {
-        value: { kind: "constant", seconds: 3 },
+        value: { kind: "constant", seconds: 5 },
         provenance: synthetic(
           id,
           "Modeled wall time for local result consumption plus resumed useful classical continuation."
