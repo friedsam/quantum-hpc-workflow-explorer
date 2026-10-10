@@ -62,6 +62,17 @@ function plainStateSentence(
     return "Authored actors are idle at this simulation time.";
   }
 
+  if (snapshot.causal.activeCommunications.length > 0) {
+    const count = snapshot.causal.activeCommunications.length;
+    return (
+      "Data movement / communication active — " +
+      count +
+      " dependency transfer" +
+      (count === 1 ? "" : "s") +
+      " in flight."
+    );
+  }
+
   if (bundle && manifest) {
     const progress = deriveGenericProgress(
       bundle.design,
@@ -87,8 +98,11 @@ function plainStateSentence(
     (state) => state === "running"
   ).length;
   return running > 0
-    ? running + " compiled task" + (running === 1 ? "" : "s") + " running."
-    : "No task is running at this simulation time.";
+    ? running +
+        " workflow task instance" +
+        (running === 1 ? "" : "s") +
+        " running."
+    : "No workflow task instance is running at this simulation time.";
 }
 
 function ActorCard({
