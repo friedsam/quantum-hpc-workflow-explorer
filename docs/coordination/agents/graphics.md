@@ -350,3 +350,134 @@ Design a primary view that communicates:
 - recommendation for what current Round-3 panels move to Advanced;
 - no staging code changes;
 - stop for Agent F review.
+
+
+## Agent D Round 4B checkpoint — 2026-10-10
+
+**Status:** **COMPLETE — stop for Agent F review.**
+
+### Deliverables
+
+Final artifacts:
+- `docs/coordination/graphics/round4b/SIMPLE_EXPLORER_VISUAL.md`
+- `docs/coordination/graphics/round4b/scenario-b-simple-explorer.svg`
+- `docs/coordination/graphics/round4b/scenario-d-simple-explorer.svg`
+
+Round-4B artifact commits begin at `82e4119b200947f98ca1a2d41c852a1f79822492`; Scenario-B alignment with Agent-B actor-aware keyframes ends at `d87f63accb9ecb42380959641e266ec39b01be24`.
+
+No staging/application code was changed.
+
+### Default Explore recommendation
+
+[opinion] The default Explore surface should prioritize:
+
+1. a one-line **what is happening now?** semantic banner;
+2. actor-group Working / Blocked / Idle counts when actor semantics are authored, otherwise a compact path/system-progress fallback;
+3. compact QPU running / resource-queued / policy-held state;
+4. the **logical authored DAG**, not the expanded DES graph;
+5. Previous / Play-Pause / Next plus one shared simulation-time rail.
+
+Dense implementation evidence moves behind **Advanced / Diagnostics**.
+
+### Multiplicity / resource / actor grammar
+
+The prototype keeps three independent quantities visually distinct:
+
+- `×N` = logical task multiplicity;
+- `CPU/QPU · N units / instance` = per-concrete-task resource demand;
+- `MPI ranks · N actors` = persistent actor-group count.
+
+Current semantic status is a fourth visual channel and changes text/border/fill without moving graph geometry.
+
+Never combine these into a label such as `×2 CPU`.
+
+### Scenario B
+
+Prototype is aligned to Agent B's accepted actor-aware keyframe at **t = 4.0 s**:
+
+- 4 persistent MPI-rank actors;
+- Working 0 / Blocked 4 / Idle 0;
+- blocked reasons: `global-synchronization: 4` and `quantum-result: 1`; reason counts overlap;
+- quantum #2/2 running;
+- QPU resource queue 0;
+- policy-held 0;
+- CPU exact allocation remains separately visible as active 0 / allocated-idle 4;
+- logical authored DAG: `Preparation ×2 → Quantum evaluation ×2 → Collective ×1`;
+- callout: **SYNC WALL — 4 / 4 ranks blocked · 1 / 2 quantum results complete**.
+
+This matches Agent B's aggregate actor sequence and does not create one frame per rank.
+
+### Scenario D
+
+The accepted Scenario-D fixture has no persistent authored actor group, so the prototype deliberately does **not** invent Working / Blocked / Idle ranks.
+
+At **t = 4.5 s** it shows:
+- six asynchronous paths;
+- complete 1;
+- classical resumed 1;
+- QPU running 1;
+- resource queued 1;
+- policy held 2;
+- QPU running `quantum-3`;
+- resource queue `quantum-4`;
+- policy-held `quantum-5/6`;
+- CPU exact allocation 1 active / 5 released;
+- explicit **NO GLOBAL SYNC**;
+- logical authored DAG: `Preparation ×6 → Quantum evaluation ×6 → Classical continuation ×6`.
+
+Resource queue and policy hold remain separate.
+
+### Round-3 surfaces moved to Advanced
+
+Move behind Advanced / Diagnostics:
+- full `MetricsGrid`;
+- `CompilationProvenance`;
+- `FullSystemDebugger`;
+- `AnalyticalStrips`;
+- `TaskTimeline`;
+- `ResourceTimeline`;
+- raw `QueueEvidence`;
+- `Assumptions`;
+- source-event sequence ranges, keyframe counts and presentation duration;
+- expanded compiled DES graph.
+
+Keep in Default only a simplified playback transport, shared time rail, logical authored DAG, actor/path state summary, compact QPU bottleneck, and minimal resource context.
+
+### Validation
+
+[verified] The static SVG prototypes:
+- parse as XML;
+- rasterize successfully through CairoSVG at 1440 px width;
+- contain `role="img"`, `<title>`, and `<desc>`;
+- distinguish `×N` multiplicity from `unit / instance` resource demand;
+- preserve stable logical DAG geometry;
+- expose Advanced / Diagnostics without putting dense diagnostics in the default surface;
+- pair state color with text/border/pattern semantics.
+
+Local final prototype SHA-256:
+- Scenario B: `7fc16e192e367f9e28d9b73835856db52caaec18f6e1eb2d5687ec17c59db596`;
+- Scenario D: `d0d6a12b39fbf5f7d7c404af6ef51fcfff000b63af2dc8fb5c4dbfb20718f837`.
+
+### Agent-B compatibility
+
+Agent B's Round-4B checkpoint was consumed before final handoff.
+
+Compatible seam:
+- actor-aware workflows expose aggregate Working / Blocked / Idle plus overlapping blocked-reason counts;
+- generic workflows expose no invented actor state;
+- actor changes protect semantic keyframe boundaries;
+- Scenario D retains resource queue vs policy-held distinctions.
+
+Agent F can therefore reconcile the B view model with this visual hierarchy without a model conflict.
+
+### Handoff
+
+- **Production files proposed now:** none; design checkpoint only.
+- **Proposed for PORT / REIMPLEMENT:** default-vs-advanced hierarchy, logical-node multiplicity/resource grammar, actor/path summary rules, compact QPU state, and simplified semantic transport.
+- **Investigation/reference only:** two static SVG prototypes.
+- **Dependencies added:** none.
+- **Interface changes requested:** none.
+- **Known rejected approach:** expanded DES graph + full diagnostic stack as the default Explore experience.
+- **Recommended promotion status:** **PORT / REIMPLEMENT** into the accepted React/TypeScript scaffold after Agent F reconciles B/D.
+
+**Stop here pending Agent F review.**
