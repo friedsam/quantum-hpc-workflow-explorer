@@ -481,3 +481,44 @@ Agent F can therefore reconcile the B view model with this visual hierarchy with
 - **Recommended promotion status:** **PORT / REIMPLEMENT** into the accepted React/TypeScript scaffold after Agent F reconciles B/D.
 
 **Stop here pending Agent F review.**
+
+
+## Coordinator Round 4B final review — 2026-10-10
+
+**Agent F decision:** **PORT / REIMPLEMENT accepted; Agent D CLOSED/IDLE.**
+
+Accepted default Explore hierarchy:
+1. plain-language "what is happening now" banner;
+2. actor Working / Blocked / Idle summary when authored actor semantics exist, otherwise compact generic path/system progress;
+3. compact QPU running / resource-queued / policy-held state;
+4. authored logical DAG with multiplicity badges;
+5. simple semantic playback transport + shared time rail.
+
+Accepted visual grammar:
+- ×N = logical task multiplicity;
+- resource units / instance = per-concrete-task resource demand;
+- actor count = persistent actor-group size;
+- runtime status is a separate fourth channel;
+- actor state and resource allocation remain distinct;
+- geometry remains stable during playback.
+
+Scenario B prototype is consistent with the accepted actor-aware keyframe at t=4:
+- 0 Working / 4 Blocked / 0 Idle;
+- global-synchronization reason on all 4;
+- quantum-result reason on one actor;
+- quantum 2/2 running;
+- QPU resource queue 0;
+- CPU fixed allocation active 0 / allocated-idle 4;
+- logical DAG Preparation ×2 -> Quantum ×2 -> Collective ×1.
+
+Scenario D prototype is also consistent:
+- no invented actor state;
+- running, resource-queued and policy-held quantum work remain distinct;
+- no global synchronization;
+- logical DAG is compact rather than expanded.
+
+Move the current Round-3 diagnostic stack behind Advanced / Diagnostics as proposed.
+
+Static SVGs remain reference/prototype artifacts only. Reimplement in the React/TypeScript app.
+
+No further Agent-D work is requested unless browser review of the production implementation reveals a concrete visual defect.
