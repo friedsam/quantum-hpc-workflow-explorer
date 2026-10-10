@@ -844,3 +844,109 @@ Dependencies added/changed: none.
 Frozen DES interface changes requested: none.
 
 **Recommended decision: PORT. Stop after Agent F review.**
+
+
+## Agent A Round 4A repair response — 2026-10-10
+
+**Status:** **Coordinator repair complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Defect repaired
+
+The original Scenario-B projection incorrectly used QPU-task participation to represent a submitting rank blocked on its result and therefore never produced the required all-ranks synchronization wall.
+
+The repaired model separates:
+- task participation;
+- actor dependency/wait gates.
+
+### New actor wait/gate semantic
+
+`WorkflowDesign.actorWaits` supports a bounded `ActorWaitClaim` with:
+- actor group + `all` or `one-per-instance` selection;
+- activation task event/condition;
+- release task event/condition;
+- explicit reason.
+
+Supported task-event conditions:
+- event = ready / started / completed;
+- instance condition = matching-instance / any-instance / all-instances.
+
+Wait claims compile into `CompilationManifest.actorWaits` only. They do not enter `WorkflowSpec` or DES semantics.
+
+### Actor-state derivation repair
+
+Added `deriveActorStateDetailAt(...)`.
+
+Rules:
+- multiple simultaneous Blocked claims coalesce to one top-level `blocked` state;
+- all distinct blocked reasons are retained;
+- Working + Blocked overlap is an error;
+- multiple simultaneous Working participation claims remain an error;
+- `deriveActorStateAt(...)` remains the compatibility state-only API.
+
+### Scenario B repaired acceptance
+
+Persistent ranks: 4.
+
+Authored compact model:
+- prepare x2;
+- quantum x2;
+- collective x1.
+
+Actor semantics:
+- prepare #i = rank i Working;
+- submitter result wait activates when prepare #i completes and releases when quantum #i completes;
+- after any quantum result completes, all four ranks enter `global-synchronization`;
+- global wait releases only when all quantum results complete;
+- collective then marks all four ranks Working.
+
+Quantum serialization:
+- QPU capacity 1;
+- max in-flight 1;
+- quantum #1 starts t=1;
+- quantum #2 is policy-held until t=4;
+- QPU resource queue wait = **0**;
+- admission wait = 3 s;
+- collective starts t=7;
+- makespan = 8 s.
+
+Required actor sequence:
+- t=0.5 -> Working 2 / Blocked 0 / Idle 2;
+- t=2 -> Working 0 / Blocked 2 / Idle 2;
+- t=5 -> Working 0 / Blocked 4 / Idle 0;
+- t=7.5 -> Working 4 / Blocked 0 / Idle 0.
+
+At t=5:
+- rank 1 blocked reason = `global-synchronization`;
+- rank 2 blocked reasons = `global-synchronization` + `quantum-result`;
+- ranks 3/4 blocked reason = `global-synchronization`.
+
+### Validation
+
+Exact current branch test logic executed against current Git blobs:
+
+- repaired Round 4A actor suite: **6/6 PASS**;
+- existing Round 2C design/compiler regressions: **7/7 PASS**;
+- total focused checks: **13/13 PASS**.
+
+### External terminology check
+
+MPI 4.1 confirms that collective completion does not generally imply that other processes have completed or even started the operation. The repaired Scenario-B synchronization therefore remains explicitly authored rather than inferred from the word "collective."
+
+### Scope / promotion
+
+Frozen DES implementation/types/events/metrics remain unchanged.
+
+Files proposed for **PORT**:
+- `engine/design/types.d.ts`;
+- `engine/design/compile.mjs`;
+- `engine/design/actor-state.mjs`;
+- `engine/examples/qamp-b-actor-model.mjs`;
+- `engine/tests/actor-model.test.mjs`;
+- additive manifest expectation in `engine/tests/design-compile.test.mjs`;
+- `docs/coordination/proposals/ROUND4_ACTOR_MODEL.md`.
+
+Investigation-only files: none.  
+Dependencies added/changed: none.  
+Frozen interface changes requested: none.
+
+**Recommended decision: PORT. Stop after Agent F review.**
