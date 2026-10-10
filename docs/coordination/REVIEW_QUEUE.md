@@ -362,3 +362,25 @@ Prototype gate:
 7. advanced diagnostics remain available but secondary.
 
 Slurm research is advisory for future-proofing and must not block the 3-day prototype.
+
+
+## Round 4D Agent-A review — 2026-10-10
+
+### A — Engine/model
+Status: SMALL REPAIR REQUIRED.
+
+Accepted:
+- ordinal-set actor selector;
+- parameter-only A-like -> D-like queue transition on fixed local-request topology;
+- explicit topology requirement for B-like global synchronization;
+- modeled wall-time semantics;
+- frozen DES unchanged.
+
+Required before port:
+- ground Scenario A against the current tutorial prose;
+- remove unnecessary max-in-flight admission policy from the single-request A baseline;
+- make post-result classical resumption explicit for the submitting rank while keeping QPU off the baseline critical path;
+- distinguish tutorial Idle-during-transfer wording from Explorer Blocked-on-result projection.
+
+Known non-blocking limitation:
+- explicit ordinal subsets do not automatically scale when actor-group count changes. Defer complement/range actor authoring until after the 3-day prototype unless it becomes a concrete blocker.
