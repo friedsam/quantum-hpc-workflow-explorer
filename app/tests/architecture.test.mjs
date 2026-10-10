@@ -97,6 +97,27 @@ test("logical node grammar separates multiplicity and per-instance resource dema
   assert.match(node, /resource-instance-tag/);
 });
 
+
+
+test("Builder topology strip exposes modeled pool capacity without inventing hardware", async () => {
+  const builder = await readFile(
+    path.join(srcRoot, "components", "builder", "BuilderView.tsx"),
+    "utf8"
+  );
+  const topology = await readFile(
+    path.join(srcRoot, "components", "builder", "SystemTopologyStrip.tsx"),
+    "utf8"
+  );
+
+  assert.match(builder, /SystemTopologyStrip/);
+  assert.match(topology, /current RunConfiguration/);
+  assert.match(topology, /parallel unit/);
+  assert.match(topology, /execution lane/);
+  assert.match(topology, /×N/);
+  assert.match(topology, /Modeled wall time \/ instance/);
+  assert.doesNotMatch(topology, /GPU.*unless|HPC.*assume/i);
+});
+
 test("default Explore is simple actor-aware hierarchy and diagnostics are disclosed", async () => {
   const explore = await readFile(
     path.join(srcRoot, "components", "explore", "ExploreView.tsx"),

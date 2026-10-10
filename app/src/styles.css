@@ -1098,3 +1098,75 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
     grid-column: 1 / -1;
   }
 }
+
+
+/* Round 4D — deadline-safe Builder clarity */
+
+.system-topology-strip {
+  display: grid;
+  gap: 11px;
+  padding-block: 14px;
+}
+.system-topology-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+}
+.system-topology-head h2 {
+  font-size: 1rem;
+}
+.topology-pool-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+.topology-pool-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: rgba(7, 17, 27, 0.68);
+}
+.topology-pool-card.classical {
+  border-left: 4px solid #75caa0;
+}
+.topology-pool-card.qpu {
+  border-left: 4px solid var(--qpu);
+}
+.topology-pool-card strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+.topology-pool-card > span {
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+.topology-pool-card small {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+.builder-concept-key {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  color: var(--muted);
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+.builder-concept-key strong {
+  color: var(--text);
+}
+
+@media (max-width: 760px) {
+  .system-topology-head {
+    align-items: start;
+    flex-direction: column;
+  }
+  .builder-concept-key {
+    grid-template-columns: 1fr;
+  }
+}

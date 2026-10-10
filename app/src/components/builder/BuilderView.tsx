@@ -18,6 +18,7 @@ import { ResourceEditor } from "./ResourceEditor";
 import { TaskInspector } from "./TaskInspector";
 import { ValidationPanel } from "./ValidationPanel";
 import { WorkflowSettings } from "./WorkflowSettings";
+import { SystemTopologyStrip } from "./SystemTopologyStrip";
 import type { WorkflowDesignBundle } from "../../design/bundle";
 
 interface Props {
@@ -238,6 +239,10 @@ function LogicalBuilder({
     <>
       <div className="builder-grid">
         <div className="builder-main">
+          <SystemTopologyStrip
+            runConfiguration={bundle.runConfiguration}
+          />
+
           <WorkflowDag
             model={dag}
             selectedTaskId={selectedTaskId}
