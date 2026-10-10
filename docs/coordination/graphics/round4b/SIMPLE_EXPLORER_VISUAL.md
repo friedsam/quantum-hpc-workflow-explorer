@@ -160,7 +160,7 @@ Use text plus border/pattern/fill; color is not the sole state encoding.
 
 Artifact: `scenario-b-simple-explorer.svg`
 
-Selected time: **t = 5.0 s** from the accepted Round-4A actor fixture.
+Selected time: **t = 4.0 s** from Agent B's accepted Round-4B actor-aware semantic keyframe sequence.
 
 Authoritative actor projection:
 - MPI ranks = 4;
@@ -186,7 +186,9 @@ Per-instance resource tags:
 - Collective: `CPU · 4 units / instance`.
 
 Primary callout:
-`SYNC WALL — 4 / 4 ranks blocked · waiting for complete quantum result set`.
+`SYNC WALL — 4 / 4 ranks blocked · 1 / 2 quantum results complete`.
+
+This aligns the prototype to the accepted actor-aware playback boundary at t=4 s rather than using an arbitrary interior time.
 
 ## Scenario D prototype
 
