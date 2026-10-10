@@ -1109,3 +1109,26 @@ Browser review should confirm:
 **PROMOTE/PORT** this bounded clarity pass to `agent/integration` after Agent-F browser review.
 
 Stop here; Scenario-A fidelity remains Agent A's independent Round-4D repair track.
+
+
+## Coordinator Round 4D UI review — 2026-10-10
+
+**Agent F decision:** **PORT accepted; Agent C CLOSED/IDLE pending browser review.**
+
+Accepted:
+- system-topology strip from current RunConfiguration;
+- explicit classical pool parallel capacity and QPU execution-lane capacity;
+- user-facing "modeled wall time / instance" terminology;
+- direct multiplicity explanation;
+- redundant pool-ID cleanup;
+- bounded straight-edge routing for simple linear logical DAGs only;
+- Advanced / Diagnostics unchanged;
+- no model or scenario semantic changes.
+
+Agent-C CI:
+- code head `046ee9b462788bda9bdcbcdedc40c4d12e363030`: run `38088263060` success;
+- handoff head `5437e3d2e1dd0f7456daf82ef4a1f9d5641f8479`: run `38088326153` success.
+
+Port only the seven bounded Round-4D app/test files; do not replace the whole app tree because integration contains later browser-runtime fixes.
+
+Remaining gate: browser visual check of topology-strip readability and straight-edge appearance.
