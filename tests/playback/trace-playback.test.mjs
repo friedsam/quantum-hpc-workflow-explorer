@@ -165,7 +165,7 @@ test("zero-width intervals are empty under frozen v1 half-open semantics", () =>
   assert.deepEqual(terminal.snapshot.taskStateCounts, {});
 });
 
-test("multi-signature periodic cycles compress deterministically", () => {
+test("multi-signature periodic activity compresses deterministically", () => {
   const signatures = ["cpu-start", "cpu-complete", "qpu-start", "qpu-complete"];
   const groups = Array.from({length: 24}, (_, index) => {
     const signature = signatures[index % signatures.length];
@@ -192,6 +192,33 @@ test("multi-signature periodic cycles compress deterministically", () => {
   assert.equal(compressed.repeatCount, 4);
   assert.deepEqual(compressed.groupRange, [4, 19]);
   assert.deepEqual(compressed.sourceEventSeqRange, [4, 19]);
+});
+
+test("multi-signature compressed keyframe uses neutral activity wording", () => {
+  const signatures = ["cpu-start", "cpu-complete", "qpu-start", "qpu-complete"];
+  const result = {
+    workflowId: "periodic-label",
+    events: Array.from({length: 24}, (_, index) => ({
+      seq: index,
+      simTimeS: index,
+      type: signatures[index % signatures.length],
+      resourcePoolId: signatures[index % signatures.length].startsWith("cpu")
+        ? "cpu"
+        : "qpu",
+    })),
+    resourceIntervals: [],
+    taskIntervals: [],
+    queueSeries: [],
+    metrics: {makespanS: 23},
+    assumptions: [],
+  };
+
+  const compressed = buildVisualKeyframes(result).find(
+    (frame) => frame.kind === "compressed"
+  );
+  assert.ok(compressed);
+  assert.equal(compressed.label, "Repeated 4-step activity ×4");
+  assert.equal(compressed.label.includes("cycle"), false);
 });
 
 test("fewer than four pattern repeats are not compressed", () => {
