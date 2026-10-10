@@ -240,3 +240,35 @@ Status: ONE SMALL WORDING REPAIR still pending.
 
 ### C — UI
 Status: HOLD until B repair closes, then implement reconciled B/D contract.
+
+
+## Round 4C — production implementation
+
+### A — Engine/model
+Status: CLOSED/IDLE. Round-4 actor model accepted.
+
+### B — Playback/causal
+Status: CLOSED/IDLE. Round-4B actor-aware playback accepted after neutral wording repair.
+
+### D — Graphics
+Status: CLOSED/IDLE. Round-4B simple Explorer visual accepted.
+
+### C — UI
+Status: ACTIVE.
+
+Implement:
+- logical design DAG in Builder and default Explore;
+- multiplicity ×N editing distinct from resource units/instance;
+- actor-aware Scenario B and generic Scenario D;
+- simple default Explore hierarchy;
+- current Round-3 diagnostics behind Advanced / Diagnostics;
+- one shared time cursor across default and advanced views.
+
+### F — Coordinator
+Next gates:
+1. review C green checkpoint;
+2. port to integration;
+3. browser-test Builder + B + D + custom edit/compare;
+4. repair only concrete defects;
+5. dependency lock/deployment cleanup;
+6. main promotion/closure.
