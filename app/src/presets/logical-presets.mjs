@@ -1,4 +1,9 @@
 import {
+  qampScenarioAActorDesign,
+  qampScenarioAActorRunConfiguration,
+  qampScenarioABaselineProfile
+} from "./qamp-a-actor-regimes.mjs";
+import {
   qampScenarioBActorDesign,
   qampScenarioBActorRunConfiguration,
   qampScenarioBActorSystemProfile
@@ -83,106 +88,9 @@ export const customLogicalBundle = {
 };
 
 export const scenarioALogicalBundle = {
-  design: {
-    schemaVersion: 1,
-    id: "qamp-a-logical-design",
-    name: "QAMP A — loosely coupled overlap",
-    tasks: [
-      {
-        id: "independent-classical",
-        label: "Independent classical work",
-        timingKey: "independent-classical",
-        semanticType: "classical-independent"
-      },
-      {
-        id: "quantum-prep",
-        label: "Local quantum preparation",
-        timingKey: "quantum-prep",
-        semanticType: "quantum-preparation"
-      },
-      {
-        id: "quantum-run",
-        label: "Local quantum evaluation",
-        timingKey: "quantum-run",
-        semanticType: "quantum-evaluation"
-      },
-      {
-        id: "local-consumer",
-        label: "Local quantum-result consumer",
-        timingKey: "local-consumer",
-        semanticType: "classical-continuation"
-      }
-    ],
-    dependencies: [
-      {
-        id: "a-prep-run",
-        sourceTaskId: "quantum-prep",
-        targetTaskId: "quantum-run"
-      },
-      {
-        id: "a-run-consumer",
-        sourceTaskId: "quantum-run",
-        targetTaskId: "local-consumer"
-      }
-    ],
-    assumptions: [
-      "Synthetic logical Scenario A: quantum-dependent work is local and off the overall critical path."
-    ],
-    metadata: { synchronization: "none" }
-  },
-  runConfiguration: {
-    schemaVersion: 1,
-    id: "qamp-a-logical-run",
-    workflowId: "qamp-a-logical-compiled",
-    resources: [
-      { id: "cpu", kind: "cpu", capacity: 2 },
-      { id: "qpu", kind: "qpu", capacity: 1 }
-    ],
-    taskResources: {
-      "independent-classical": { resourcePoolId: "cpu", resourceCount: 1 },
-      "quantum-prep": { resourcePoolId: "cpu", resourceCount: 1 },
-      "quantum-run": { resourcePoolId: "qpu", resourceCount: 1 },
-      "local-consumer": { resourcePoolId: "cpu", resourceCount: 1 }
-    },
-    policy: { allocation: "release-aware" }
-  },
-  systemProfile: {
-    schemaVersion: 1,
-    id: "qamp-a-logical-profile",
-    taskServiceTimes: {
-      "independent-classical": {
-        value: { kind: "constant", seconds: 10 },
-        provenance: synthetic(
-          "QAMP A acceptance",
-          "Critical-path classical duration."
-        )
-      },
-      "quantum-prep": {
-        value: { kind: "constant", seconds: 1 },
-        provenance: synthetic(
-          "QAMP A acceptance",
-          "Illustrative preparation duration."
-        )
-      },
-      "quantum-run": {
-        value: { kind: "constant", seconds: 4 },
-        provenance: synthetic(
-          "QAMP A acceptance",
-          "Illustrative QPU service duration."
-        )
-      },
-      "local-consumer": {
-        value: { kind: "constant", seconds: 1 },
-        provenance: synthetic(
-          "QAMP A acceptance",
-          "Illustrative result-consumption duration."
-        )
-      }
-    },
-    assumptions: [
-      "Synthetic acceptance profile; not measured production performance."
-    ]
-  }
+  design: structuredClone(qampScenarioAActorDesign),
+  runConfiguration: structuredClone(qampScenarioAActorRunConfiguration),
+  systemProfile: structuredClone(qampScenarioABaselineProfile)
 };
 
 export const scenarioBLogicalBundle = {

@@ -43,6 +43,39 @@ function validateProvenanced(entry, label) {
   validateProvenance(entry.provenance, label);
 }
 
+function validateActorSelectionShape(selection, label) {
+  if (!isObject(selection) ||
+      !["all", "one-per-instance", "ordinals"].includes(selection.kind)) {
+    fail(`${label} must be all, one-per-instance, or ordinals`);
+  }
+
+  if (selection.kind !== "ordinals") return;
+
+  if (!Array.isArray(selection.actorOrdinals) ||
+      selection.actorOrdinals.length === 0) {
+    fail(`${label}.actorOrdinals must be a non-empty array`);
+  }
+
+  const seen = new Set();
+  for (const ordinal of selection.actorOrdinals) {
+    if (!positiveInteger(ordinal) || seen.has(ordinal)) {
+      fail(`${label}.actorOrdinals must contain unique positive integers`);
+    }
+    seen.add(ordinal);
+  }
+}
+
+function validateActorSelectionAgainstCount(selection, count, label) {
+  validateActorSelectionShape(selection, label);
+  if (selection.kind !== "ordinals") return;
+
+  for (const ordinal of selection.actorOrdinals) {
+    if (ordinal > count) {
+      fail(`${label}: actor ordinal ${ordinal} exceeds actor count ${count}`);
+    }
+  }
+}
+
 function taskMultiplicity(task) {
   return task.multiplicity ?? 1;
 }
@@ -121,9 +154,10 @@ function prepareDesign(design) {
       if (!["working", "blocked"].includes(participation.stateDuringTask)) {
         fail(`design task ${task.id}: stateDuringTask must be working or blocked`);
       }
-      if (!["all", "one-per-instance"].includes(participation.selection?.kind)) {
-        fail(`design task ${task.id}: actor selection must be all or one-per-instance`);
-      }
+      validateActorSelectionShape(
+        participation.selection,
+        `design task ${task.id}.actorParticipation.selection`
+      );
     }
   }
 
@@ -206,9 +240,10 @@ function prepareDesign(design) {
     if (!actorGroups.has(wait.actorGroupId)) {
       fail(`actor wait ${wait.id}: unknown actor group ${wait.actorGroupId}`);
     }
-    if (!["all", "one-per-instance"].includes(wait.selection?.kind)) {
-      fail(`actor wait ${wait.id}: selection must be all or one-per-instance`);
-    }
+    validateActorSelectionShape(
+      wait.selection,
+      `actor wait ${wait.id}.selection`
+    );
     if (typeof wait.reason !== "string" || wait.reason.length === 0) {
       fail(`actor wait ${wait.id}: reason is required`);
     }
@@ -245,7 +280,7 @@ function prepareDesign(design) {
       wait.activation.instance === "matching-instance" ||
       wait.release.instance === "matching-instance"
     ) {
-      fail(`actor wait ${wait.id}: all-actor waits require any-instance or all-instances conditions`);
+      fail(`actor wait ${wait.id}: non-one-per-instance waits require any-instance or all-instances conditions`);
     }
   }
 
@@ -342,6 +377,11 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
   for (const task of prepared.tasks.values()) {
     for (const participation of task.actorParticipation ?? []) {
       const count = runConfiguration.actorGroupCounts[participation.actorGroupId];
+      validateActorSelectionAgainstCount(
+        participation.selection,
+        count,
+        `design task ${task.id}.actorParticipation.selection`
+      );
       if (participation.selection.kind === "one-per-instance" &&
           taskMultiplicity(task) > count) {
         fail(`design task ${task.id}: multiplicity exceeds actor count for group ${participation.actorGroupId}`);
@@ -350,8 +390,13 @@ function validateRunConfiguration(runConfiguration, prepared, design) {
   }
 
   for (const wait of design.actorWaits ?? []) {
-    if (wait.selection.kind !== "one-per-instance") continue;
     const count = runConfiguration.actorGroupCounts[wait.actorGroupId];
+    validateActorSelectionAgainstCount(
+      wait.selection,
+      count,
+      `actor wait ${wait.id}.selection`
+    );
+    if (wait.selection.kind !== "one-per-instance") continue;
     const multiplicity =
       taskMultiplicity(prepared.tasks.get(wait.activation.taskId));
     if (multiplicity > count) {
@@ -702,6 +747,18 @@ function buildActorAssignments(task, instance, runConfiguration) {
       continue;
     }
 
+    if (participation.selection.kind === "ordinals") {
+      assignments.push({
+        actorGroupId: participation.actorGroupId,
+        selection: {
+          kind: "ordinals",
+          actorOrdinals: [...participation.selection.actorOrdinals],
+        },
+        stateDuringTask: participation.stateDuringTask,
+      });
+      continue;
+    }
+
     const actorOrdinal = instance.logicalInstanceIndex + 1;
     if (actorOrdinal > actorCount) {
       fail(`design task ${task.id}: actor ordinal ${actorOrdinal} exceeds actor count ${actorCount} for group ${participation.actorGroupId}`);
@@ -761,11 +818,18 @@ function buildActorWaitManifest(
   const manifest = {};
 
   for (const wait of design.actorWaits ?? []) {
-    if (wait.selection.kind === "all") {
+    if (wait.selection.kind === "all" ||
+        wait.selection.kind === "ordinals") {
       manifest[wait.id] = {
         designWaitId: wait.id,
         actorGroupId: wait.actorGroupId,
-        selection: { kind: "all" },
+        selection:
+          wait.selection.kind === "all"
+            ? { kind: "all" }
+            : {
+                kind: "ordinals",
+                actorOrdinals: [...wait.selection.actorOrdinals],
+              },
         activation: compileActorWaitBoundary(
           wait.activation,
           expandedTasks,
