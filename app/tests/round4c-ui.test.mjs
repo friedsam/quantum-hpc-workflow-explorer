@@ -239,14 +239,28 @@ test("user-facing logical A-D presets compile and preserve their accepted mechan
   assert.equal(custom.metrics.makespanS, 2);
 
   const a = simulateWorkflow(compiled.A);
-  assert.equal(a.metrics.makespanS, 10);
+  assert.equal(a.metrics.makespanS, 8);
   assert.equal(a.metrics.queueWaitSecondsByPool.qpu, 0);
-  assert.ok(
+  assert.equal(a.metrics.admissionWaitSecondsByPool.qpu, 0);
+  assert.equal(
+    logicalPresetBundles.A.runConfiguration.policy.maxInFlightQuantumByPool,
+    undefined
+  );
+  assert.equal(
+    a.events.find(
+      (event) =>
+        event.type === "task_started" &&
+        event.taskId === "local-consume"
+    ).simTimeS,
+    3
+  );
+  assert.equal(
     a.events.find(
       (event) =>
         event.type === "task_completed" &&
-        event.taskId === "local-consumer"
-    ).simTimeS < a.metrics.makespanS
+        event.taskId === "local-consume"
+    ).simTimeS,
+    8
   );
 
   const b = simulateWorkflow(compiled.B);

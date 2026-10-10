@@ -10,6 +10,9 @@ function actorGroupEntry(manifest, actorGroupId) {
 
 function selectionSelectsActor(selection, actorOrdinal) {
   if (selection.kind === "all") return true;
+  if (selection.kind === "ordinals") {
+    return selection.actorOrdinals.includes(actorOrdinal);
+  }
   return selection.actorOrdinal === actorOrdinal;
 }
 
