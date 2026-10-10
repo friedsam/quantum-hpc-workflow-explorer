@@ -266,30 +266,6 @@ export interface RunRecord {
   metadata?: Record<string, unknown>;
 }
 
-export function compileWorkflowDesignDetailed(
-  design: WorkflowDesign,
-  runConfiguration: RunConfiguration,
-  systemProfile: SystemProfile
-): CompilationResult;
-
-export function compileWorkflowDesign(
-  design: WorkflowDesign,
-  runConfiguration: RunConfiguration,
-  systemProfile: SystemProfile
-): WorkflowSpec;
-
-export function createRunRecord(input: {
-  id: string;
-  design: WorkflowDesign;
-  runConfiguration: RunConfiguration;
-  systemProfile: SystemProfile;
-  compiledWorkflowSpec: WorkflowSpec;
-  compilationManifest: CompilationManifest;
-  simulationResult: SimulationResult;
-  metadata?: Record<string, unknown>;
-}): RunRecord;
-
-
 export type DerivedActorState = "working" | "blocked" | "idle";
 
 export interface DerivedActorStateDetail {
@@ -307,26 +283,3 @@ export interface ActorStateCounts {
   blocked: number;
   idle: number;
 }
-
-export function deriveActorStateDetailAt(
-  manifest: CompilationManifest,
-  simulationResult: SimulationResult,
-  actorGroupId: string,
-  actorOrdinal: number,
-  simTimeS: number
-): DerivedActorStateDetail;
-
-export function deriveActorStateAt(
-  manifest: CompilationManifest,
-  simulationResult: SimulationResult,
-  actorGroupId: string,
-  actorOrdinal: number,
-  simTimeS: number
-): DerivedActorState;
-
-export function deriveActorStateCountsAt(
-  manifest: CompilationManifest,
-  simulationResult: SimulationResult,
-  actorGroupId: string,
-  simTimeS: number
-): ActorStateCounts;
