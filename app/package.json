@@ -1,7 +1,7 @@
 {
   "name": "quantum-hpc-workflow-explorer-ui",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,9 +12,11 @@
     "test:causal": "node --test tests/causal-system-state.test.mjs",
     "test:playback": "node --test tests/playback.test.mjs",
     "test:architecture": "node --test tests/architecture.test.mjs",
-    "test": "npm run test:engine && npm run test:design && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:architecture",
+    "test": "npm run test:engine && npm run test:design && npm run test:actor && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:actor-playback && npm run test:architecture",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:actor": "node --test tests/actor-model.test.mjs",
+    "test:actor-playback": "node --test tests/actor-aware-view.test.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",
