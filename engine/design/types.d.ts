@@ -30,7 +30,9 @@ export interface ActorGroup {
 export type ActorParticipationSelection =
   | { kind: "all" }
   | { kind: "one-per-instance" }
-  | { kind: "ordinals"; actorOrdinals: number[] };
+  | { kind: "ordinals"; actorOrdinals: number[] }
+  | { kind: "range"; startActorOrdinal: number; endActorOrdinal: number }
+  | { kind: "all-except"; actorOrdinals: number[] };
 
 export interface ActorParticipation {
   actorGroupId: string;
