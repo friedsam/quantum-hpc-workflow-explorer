@@ -1303,3 +1303,226 @@ Port the latest producer files/fixture including the coordinator duration adjust
 **Critical-path fix:** The currently integrated A has background 8 s and local submit/QPU/resumed-work = 1 + 2 + 5 = 8 s, a tie. The previous coordinator intentionally kept rank 1 Working through t=7. Retain this restored-equilibrium interval and **extend background wall time above 8 s**, rather than shorten resumed classical work, to make the QPU path strictly off critical path. Expected 1,000-rank snapshots: t=0.5 → 1000/0/0; t=1.5 → 999/1/0; t=4 and t=7 → 1000/0/0, with zero QPU queue/admission delay. All times synthetic.
 
 **Validation and handoff:** preserve old regression tests; run focused tests and branch CI; benchmark 1,000-actor compile/simulate/actor-state costs; report exact SHA/paths, type/manifest migration, known scaling limits, and PORT recommendation. Update this role file with evidence, push and **STOP for Agent F review**. C stays on HOLD pending acceptance.
+
+
+## Agent A Round 4F response — 2026-10-11
+
+**Status:** **Round 4F bounded checkpoint complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Coordinator inputs consumed
+
+- `agent/integration@5f999d49b728952ef4bcf6b0c71fc5f71c209935`;
+- Round 4F entry in integration `REVIEW_QUEUE.md`;
+- D012 in `DECISION_LOG.md`;
+- current published Scenario-A tutorial.
+
+### Minimal scalable selector result
+
+Added two bounded symbolic actor selectors:
+
+```ts
+{ kind: "range"; startActorOrdinal: number; endActorOrdinal: number }
+{ kind: "all-except"; actorOrdinals: number[] }
+```
+
+Existing selectors remain unchanged:
+- `all`;
+- `one-per-instance`;
+- explicit `ordinals`.
+
+Validation:
+- range bounds positive, ordered and within actor-group count;
+- exclusion ordinals positive, unique and within actor-group count.
+
+The compiler preserves `range` / `all-except` symbolically in the CompilationManifest. It does not expand a 999-rank selection into 999 actor IDs.
+
+### Type/manifest migration
+
+Higher-level producer/consumer union additions:
+- `ActorParticipationSelection`;
+- `CompiledActorAssignment.selection`;
+- `CompiledActorWaitClaim.selection`.
+
+No `WorkflowSpec` / `SimulationResult` change.
+
+Existing v1 documents remain valid. Any consumer with an exhaustive selector switch must add the two new cases before consuming a Round-4F producer.
+
+`schemaVersion: 1` remains unchanged for this prototype additive extension.
+
+### 4-rank regression correction
+
+The accepted restored-equilibrium local continuation remains 5 s.
+
+Changed only baseline independent background:
+- old: 8 s;
+- new: 10 s.
+
+Thus:
+- submit 1 + QPU 2 + local resume 5 = 8 s;
+- independent background = 10 s;
+- local branch is strictly off critical path.
+
+Existing small-fixture tests remain active.
+
+### Dedicated 1,000-rank Scenario-A demo
+
+New:
+- `engine/examples/qamp-a-1000-demo.mjs`.
+
+Persistent actors:
+- 1,000 ranks.
+
+Compact logical tasks:
+- 4.
+
+Selectors:
+- background ranks 2-1000: `all-except([1])`;
+- rank-1 submit/resume/wait: `range(1,1)`.
+
+Resource units:
+- CPU capacity 1000;
+- background resourceCount 999;
+- rank-1 CPU tasks resourceCount 1;
+- QPU capacity 1.
+
+There is:
+- no global actor/result gate;
+- no QPU admission/throttling limit;
+- no per-rank DES expansion.
+
+The 999-unit background task is explicitly documented as an aggregate approximation of 999 concurrently working ranks, not 999 independent DES tasks.
+
+Synthetic timing:
+- background 10 s;
+- submit 1 s;
+- QPU 2 s;
+- local resume 5 s.
+
+Acceptance:
+- t=0.5 -> 1000 Working / 0 Blocked / 0 Idle;
+- t=1.5 -> 999 Working / 1 Blocked / 0 Idle;
+- t=4 -> 1000 / 0 / 0, QPU idle;
+- t=7 -> 1000 / 0 / 0, QPU idle;
+- QPU queue wait 0;
+- QPU admission wait 0;
+- local branch complete t=8;
+- makespan t=10.
+
+### Compactness evidence
+
+Exact current branch JSON string sizes:
+- design: 2,202 chars;
+- run config: 693 chars;
+- profile: 1,176 chars;
+- compiled WorkflowSpec: 3,900 chars;
+- manifest: 2,847 chars.
+
+Actor count remains 1,000 while compiled DES task count remains 4.
+
+### Tests
+
+New:
+- `engine/tests/scenario-a-1000-demo.test.mjs` — **5/5 PASS** in exact-blob preflight.
+
+Existing focused suites:
+- Round 4D: 7/7 PASS;
+- Round 4A actor: 6/6 PASS;
+- Round 2C compiler: 7/7 PASS.
+
+Branch CI:
+- workflow: `.github/workflows/engine-validation.yml`;
+- run: `38118493908`;
+- Node: v22.23.3;
+- result: **SUCCESS**;
+- all engine tests: **47/47 PASS**.
+
+### Actual 1,000-actor benchmark
+
+Benchmark:
+- `engine/benchmarks/scenario-a-1000-benchmark.mjs`;
+- CI run `38118493908`, Ubuntu 24.04 / Node v22.23.3.
+
+Compile, 100 iterations:
+- mean 0.099 ms;
+- median 0.070 ms;
+- p95 0.179 ms.
+
+Simulate, 100 iterations:
+- mean 0.046 ms;
+- median 0.037 ms;
+- p95 0.123 ms.
+
+Four actor-state snapshots per batch, 50 iterations:
+- mean 2.592 ms/batch;
+- median 1.991 ms/batch;
+- p95 7.385 ms/batch;
+- mean ≈0.648 ms/snapshot.
+
+Observed process-memory deltas in that repeated benchmark:
+- compile: heap -203,432 B, RSS +7,516,160 B;
+- simulate: heap -137,952 B, RSS +131,072 B;
+- actor snapshots: heap +633,984 B, RSS -847,872 B.
+
+These memory numbers are allocator/GC-sensitive process deltas, not peak-memory proofs.
+
+### Scaling bottleneck
+
+Current actor-state derivation performs a naïve actor × (compiled tasks + waits) scan.
+
+1,000-rank A:
+- 4 tasks + 1 wait;
+- ≈5,000 claim-entry checks/snapshot;
+- measured mean ≈0.648 ms/snapshot.
+
+Indicative 200-job B expansion:
+- ~401 tasks + ~201 waits;
+- ~602,000 checks/snapshot;
+- 120.4× A's scan count;
+- simple linear timing extrapolation ≈60-80 ms/snapshot.
+
+Indicative 1,000-request C/D expansion with ~3,000 tasks + ~1,000 waits:
+- ~4,000,000 checks/snapshot;
+- ~800× A's scan count;
+- simple linear timing extrapolation ≈0.4-0.5 s/snapshot.
+
+Those are complexity-based estimates, not measured B/C/D benchmarks. Event lookup costs can add overhead.
+
+Conclusion:
+- current projection is acceptable for the 1,000-rank compact A demo;
+- naïve per-cursor recomputation is likely impractical once expanded task/wait count reaches hundreds/thousands;
+- future optimization should index/cache actor projection, not rewrite DES.
+
+No optimization was implemented in Round 4F.
+
+### Promotion scope
+
+**PORT**:
+- `engine/design/types.d.ts`;
+- `engine/design/compile.mjs`;
+- `engine/design/actor-state.mjs`;
+- 4-rank timing correction in `engine/examples/qamp-a-actor-regimes.mjs`;
+- corresponding small-fixture test correction;
+- `engine/examples/qamp-a-1000-demo.mjs`;
+- `engine/tests/scenario-a-1000-demo.test.mjs`.
+
+**DEFER**:
+- actor-state indexing/precomputed interval/cache optimization;
+- generalized selector-query language;
+- per-rank heterogeneous expansion;
+- actor-selector UI.
+
+**Validation-only / do not PORT**:
+- `engine/benchmarks/scenario-a-1000-benchmark.mjs`;
+- `.github/workflows/engine-validation.yml` unless Agent F wants permanent branch-lab CI.
+
+Dependencies added/changed: none.  
+UI files changed: none.  
+Frozen DES interface changes requested: none.
+
+Code/validation checkpoint before handoff docs:
+- `5fbc7904be44afb394737447a6cf779aed79c41f`.
+
+Detailed proposal:
+- `docs/coordination/proposals/ROUND4F_TUTORIAL_SCALE_A.md`.
+
+**Recommended decision: PORT selector/model/fixture/test changes; DEFER actor-projection optimization. STOP for Agent F review.**
