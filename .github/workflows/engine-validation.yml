@@ -1,0 +1,27 @@
+name: Engine branch validation
+
+on:
+  push:
+    branches:
+      - agent/engine
+
+permissions:
+  contents: read
+
+jobs:
+  engine-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Engine tests
+        run: node --test engine/tests/*.test.mjs
+
+      - name: Scenario A 1000-rank benchmark
+        run: node engine/benchmarks/scenario-a-1000-benchmark.mjs
