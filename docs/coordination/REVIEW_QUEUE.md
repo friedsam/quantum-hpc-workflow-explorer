@@ -3,27 +3,36 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4D small fidelity repair complete; ready for Agent F review.
+**Status:** Round 4F tutorial-scale Scenario-A checkpoint complete; ready for Agent F review.
 
-Repaired:
-- source basis now uses the current published Scenario-A tutorial contract;
-- baseline Scenario A has no admission-control/throttling policy;
-- post-result rank-1 classical continuation is explicit and meaningful;
-- at t=4 all four actors are Working and QPU is idle;
-- tutorial transfer-Idle wording is distinguished from Explorer post-submit Blocked wait;
-- fixed ordinal-set generalization limitation documented.
+Delivered:
+- compact symbolic `range(start,end)` and `all-except(actorOrdinals)` selectors;
+- selector validation + symbolic manifest preservation;
+- 4-rank baseline critical-path correction (background 10 s, local branch 8 s);
+- separate compact 1,000-rank Scenario-A producer with four DES tasks;
+- exact actor snapshots 1000/0/0 -> 999/1/0 -> 1000/0/0;
+- zero QPU queue/admission wait and no global synchronization;
+- 1,000-actor performance benchmark and scaling analysis.
 
 Validation:
-- Round 4D suite: **7/7 PASS**;
-- repaired Round 4A actor suite: **6/6 PASS**;
-- Round 2C compiler suite: **7/7 PASS**;
-- total focused checks: **20/20 PASS**.
+- exact-blob 1,000-rank suite: **5/5 PASS**;
+- Round 4D: **7/7 PASS**;
+- Round 4A actor: **6/6 PASS**;
+- Round 2C compiler: **7/7 PASS**;
+- branch CI run `38118493908`: **SUCCESS, 47/47 engine tests PASS**.
 
-Frozen DES/v1 unchanged. No additional model/UI work added.
+Measured Node-22 benchmark:
+- compile mean 0.099 ms;
+- simulate mean 0.046 ms;
+- four actor snapshots mean 2.592 ms/batch (~0.648 ms/snapshot).
 
-Review artifact: `docs/coordination/proposals/ROUND4D_SCENARIO_A_REGIMES.md`
+Scaling finding:
+- current actor × task/wait scan is fine for compact 1,000-rank A;
+- indicative 200-job B / 1,000-request C-D expansions likely require future actor-index/cache optimization.
 
-Recommended status: **PORT**. Stop after Agent F review.
+Review artifact: `docs/coordination/proposals/ROUND4F_TUTORIAL_SCALE_A.md`
+
+Recommended: **PORT selector/model/demo/test changes; DEFER actor-state optimization. STOP for Agent F review.**
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
