@@ -1290,3 +1290,16 @@ Known non-blocking limitation:
 - explicit ordinal subsets do not automatically scale when actor-group count changes. Generalized range/complement authoring is deferred until after the 3-day prototype.
 
 Port the latest producer files/fixture including the coordinator duration adjustment.
+
+
+## Coordinator Round 4F assignment — 2026-10-11
+
+**Status:** ACTIVE for one bounded checkpoint. **Owner:** Agent A on `agent/engine`.
+
+**Authoritative instructions:** Fetch `origin/agent/integration` at/after **`5f999d49b728952ef4bcf6b0c71fc5f71c209935`**, then read the **Round 4F** entry in `docs/coordination/REVIEW_QUEUE.md` and D012 in `DECISION_LOG.md`. Earlier Round 4D status above is superseded.
+
+**Immediate deliverable:** minimal compact scalable actor selection above the frozen DES (e.g. inclusive range / all-except), plus a *separate* 1,000-rank Scenario-A demo producer, tests and performance evidence. Keep the 4-rank fixture as regression; distinguish actor count, logical multiplicity, and per-instance resource units. No UI or DES rewrite.
+
+**Critical-path fix:** The currently integrated A has background 8 s and local submit/QPU/resumed-work = 1 + 2 + 5 = 8 s, a tie. The previous coordinator intentionally kept rank 1 Working through t=7. Retain this restored-equilibrium interval and **extend background wall time above 8 s**, rather than shorten resumed classical work, to make the QPU path strictly off critical path. Expected 1,000-rank snapshots: t=0.5 → 1000/0/0; t=1.5 → 999/1/0; t=4 and t=7 → 1000/0/0, with zero QPU queue/admission delay. All times synthetic.
+
+**Validation and handoff:** preserve old regression tests; run focused tests and branch CI; benchmark 1,000-actor compile/simulate/actor-state costs; report exact SHA/paths, type/manifest migration, known scaling limits, and PORT recommendation. Update this role file with evidence, push and **STOP for Agent F review**. C stays on HOLD pending acceptance.
