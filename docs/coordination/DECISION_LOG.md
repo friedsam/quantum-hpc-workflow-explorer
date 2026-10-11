@@ -51,3 +51,11 @@
 **Date:** 2026-10-02  
 **Decision:** Preserve the 10-day closure goal, but treat the Explorer's primary differentiation as a human-readable visual simulator/debugger: editable DAG + synchronized slow semantic playback + full HPC/QPU state + analytical plots. Do not compete primarily on scheduler sophistication. Optional optimization should remain explainable and secondary to direct user exploration.  
 **Reason:** Mature systems already provide scheduling/resource optimization, while the Explorer can occupy a distinct usability niche centered on visual execution/debugging. LabVIEW is a useful retrospective analogy for that interaction model, recognized only after the Explorer concept already existed.
+
+
+## D012 — Tutorial-scale public A–D demos; small fixtures retained
+**Date:** 2026-10-11  
+**Decision:** Public A–D presets should approximate the tutorial's rank/job scale and recognizable workflow patterns (about 1,000 HPC ranks where the tutorial uses that scale), without rendering one DAG node per rank. The existing 4-rank/3-job/6-job examples remain deterministic regression fixtures, not the final user-facing demos. Identical grouped instances are acceptable for this prototype; arbitrary per-instance heterogeneity is deferred.  
+**Reason:** The tiny acceptance fixtures prove engine mechanisms but cannot communicate the HPC-scale actor and queue behavior the public tutorial describes.
+
+**Architecture:** Preserve the frozen deterministic DES and the separation of logical multiplicity, persistent actor count, and resource units per concrete task. Agent A may propose only a minimal compact actor-selection extension above the DES for scaling; Agent F reviews before integration; Agent C updates public presets only afterward. Slurm execution-plan export is post-prototype and does not block this round.

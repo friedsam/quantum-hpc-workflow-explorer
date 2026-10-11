@@ -485,3 +485,33 @@ Final browser acceptance:
 6. Compare saved runs.
 
 If clean, freeze prototype for IBM description.
+
+
+## Round 4F — tutorial-scale demo conversion (2026-10-11)
+
+**Coordinator decision:** D012. Source of truth: `agent/integration` plus published QAMP scenario pages. Current small A–D presets are regression/acceptance scaffolding; the IBM-facing public presets must resemble tutorial-scale workflows while keeping the logical DAG compact. No DES rewrite.
+
+### A — Engine/model: ACTIVE, first bounded gate
+
+**Branch:** `agent/engine`. Read current `origin/agent/integration` coordination and `AGENTS.md` before changing code.
+
+1. **Minimal scalable actor selection above the frozen DES.** Current `all`, `one-per-instance`, and explicit `ordinals` do not express changing large complementary subsets concisely. Propose and implement only bounded variants needed for demos (prefer inclusive `range(start,end)` and `all-except(actorOrdinals)`; `one-per-instance` already covers the first N ordinal actors when multiplicities match). Preserve symbolic compact selectors in design/manifest rather than authoring arrays of 999 identifiers. Validate positive, unique, in-range ordinals and range bounds; keep existing selector behavior unchanged. No general selector-query language.
+
+2. **New 1,000-rank Scenario-A demo model, independent of the 4-rank fixture.** Compact logical DAG: rank 1 prepares/submits one local QPU request and resumes classical work after the result; ranks 2–1000 perform useful classical work throughout; QPU capacity 1. No global result gate, resource queue, or admission/throttling limit. Explain if a single 999-rank modeled classical phase is an aggregate approximation rather than 999 independent DES tasks; do not confuse task multiplicity, actor count, and resource demand.
+
+3. **Fix the Scenario-A critical-path tie.** In the currently integrated A baseline, background = 8 s and submit + QPU + local-consume = 1 + 2 + 5 = 8 s. This is *not strictly off the critical path*. Use synthetic timings with strict inequality (e.g. local-consume 3 s, resulting local path 6 s versus 8 s background) in the new demo and propose corresponding correction to the baseline fixture without weakening the existing regime tests. Make the submitting rank's post-result useful work explicit. The tutorial labels transfer Idle; the authored Explorer quantum-result wait begins post-submission and is Blocked. Do not conflate these.
+
+4. **Deterministic acceptance:** inspect at interior timestamps, e.g. t=0.5: Working/Blocked/Idle = 1000/0/0; t=1.5: 999/1/0; t=4: 1000/0/0 with QPU idle. Verify QPU queue and admission waits are zero; no global synchronization; local branch completes *strictly before* overall makespan; existing small-fixture tests remain valid. All numeric times must be explicitly synthetic.
+
+5. **Scaling evidence:** record actual time/memory to compile, simulate, and derive actor-state snapshots at 1,000 actors. Inspect whether naïve actor-by-task scans are likely to make a later 200-QPU-job B or 1,000-request C/D playback impractical. Report any bottleneck with numbers; do not optimize the DES or expand scope without coordinator review.
+
+**Deliverable:** dedicated scenario-A demo fixture, selector implementation/type/manifest updates, focused tests, exact files and commit SHA, benchmark results, migration notes, and proposal `PORT / REIMPLEMENT / DEFER`. Update `docs/coordination/agents/engine.md` on your branch and STOP for F review. Run relevant Node tests and branch CI. No UI edits or new dependencies.
+
+### B / D / E — CLOSED / IDLE
+No task until F requests a concrete playback, graphics, or research repair.
+
+### C — HOLD
+After A's accepted model/selector result, F will assign the *public preset* A–D conversions on `agent/ui` (A ≈1,000 ranks; B ≈200 submitters with ≈1,000 total; C latency-driven local unblock; D ≈50 bounded outstanding jobs). Do not start this conversion before A/F interface review. Keep regression fixtures unchanged and expanded DES under Advanced/Diagnostics.
+
+### F — NEXT
+Review A's focused checkpoint and scaling evidence. Decide selector/migration contract; selectively PORT to staging, validate integration CI; then activate C for tutorial-scale A–D and perform browser acceptance. Preserve deterministic frozen DES and existing GitHub Actions. Later gates: dependency lock, deployment-root migration, documentation, main promotion.
