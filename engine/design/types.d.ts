@@ -180,7 +180,9 @@ export interface CompiledActorAssignment {
   selection:
     | { kind: "all" }
     | { kind: "one"; actorOrdinal: number }
-    | { kind: "ordinals"; actorOrdinals: number[] };
+    | { kind: "ordinals"; actorOrdinals: number[] }
+    | { kind: "range"; startActorOrdinal: number; endActorOrdinal: number }
+    | { kind: "all-except"; actorOrdinals: number[] };
   stateDuringTask: "working" | "blocked";
 }
 
@@ -225,7 +227,9 @@ export interface CompiledActorWaitClaim {
   selection:
     | { kind: "all" }
     | { kind: "one"; actorOrdinal: number }
-    | { kind: "ordinals"; actorOrdinals: number[] };
+    | { kind: "ordinals"; actorOrdinals: number[] }
+    | { kind: "range"; startActorOrdinal: number; endActorOrdinal: number }
+    | { kind: "all-except"; actorOrdinals: number[] };
   logicalInstanceOrdinal?: number;
   activation: CompiledActorWaitBoundary;
   release: CompiledActorWaitBoundary;
