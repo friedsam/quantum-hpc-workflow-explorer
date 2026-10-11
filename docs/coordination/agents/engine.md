@@ -1526,3 +1526,14 @@ Detailed proposal:
 - `docs/coordination/proposals/ROUND4F_TUTORIAL_SCALE_A.md`.
 
 **Recommended decision: PORT selector/model/fixture/test changes; DEFER actor-projection optimization. STOP for Agent F review.**
+
+
+## Coordinator Round 4G assignment — 2026-10-11
+
+**Status: ACTIVE** for one bounded actor-projection performance/semantics checkpoint. Fetch `origin/agent/integration` at/after `f8766ce63a37947b20d96d83d4728c70a9c19bbd` and read **Round 4G** in `docs/coordination/REVIEW_QUEUE.md` plus D013/D014 in `DECISION_LOG.md` before changing code.
+
+**Your responsibility:** optimize the *derived actor-state projector above the frozen DES* for 1,000 persistent ranks with hundreds of compiled task and wait entries. The old details/counts/blocked reasons must remain exactly equivalent, including half-open interval boundaries, multi-reason coalescing, and Working+Blocked conflict rejection. Use indexing/caching/precomputed actor-state intervals if appropriate; do not modify `WorkflowSpec`/`SimulationResult`, DES scheduling, or UI/playback source.
+
+**Minimum stress:** source-grounded synthetic Scenario B (1,000 ranks, ~200 submitters/quantum tasks, serialized QPU, global gate), plus current 4-rank A/B and 1,000-rank A regression. Benchmark indexed creation, actor-state count/detail queries, and a full keyframe-like cursor/signature sweep; report actual runtime/memory, not just complexity extrapolation. Flag exact Scenario-D 50 admitted/blocked vs 950 policy-idle modeling gap if current task-event wait boundaries cannot express it; propose the smallest above-DES admission trigger if required, but do not silently implement a new semantic.
+
+**Deliverable:** implementation+tests/bench, migration/API notes for C/F, exact SHA/CI and measured results, then STOP for F. Keep dependencies unchanged. C is active in parallel for public presets but must not assume high-scale playback is performant until your evidence is reviewed.
