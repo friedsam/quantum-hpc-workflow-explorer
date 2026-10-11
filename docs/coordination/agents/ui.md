@@ -1417,3 +1417,16 @@ Accepted:
 - prior B/C/D behavior and Round-4D Builder clarity remain intact.
 
 No further Agent-C work unless browser acceptance finds a concrete defect.
+
+
+## Coordinator Round 4G assignment — 2026-10-11
+
+**Status: ACTIVE** for public-scale A–D demo conversion, with bounded checkpoints. Fetch `origin/agent/integration` at/after `f8766ce63a37947b20d96d83d4728c70a9c19bbd`; read `AGENTS.md`, the current integration `PROJECT_STATE.md`, `REVIEW_QUEUE.md` (Round 4G), `INTERFACE_CONTRACTS.md`, and D013/D014. **Do not wholesale merge lab/integration branches.** Selectively port the accepted new A producer + selector semantics from integration onto `agent/ui` to continue your self-contained app lab.
+
+**Checkpoint 1 (do now):** public Scenario A -> dedicated `qamp-a-1000-demo.mjs` design/run/profile (four logical tasks, 1,000 persistent ranks; rank 1 waits locally; others continue; local path 8 s, critical background 10 s). Keep small fixtures as regression. Verify exact actor frames 1000/0/0 -> 999/1/0 -> 1000/0/0 and QPU no queue/hold; retain stable logical DAG and one cursor, correct timing/provenance/units. Bound lengthy default task-ID strings. Test Builder+Explore, custom parameter edit, Compare; preserve the older Scenario-B browser `process` guard.
+
+**Checkpoint 2:** compact, source-grounded B with 1,000 ranks / ~200 submitters, serial QPU, no queue-wall explanation, explicit complete-result global sync, and full collective continuation. Preserve small B regression. Measure *full* frame/keyframe construction and cursor updates, not only DES runtime. A separate Agent-A scalability task is active; if performance is not acceptable, report a precise blocker rather than silently shrinking the demo.
+
+**Checkpoint 3 (feasibility first):** C latency/data wall and D throughput/throttle pipeline at tutorial-like scale. Identify exact missing representational or performance constraints before implementing; no hand-coded counters, invented provider queues, or fabricated B/C/D ranks. In D target ~50 admitted jobs (QPU 1 run +49 resource queued) distinct from policy-held demand; if actor Waiting/Blocked from admission is unrepresentable under current actorWait event vocabulary, raise the issue for F/A rather than labeling policy-held actors Blocked. C should not create a QPU queue wall when modeling communication-only delay.
+
+**Deliverable each checkpoint:** exact paths/commit, tests/CI, synthetic assumptions, performance evidence, unresolved defects, recommended PORT/REIMPLEMENT/DEFER and STOP for F review. Frozen DES, GitHub Actions, Advanced diagnostics, custom authoring and Compare must survive. Do not add UI-heavy actor authoring or post-prototype features.
