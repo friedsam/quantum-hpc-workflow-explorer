@@ -5,8 +5,8 @@ Updated: 2026-10-11
 ## Current checkpoint — 2026-10-11 (supersedes 2026-10-02 onboarding status below)
 
 - **Canonical staging:** `agent/integration`; last accepted app integration `65277404c9cc0000e8170567874456a2ccdd6c20`; the Round-4E integration validation passed. The built app is React/TypeScript/Vite with a logical Builder, frozen deterministic DES, actor/causal playback, simplified Explorer, Advanced diagnostics, and Compare.
-- **Current open gate:** Round 4F, tutorial-scale public A–D grouped presets. The small A–D fixtures are retained as regressions. Agent A is active for minimal scalable actor selection and 1,000-rank Scenario A; C holds until F reviews A; B/D/E are idle. See `REVIEW_QUEUE.md` and D012 in `DECISION_LOG.md`.
-- **Known defect:** integrated A's independent-background and local-QPU branches both complete at 8 s; A's QPU branch must finish strictly earlier for the stated off-critical-path acceptance claim.
+- **Current open gate:** Round 4F accepted and ported to integration at `b52116ddaff7e435f16ab8c7e13336d0d9ffd7b6` (CI `38119401020` SUCCESS). Round 4G is ACTIVE: Agent A actor-projection scaling; Agent C tutorial-scale user-facing A–D presets, staged acceptance. B/D/E idle. Small fixtures remain regression tests.
+- **Resolved:** Scenario A quantum-dependent branch completes t=8 before independent background/makespan t=10, retaining restored full-actor work through t=7.
 - **Known release gates:** scale/performance evidence, A–D browser acceptance, custom edit/Compare smoke, dependency lock/reproducible CI, migration from legacy `web/` deployment root to `app/`, final documentation, then `main`.
 - **Invariant:** frozen v1 DES authoritative; `WorkflowDesign + RunConfiguration + SystemProfile` compiles to DES input; actor counts and Working/Blocked/Idle are derived above DES. Slurm scheduler-neutral export is post-prototype.
 

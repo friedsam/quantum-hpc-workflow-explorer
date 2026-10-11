@@ -59,3 +59,16 @@
 **Reason:** The tiny acceptance fixtures prove engine mechanisms but cannot communicate the HPC-scale actor and queue behavior the public tutorial describes.
 
 **Architecture:** Preserve the frozen deterministic DES and the separation of logical multiplicity, persistent actor count, and resource units per concrete task. Agent A may propose only a minimal compact actor-selection extension above the DES for scaling; Agent F reviews before integration; Agent C updates public presets only afterward. Slurm execution-plan export is post-prototype and does not block this round.
+
+
+## D013 — Round 4F compact actor selectors and Scenario-A demo accepted
+**Date:** 2026-10-11  
+**Decision:** PORT Agent A Round-4F selectors `range` and `all-except` above the frozen DES, plus a dedicated compact 1,000-rank Scenario A model. Keep the existing four-rank producer as regression. Correct small A background time from 8 to 10 synthetic seconds while retaining its 5 s post-result continuation: the local QPU path finishes at t=8, strictly before the overall t=10 makespan.  
+**Evidence:** Agent A source `agent/engine@1254de649fb0c15d458df20879c40a745e5e9e6d`, its 47/47-test CI run `38118493908`; staging commits `3cb83d81a09c9e41246975ddd975a66ce1859f13`, `92f0332bcf38167a1ebdd9143db83965e697ae8b`, and test correction `b52116ddaff7e435f16ab8c7e13336d0d9ffd7b6`; integration CI run `38119401020` SUCCESS.  
+**Scope:** Higher-level selector/type/compiler/actor-state projection additions only; DES `WorkflowSpec`, `SimulationResult`, scheduling, and metrics unchanged. The 999-rank background is one 999-CPU-unit aggregate DES task, not 999 independent task instances.
+
+## D014 — Scale actor-state projection before high-multiplicity public B/D playback
+**Date:** 2026-10-11  
+**Decision:** Parallel bounded tracks: C converts the public A-D presets in stages; A benchmarks and optimizes post-DES actor-state projection for high task/wait multiplicity. Actor-state count/blocked-reason semantics remain derived and authoritative only from authored participation/gates + exact DES events. Preserve the old detail/count functions or propose a backward-compatible, explicitly reviewed index API. Do not optimize by inventing ranks, ignoring wait reasons, or changing DES results.  
+**Reason:** Round-4F measured ~0.65 ms per actor snapshot for 1,000 actors with only 4 tasks + 1 wait, but source-derived scan-count extrapolation indicates a 200-job B or 1,000-request D could be much slower. Those extrapolations are not measured. C must not claim browser responsiveness without actual measurement.  
+**Guardrail:** If exact tutorial C/D actor counts require missing actor-admission/transfer semantics, record and escalate the representational gap rather than hand-code storyboard counters.

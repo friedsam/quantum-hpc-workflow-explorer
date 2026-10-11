@@ -515,3 +515,44 @@ After A's accepted model/selector result, F will assign the *public preset* A–
 
 ### F — NEXT
 Review A's focused checkpoint and scaling evidence. Decide selector/migration contract; selectively PORT to staging, validate integration CI; then activate C for tutorial-scale A–D and perform browser acceptance. Preserve deterministic frozen DES and existing GitHub Actions. Later gates: dependency lock, deployment-root migration, documentation, main promotion.
+
+
+## Round 4F final coordinator review — 2026-10-11
+
+### Agent A — ACCEPTED / CLOSED for Round 4F
+- **Decision:** PORT the two symbolic actor selectors, manifest preservation, projection support, strict A critical-path correction, dedicated 1,000-rank Scenario-A producer, and tests.
+- **Agent branch checkpoint:** `agent/engine@1254de649fb0c15d458df20879c40a745e5e9e6d`; 47/47 Node tests and benchmark CI `38118493908` succeeded.
+- **Integration:** `3cb83d81a09c9e41246975ddd975a66ce1859f13` (selectors), `92f0332bcf38167a1ebdd9143db83965e697ae8b` (A demo and tests), `b52116ddaff7e435f16ab8c7e13336d0d9ffd7b6` (stale Round-4C makespan assertion). Integration CI `38119401020`: **SUCCESS**.
+- The frozen DES and GitHub Actions definitions are unchanged. Agent-only benchmark and workflow files were not ported.
+- **Known scaling concern:** Actor projection naïvely scans actors × compiled task/wait entries; 200-job B and 1,000-request D performance are not established by the Scenario-A benchmark. Open a bounded new performance track rather than treating extrapolations as measured results.
+
+## Round 4G — public-scale A–D demos and actor-projection performance (2026-10-11)
+
+### A — Engine/model: ACTIVE (bounded scalability follow-up)
+**Branch:** `agent/engine`. Read the integration Round 4G decision and current coordination files at/after the Round-4F port.
+
+Task: make the *derived actor-projection layer* performant for 1,000 persistent actors and hundreds of compiled task/actor-wait entries. The existing functions `deriveActorStateDetailAt`, `deriveActorStateCountsAt`, and actor playback signature/summaries are the semantic reference. Prefer pre-indexed participation/wait intervals, event-time indexing, and reusable bounded state transitions or cached query structures; keep the API backward compatible where practical. Do **not** rewrite frozen DES or change engine metrics, ordering, actors' Working/Blocked/Idle interpretation, multiple blocked-reason coalescing, half-open intervals, or Working+Blocked conflict detection.
+
+Validation: exact match between baseline and optimized actor details/counts/reasons across 4-rank A/B fixtures, 1,000-rank A, and a newly authored 1,000-actor/200-quantum-instance B stress model. Benchmark **precompute cost, per-snapshot cost, and complete representative playback-signature sweep**, with real timings/memory and deterministic repeated runs; provide at least one high-multiplicity synthetic result, not only a linear extrapolation. Aim for interactive cursor steps (soft target p95 < 30 ms on CI for B-200), but report measured failures honestly. The test must catch regression at overlapping wait claims and exact transition timestamps.
+
+Also assess whether the existing actor-wait event vocabulary can model Scenario D's **50 admitted/blocked vs ~950 policy-held/idle** rank interpretation while QPU Run=1, resource Queue=49. If not, report the precise missing admission-trigger semantics and minimum above-DES interface proposal; do not silently invent actor counters or extend DES. Do not change production playback/UI directly. Update Agent-A role file, run focused tests/CI, hand off exact SHA and performance evidence, then STOP for F review. No new dependencies unless justified.
+
+### C — UI/product: ACTIVE (public demo conversion)
+**Branch:** `agent/ui`. Pull current `agent/integration` coordination and app source. **Do not wholesale merge the integration branch into C**; selectively port the approved A producer/selector files needed to compile and test on C's laboratory branch. C may work in parallel with A's performance track using the *accepted* selector semantics, but cannot claim B/D scalability until performance is measured.
+
+**Checkpoint 1, immediately:** Switch the public Scenario-A bundle to `qamp-a-1000-demo.mjs`; preserve the original four-rank A fixture for tests. Keep logical DAG compact (4 tasks), show 1,000 actor Working/Blocked/Idle composition and QPU state, preserve restored-equilibrium playback and strictly off-critical-path behavior. Ensure default UI does not flood the screen with per-task IDs; keep expanded DES under Advanced. Test Builder/Explore, parameter edit/re-simulate, Compare and A synthetic provenance. Retain scenario identifiers and model semantics.
+
+**Checkpoint 2:** Implement source-faithful 1,000-actor Scenario B, about 200 submitters/quantum results, one QPU lane, complete-result global gate, and collective return to useful work. Distinguish policy-held service serialization from QPU resource queue; the wall must be dependency/synchronization-driven. Keep logical DAG grouped, preserve the existing small B fixture/tests, and measure simulation, actor state, and full playback/keyframe construction. If playback is too slow, pause high-scale browser acceptance until Agent A's projection optimization is accepted, without shrinking the public scale silently.
+
+**Checkpoint 3 (conditional feasibility):** Design and implement C's latency/transfer-dominated independent local dependencies and D's bounded-throttling pipeline (about 1,000 ranks and 50 outstanding admitted quantum jobs where faithful). For C, avoid an artificial saturated queue when the tutorial specifies QPU idle/no sustained queue; for D, distinguish QPU running/resource queue/policy-held and truthful actor Blocked/Idle counts. Do not fake exact old tutorial frame counts if the accepted DES/actor projection cannot represent them; instead provide a minimal source-grounded adapter proposal and acceptance gap for F/A review. Never create one visible DAG node per rank. Synthetic timing assumptions must remain explicit.
+
+All checkpoints: no raw-event blinking; one synchronized time cursor; reproducible `npm test`, typecheck/build, relevant small-fixture regressions, performance evidence, and exact production file/commit handoff. Preserve existing GitHub Actions workflow semantics and source-import guard for Scenario B. Stop at bounded checkpoints for F promotion decisions.
+
+### B / D / E — CLOSED / IDLE
+No changes without a concrete F-approved defect.
+
+### F — NEXT
+1. Review A optimization and C public-A/B checkpoints independently; selective PORT and integration CI at each gate.
+2. Resolve/record C/D semantic gaps before public release; require actual full-size playback evidence.
+3. Browser accept A–D, custom edit/simulate/Compare, and Advanced.
+4. Final cleanup (lockfile, deployment root, docs) and then decide main promotion.
