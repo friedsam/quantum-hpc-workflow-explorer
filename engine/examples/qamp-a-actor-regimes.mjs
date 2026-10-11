@@ -156,7 +156,7 @@ export const qampScenarioAActorRunConfiguration = {
 export function makeScenarioASingleRequestProfile({
   id = "qamp-a-baseline-profile",
   quantumSeconds = 2,
-  backgroundSeconds = 8,
+  backgroundSeconds = 10,
 } = {}) {
   return {
     schemaVersion: 1,
