@@ -12,13 +12,14 @@
     "test:causal": "node --test tests/causal-system-state.test.mjs",
     "test:playback": "node --test tests/playback.test.mjs",
     "test:architecture": "node --test tests/architecture.test.mjs",
-    "test": "npm run test:engine && npm run test:design && npm run test:actor && npm run test:scenario-a && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:actor-playback && npm run test:round4c && npm run test:architecture",
+    "test": "npm run test:engine && npm run test:design && npm run test:actor && npm run test:scenario-a && npm run test:scenario-a-1000 && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:actor-playback && npm run test:round4c && npm run test:architecture",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:actor": "node --test tests/actor-model.test.mjs",
     "test:actor-playback": "node --test tests/actor-aware-view.test.mjs",
     "test:round4c": "node --test tests/round4c-ui.test.mjs",
-    "test:scenario-a": "node --test tests/scenario-a-regimes.test.mjs"
+    "test:scenario-a": "node --test tests/scenario-a-regimes.test.mjs",
+    "test:scenario-a-1000": "node --test tests/scenario-a-1000-demo.test.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",

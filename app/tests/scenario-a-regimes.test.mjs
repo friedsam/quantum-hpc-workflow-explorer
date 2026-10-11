@@ -186,10 +186,10 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
       "task_completed",
       "classical-background"
     ),
-    8
+    10
   );
   assert.ok(
-    eventTime(result, "task_started", "local-consume") <
+    eventTime(result, "task_completed", "local-consume") <
       eventTime(
         result,
         "task_completed",
@@ -201,7 +201,7 @@ test("Scenario A explicit ordinal selection gives one blocked submitter while co
     result,
     "classical-background"
   );
-  assert.equal(background.endS - background.startS, 8);
+  assert.equal(background.endS - background.startS, 10);
   assert.equal(
     workflowSpec.tasks.find(
       (task) => task.id === "classical-background"
