@@ -62,3 +62,23 @@ Current external package verification:
 5. deployment-root migration from legacy `web/`;
 6. dependency lock/reproducibility decision;
 7. bounded-repeat authoring decision for final 10-day scope.
+
+## 2026-10-11 — Round 4F accepted; Round 4G parallel work
+
+### Engineering integration
+- Accepted `range` / `all-except` actor selectors symbolically in design/manifest, consumed by actor projection. No DES changes.
+- Added separate 1,000-rank, four-logical-task Scenario A producer/test while retaining the four-rank regression.
+- Fixed A synthetic baseline: local result path finishes at 8 s, independent classical background and makespan 10 s, preserving all actors Working through t=7.
+- Source Agent A `1254de649fb0c15d458df20879c40a745e5e9e6d` passed 47/47 Node tests in CI `38118493908`.
+- Selective staging code at `3cb83d81a09c9e41246975ddd975a66ce1859f13` and `92f0332bcf38167a1ebdd9143db83965e697ae8b`; corrected the prior Round-4C makespan assertion at `b52116ddaff7e435f16ab8c7e13336d0d9ffd7b6`.
+- Staging app CI `38119401020` SUCCESS. Experimental Agent-A benchmark and workflow files were not ported. Existing .github Actions unchanged.
+
+### Parallel work assigned in Git
+- A reactivated for a bounded, post-DES, actor-state indexing/performance checkpoint at 1,000 actors and B-like 200 QPU tasks, and to assess Scenario-D admitted/blocked vs policy-held/idle semantics.
+- C reactivated to convert public presets to tutorial-like scale in bounded steps (A, B, conditional C/D), retaining compact logical DAG and old fixtures, testing full playback and custom authoring/Compare.
+- Agents B/D/E stay closed unless an explicit defect needs them.
+
+### Risks and release gates
+- A baseline 1,000-actor snapshots measured ~0.65 ms mean with only four tasks plus one wait; B/D high-multiplicity performance is **unmeasured**, and naïve actor × task/wait scanning can dominate the UI. Do not treat complexity extrapolation as a benchmark.
+- Need source-faithful C/D behavior without invented global gates, provider queues, admission-blocked actors, or raw frame counters.
+- Browser acceptance, dependency lock/reproducible `npm ci`, deployment root `web/` -> `app/`, product docs, and `main` promotion remain pending.
