@@ -11,6 +11,17 @@ import {
   hasGlobalSynchronizationSemantics
 } from "./simpleState.mjs";
 
+function compactTaskIds(ids: readonly string[]): string {
+  if (ids.length === 0) return "—";
+  const visible = ids.slice(0, 3);
+  return (
+    visible.join(", ") +
+    (ids.length > visible.length
+      ? " · +" + (ids.length - visible.length) + " more"
+      : "")
+  );
+}
+
 interface Props {
   bundle: WorkflowDesignBundle | null;
   manifest: CompilationManifest | null;
@@ -261,17 +272,17 @@ export function SimpleExplorerSummary({
             <div>
               <strong>{qpu.running.length}</strong>
               <span>running</span>
-              <small>{qpu.running.join(", ") || "—"}</small>
+              <small>{compactTaskIds(qpu.running)}</small>
             </div>
             <div>
               <strong>{qpu.queued.length}</strong>
               <span>resource queued</span>
-              <small>{qpu.queued.join(", ") || "—"}</small>
+              <small>{compactTaskIds(qpu.queued)}</small>
             </div>
             <div>
               <strong>{qpu.policyHeld.length}</strong>
               <span>policy held</span>
-              <small>{qpu.policyHeld.join(", ") || "—"}</small>
+              <small>{compactTaskIds(qpu.policyHeld)}</small>
             </div>
           </div>
 
