@@ -556,3 +556,7 @@ No changes without a concrete F-approved defect.
 2. Resolve/record C/D semantic gaps before public release; require actual full-size playback evidence.
 3. Browser accept A–D, custom edit/simulate/Compare, and Advanced.
 4. Final cleanup (lockfile, deployment root, docs) and then decide main promotion.
+
+## Future FTQC extension (documentation only) — 2026-10-12
+
+**Status:** DEFER implementation. User priority remains finishing a credible, browser-demonstrable prototype. Agent F should include a short, accurately qualified future-work paragraph in final README / IBM description, using `FTQC_EXTENSION_OUTLOOK.md` and D015. Concept: coupled *application orchestration + FTQC execution/resource tuning* across cloud-accessed and tightly integrated HPC–QPU deployment profiles. Do not conflate remote internet latency with QEC feedback loops, which must run on the quantum-system/local real-time control path. Preserve the present frozen DES and all active Round-4G A/C assignments; no additional developer track is opened.

@@ -9,6 +9,7 @@ Updated: 2026-10-11
 - **Resolved:** Scenario A quantum-dependent branch completes t=8 before independent background/makespan t=10, retaining restored full-actor work through t=7.
 - **Known release gates:** scale/performance evidence, A–D browser acceptance, custom edit/Compare smoke, dependency lock/reproducible CI, migration from legacy `web/` deployment root to `app/`, final documentation, then `main`.
 - **Invariant:** frozen v1 DES authoritative; `WorkflowDesign + RunConfiguration + SystemProfile` compiles to DES input; actor counts and Working/Blocked/Idle are derived above DES. Slurm scheduler-neutral export is post-prototype.
+- **Future scope (documentation only):** FTQC extension to hierarchical logical-QPU resource profiles, QEC/decoder and magic-state constraints, and cloud vs tightly integrated HPC–QPU tradeoffs. Outline: `docs/coordination/FTQC_EXTENSION_OUTLOOK.md`; no change to Round 4G tasks, schema, frozen DES, or prototype claims.
 
 ## Original 2026-10-02 baseline (historical)
 
