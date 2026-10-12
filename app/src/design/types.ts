@@ -40,7 +40,7 @@ export interface ActorParticipation {
   stateDuringTask: "working" | "blocked";
 }
 
-export type ActorWaitTaskEvent = "ready" | "started" | "completed";
+export type ActorWaitTaskEvent = "ready" | "queued" | "started" | "completed";
 export type ActorWaitInstanceCondition =
   | "matching-instance"
   | "any-instance"
@@ -212,6 +212,7 @@ export interface CompiledDependencyManifestEntry {
 
 export type CompiledActorWaitEventType =
   | "task_ready"
+  | "task_queued"
   | "task_started"
   | "task_completed";
 
