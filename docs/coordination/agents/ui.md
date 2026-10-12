@@ -1671,3 +1671,234 @@ STOP here for Agent F review.
 **Performance gate:** measure actual full `buildActorAwareVisualKeyframes` + time-cursor snapshot, React Explorer/Builder interactions, not just A actor index microbenchmark; verify expanded ~401-task compiled DAG does NOT mount/render/layout while Advanced is closed (lazy disclosure or equivalent). Ensure no raw blinking, maintain single cursor, preserve QPU labels, Scenario B browser `process` guard, custom edit and Compare, and no new libraries. CI tests + typecheck/build, and browser smoke if accessible.
 
 **Deliverable:** exact commits/paths, numeric performance, proof of public B actor transitions and DAG compactness, failures, PORT recommendation. STOP before C/D implementation; A's separate D queued-trigger repair is pending F review.
+
+
+## Round 4H Checkpoint 2 completion — public B200
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F REVIEW.**
+
+Green code head before this handoff:
+`d5af9ea637139a04325e046645f0f7a29daf1ffe`
+
+Validated GitHub Actions run:
+`38321799519` — **success**
+
+### Accepted indexed actor projection ported
+
+Selectively ported from accepted integration D016; no whole-branch merge:
+
+- `app/src/design/actor-state-index.mjs` = `dc87341ba6eedf789774e7d10ae5c5d86c3b0af1`
+- `app/src/design/actor-state.mjs` = accepted cached-projector wrapper
+- projector types/declarations
+- semantic-oracle helper/tests
+- accepted 1,000-actor/200-QPU stress fixture
+
+The existing detail/count APIs remain backward compatible.
+
+Production actor-aware playback now also passes the indexed group-summary provider, so default actor composition/signatures do not rescan 1,000 actors for every visual state.
+
+Frozen DES remains unchanged:
+`app/src/engine/runtime.mjs` = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`.
+
+### Public Scenario B200
+
+Added dedicated production preset:
+
+- `app/src/presets/qamp-b-200-demo.mjs`
+- `app/src/presets/qamp-b-200-demo.d.mts`
+
+Public B now uses:
+
+- 1,000 persistent MPI-rank actors;
+- 200 submitting/preparation instances;
+- 200 quantum evaluations;
+- one collective continuation;
+- **3 logical DAG nodes**;
+- **401 compiled DES tasks**;
+- CPU capacity/reservation 1,000;
+- QPU capacity 1;
+- QPU max-in-flight 1;
+- one-per-instance submitter result waits;
+- explicit all-rank complete-result global gate;
+- all 1,000 ranks return to collective useful work after all results complete.
+
+All numeric times and scale choices are explicitly synthetic.
+
+The accepted B200 stress fixture remains test/reference data and is not reused as the production preset object.
+
+### Bottleneck semantics
+
+Verified public B:
+
+- makespan = **202 s** synthetic model time;
+- QPU resource-queue wait = **0**;
+- QPU admission/service-serialization wait > 0;
+- t=0.5: **200 Working / 0 Blocked / 800 Idle**;
+- t=1: **0 Working / 200 Blocked / 800 Idle**;
+- t=2: **0 Working / 1,000 Blocked / 0 Idle**;
+- at t=2 blocked-reason counts:
+  - global synchronization = **1,000**
+  - quantum-result = **199**
+- t=201.5: **1,000 Working / 0 Blocked / 0 Idle**.
+
+At t=1:
+- QPU running = 1;
+- resource queue depth = 0;
+- policy-held quantum tasks = 199.
+
+Therefore policy admission serializes QPU service, but the explanatory full-group wall is the authored complete-result dependency/global synchronization. Resource queue is not misrepresented as the cause.
+
+### Logical/default UI remains compact
+
+Public B default DAG:
+- Preparation ×200
+- Quantum ×200
+- Collective ×1
+
+No one-node-per-rank or one-node-per-compiled-task default rendering.
+
+Default QPU task-ID text is bounded to the first 3 IDs plus a `+N more` summary, preventing 199 policy-held IDs from flooding the screen.
+
+Small 4-rank Scenario B remains as regression/browser-safety fixture:
+`app/src/presets/qamp-b-actor.mjs` = `d8343e544ff693160af9f2bcae84fec3be66e703`.
+
+Its `typeof process !== "undefined"` browser import guard is unchanged.
+
+### Advanced compiled graph is now truly lazy
+
+Both collapsed Advanced disclosures now conditionally mount their contents only when opened:
+
+- Explorer `Advanced / Diagnostics`
+- Builder `Advanced · compiled DES preview`
+
+Therefore B200's 401-node compiled React Flow graph is not mounted and ELK layout is not invoked while Advanced is closed.
+
+Advanced content itself is preserved; this is mounting/lifecycle behavior only.
+
+### Builder edit / recompile / rerun / Compare evidence
+
+Focused B200 acceptance verifies a Builder-style quantum modeled-wall-time edit:
+
+- baseline quantum wall time = 1 s;
+- edited quantum wall time = 1.5 s;
+- baseline makespan = 202 s;
+- edited makespan = 302 s;
+- resource queue remains zero;
+- admission serialization remains positive.
+
+Saved RunRecord envelopes retain design/config/profile/manifest/result, and user-entered provenance is preserved for comparison.
+
+### Measured Checkpoint-2 performance
+
+Measured in GitHub Actions CI using the accepted indexed projection and the production B200 bundle.
+
+Logical compile / Builder-recompile proxy:
+- median **11.762 ms**
+
+Frozen-DES simulation:
+- median **22.491 ms**
+
+Full `buildActorAwareVisualKeyframes`:
+- produced **203 keyframes**
+- median **35.451 ms**
+- max **92.083 ms**
+
+Explorer time-cursor sweep:
+- **405 cursor positions** (0 to 202 s in 0.5-s increments)
+- each position derives generic system state + indexed actor-aware summary
+- median **0.411 ms**
+- p95 **0.988 ms**
+- max **4.467 ms**
+- total sweep **208.641 ms**
+
+Process-memory observation across the performance test:
+- RSS delta **44,425,216 bytes**
+- heap-used delta **8,721,656 bytes**
+
+These are CI-process observations, not isolated browser peak-memory measurements.
+
+Assessment:
+- data/state path is comfortably interactive for B200;
+- full keyframe construction is a one-time tens-of-ms cost and acceptable for prototype review;
+- actual browser React render/click latency was not measurable with the available Agent-C tool environment, so Agent-F browser acceptance remains required.
+
+### Validation
+
+Green run `38321799519`:
+
+- engine: **17/17**
+- design/compiler: **7/7**
+- small actor model: **6/6**
+- indexed actor projector/oracle: **9/9**
+- 4-rank Scenario A: **7/7**
+- public A1000: **5/5**
+- QAMP regression fixtures: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback: **7/7**
+- Round-4C product acceptance: **6/6**
+- Round-4G A UI/data path: **4/4**
+- Round-4G A performance: **1/1**
+- Round-4H B state/synchronization: **2/2**
+- Round-4H B edit/provenance: **2/2**
+- Round-4H B performance: **1/1**
+- architecture/UI: **18/18**
+
+Total Node tests: **115/115**.
+
+Also green:
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 223 modules transformed.
+
+Build output:
+- CSS ~42.06 kB / 8.41 kB gzip;
+- JS ~1.987 MB / 609.19 kB gzip;
+- existing non-blocking large-chunk warning remains.
+
+### Known costs / limitations
+
+1. The reference-oracle indexed-actor test suite itself takes roughly 30 s in CI because it intentionally compares optimized and naïve semantics across B200; this is test cost, not product cursor cost.
+2. Actual browser interaction timing is still pending Agent-F smoke/acceptance.
+3. Opening Advanced on B200 intentionally mounts the 401-task diagnostic graph; only the collapsed default path is guaranteed not to mount/layout it.
+4. Scenario D queued actor-wait repair is a separate Agent-A/F track and was not consumed here.
+5. Public C/D were not started.
+
+### Exact production areas changed
+
+- indexed actor projection files under `app/src/design/`;
+- actor-aware playback summary adapter;
+- dedicated `qamp-b-200-demo.*`;
+- public B bundle/description;
+- Explorer indexed-summary wiring;
+- lazy Advanced mounting in Explore and Builder;
+- bounded QPU task-ID display;
+- focused tests/package scripts.
+
+### Preservation audit
+
+Unchanged:
+- frozen DES;
+- public 1,000-rank Scenario A;
+- small A/B fixtures;
+- Scenario-B browser `process` guard;
+- Round-4D system-topology strip;
+- Round-4D modeled-wall-time wording;
+- bounded logical routing;
+- custom authoring;
+- Compare;
+- one synchronized cursor;
+- no raw-event blinking;
+- no new UI framework/dependency.
+
+### Dependencies
+
+No new dependency.
+
+### Recommendation
+
+**PORT Round 4H Checkpoint 2.**
+
+The public B200 data/state path is performant enough for prototype browser review. Browser smoke remains an integration-stage acceptance item, not a reason to shrink the public model.
+
+STOP before public C/D implementation.
