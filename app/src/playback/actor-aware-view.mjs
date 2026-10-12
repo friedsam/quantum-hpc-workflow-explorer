@@ -6,16 +6,56 @@ function actorGroups(manifest) {
   );
 }
 
-function requireActorDeriver(manifest, deriveActorStateDetailAt) {
+function requireActorProvider(
+  manifest,
+  deriveActorStateDetailAt,
+  deriveActorGroupSummaryAt
+) {
   if (actorGroups(manifest).length === 0) return;
-  if (typeof deriveActorStateDetailAt !== "function") {
+  if (
+    typeof deriveActorStateDetailAt !== "function" &&
+    typeof deriveActorGroupSummaryAt !== "function"
+  ) {
     throw new TypeError(
-      "deriveActorStateDetailAt is required when authored actor groups exist"
+      "actor detail or group-summary derivation is required when authored actor groups exist"
     );
   }
 }
 
-function summarizeGroup(
+function validateSummary(group, summary, simTimeS) {
+  if (!summary || summary.actorGroupId !== group.actorGroupId) {
+    throw new Error(
+      `invalid actor summary for ${group.actorGroupId} at t=${simTimeS}`
+    );
+  }
+
+  const total =
+    summary.working +
+    summary.blocked +
+    summary.idle;
+
+  if (summary.count !== group.count || total !== group.count) {
+    throw new Error(
+      `actor-state count mismatch for ${group.actorGroupId} at t=${simTimeS}`
+    );
+  }
+
+  return Object.freeze({
+    actorGroupId: group.actorGroupId,
+    label: group.label,
+    ...(group.kind ? { kind: group.kind } : {}),
+    count: group.count,
+    working: summary.working,
+    blocked: summary.blocked,
+    idle: summary.idle,
+    blockedReasonCounts: Object.freeze({
+      ...(summary.blockedReasonCounts ?? {}),
+    }),
+    evidence: "authored+derived",
+  });
+}
+
+function summarizeGroupFromDetails(
   manifest,
   result,
   group,
@@ -25,7 +65,11 @@ function summarizeGroup(
   const counts = { working: 0, blocked: 0, idle: 0 };
   const blockedReasonCounts = {};
 
-  for (let actorOrdinal = 1; actorOrdinal <= group.count; actorOrdinal += 1) {
+  for (
+    let actorOrdinal = 1;
+    actorOrdinal <= group.count;
+    actorOrdinal += 1
+  ) {
     const detail = deriveActorStateDetailAt(
       manifest,
       result,
@@ -49,38 +93,67 @@ function summarizeGroup(
     }
   }
 
-  if (counts.working + counts.blocked + counts.idle !== group.count) {
-    throw new Error(
-      `actor-state count mismatch for ${group.actorGroupId} at t=${simTimeS}`
-    );
-  }
-
   const sortedReasons = Object.fromEntries(
     Object.entries(blockedReasonCounts).sort(([a], [b]) =>
       a.localeCompare(b)
     )
   );
 
-  return Object.freeze({
-    actorGroupId: group.actorGroupId,
-    label: group.label,
-    ...(group.kind ? { kind: group.kind } : {}),
-    count: group.count,
-    working: counts.working,
-    blocked: counts.blocked,
-    idle: counts.idle,
-    blockedReasonCounts: Object.freeze(sortedReasons),
-    evidence: "authored+derived",
-  });
+  return validateSummary(
+    group,
+    {
+      actorGroupId: group.actorGroupId,
+      count: group.count,
+      ...counts,
+      blockedReasonCounts: sortedReasons,
+    },
+    simTimeS
+  );
+}
+
+function summarizeGroup(
+  manifest,
+  result,
+  group,
+  simTimeS,
+  deriveActorStateDetailAt,
+  deriveActorGroupSummaryAt
+) {
+  if (typeof deriveActorGroupSummaryAt === "function") {
+    return validateSummary(
+      group,
+      deriveActorGroupSummaryAt(
+        manifest,
+        result,
+        group.actorGroupId,
+        simTimeS
+      ),
+      simTimeS
+    );
+  }
+
+  return summarizeGroupFromDetails(
+    manifest,
+    result,
+    group,
+    simTimeS,
+    deriveActorStateDetailAt
+  );
 }
 
 export function deriveActorGroupSummariesAt(
   manifest,
   result,
   simTimeS,
-  deriveActorStateDetailAt
+  deriveActorStateDetailAt,
+  deriveActorGroupSummaryAt
 ) {
-  requireActorDeriver(manifest, deriveActorStateDetailAt);
+  requireActorProvider(
+    manifest,
+    deriveActorStateDetailAt,
+    deriveActorGroupSummaryAt
+  );
+
   return Object.freeze(
     actorGroups(manifest).map((group) =>
       summarizeGroup(
@@ -88,7 +161,8 @@ export function deriveActorGroupSummariesAt(
         result,
         group,
         simTimeS,
-        deriveActorStateDetailAt
+        deriveActorStateDetailAt,
+        deriveActorGroupSummaryAt
       )
     )
   );
@@ -98,21 +172,26 @@ export function actorCompositionSignatureAt(
   manifest,
   result,
   simTimeS,
-  deriveActorStateDetailAt
+  deriveActorStateDetailAt,
+  deriveActorGroupSummaryAt
 ) {
   const summaries = deriveActorGroupSummariesAt(
     manifest,
     result,
     simTimeS,
-    deriveActorStateDetailAt
+    deriveActorStateDetailAt,
+    deriveActorGroupSummaryAt
   );
   if (summaries.length === 0) return "";
 
   return summaries
     .map((group) => {
-      const reasons = Object.entries(group.blockedReasonCounts)
+      const reasons = Object.entries(
+        group.blockedReasonCounts
+      )
         .map(([reason, count]) => `${reason}=${count}`)
         .join(",");
+
       return [
         group.actorGroupId,
         `w=${group.working}`,
@@ -124,61 +203,73 @@ export function actorCompositionSignatureAt(
     .join("||");
 }
 
-/**
- * Compose actor state onto the existing generic resource/causal snapshot.
- * The resource and causal layers are never rewritten.
- */
 export function attachActorStateToSystemSnapshot(
   genericSnapshot,
   manifest,
   result,
-  deriveActorStateDetailAt
+  deriveActorStateDetailAt,
+  deriveActorGroupSummaryAt
 ) {
-  if (!genericSnapshot || !Number.isFinite(genericSnapshot.simTimeS)) {
-    throw new TypeError("genericSnapshot with finite simTimeS is required");
+  if (
+    !genericSnapshot ||
+    !Number.isFinite(genericSnapshot.simTimeS)
+  ) {
+    throw new TypeError(
+      "genericSnapshot with finite simTimeS is required"
+    );
   }
 
   const summaries = deriveActorGroupSummariesAt(
     manifest,
     result,
     genericSnapshot.simTimeS,
-    deriveActorStateDetailAt
+    deriveActorStateDetailAt,
+    deriveActorGroupSummaryAt
   );
 
   return Object.freeze({
     ...genericSnapshot,
     actors: Object.freeze({
-      mode: summaries.length > 0 ? "actor-aware" : "generic",
+      mode:
+        summaries.length > 0
+          ? "actor-aware"
+          : "generic",
       groups: summaries,
     }),
   });
 }
 
-/**
- * Actor-aware playback remains event/keyframe based. Authored actor-state
- * composition and blocked-reason composition augment presentation signatures,
- * preventing compression across material actor-state changes without creating
- * per-actor keyframes.
- */
 export function buildActorAwareVisualKeyframes(
   result,
   {
     manifest,
     deriveActorStateDetailAt,
+    deriveActorGroupSummaryAt,
     ...playbackOptions
   } = {}
 ) {
   const groups = actorGroups(manifest);
+
   if (groups.length === 0) {
-    return buildVisualKeyframes(result, playbackOptions).map((frame) =>
+    return buildVisualKeyframes(
+      result,
+      playbackOptions
+    ).map((frame) =>
       Object.freeze({
         ...frame,
-        actors: Object.freeze({ mode: "generic", groups: Object.freeze([]) }),
+        actors: Object.freeze({
+          mode: "generic",
+          groups: Object.freeze([]),
+        }),
       })
     );
   }
 
-  requireActorDeriver(manifest, deriveActorStateDetailAt);
+  requireActorProvider(
+    manifest,
+    deriveActorStateDetailAt,
+    deriveActorGroupSummaryAt
+  );
 
   const frames = buildVisualKeyframes(result, {
     ...playbackOptions,
@@ -187,7 +278,8 @@ export function buildActorAwareVisualKeyframes(
         manifest,
         result,
         simTimeS,
-        deriveActorStateDetailAt
+        deriveActorStateDetailAt,
+        deriveActorGroupSummaryAt
       ),
   });
 
@@ -201,7 +293,8 @@ export function buildActorAwareVisualKeyframes(
             manifest,
             result,
             frame.snapshot.simTimeS,
-            deriveActorStateDetailAt
+            deriveActorStateDetailAt,
+            deriveActorGroupSummaryAt
           ),
         }),
       })

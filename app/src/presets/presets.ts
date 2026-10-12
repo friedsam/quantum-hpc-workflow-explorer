@@ -81,7 +81,7 @@ export const presets: WorkflowPreset[] = [
   {
     key: "scenario-b",
     label: "Scenario B",
-    description: "Actor-aware synchronization wall with 4 persistent MPI ranks.",
+    description: "Synthetic 1,000-rank / 200-submitter complete-result synchronization wall with one serial QPU lane.",
     source: "design",
     designBundle: scenarioBLogicalBundle
   },

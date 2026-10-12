@@ -266,3 +266,76 @@ test("Round 4G keeps original 4-rank A regression fixture and Compare path", asy
   assert.match(compare, /runSpec/);
   assert.match(compare, /runResult/);
 });
+
+
+test("Round 4H public Scenario B uses compact B200 logical producer", async () => {
+  const logical = await readFile(
+    path.join(srcRoot, "presets", "logical-presets.mjs"),
+    "utf8"
+  );
+  const presets = await readFile(
+    path.join(srcRoot, "presets", "presets.ts"),
+    "utf8"
+  );
+
+  assert.match(logical, /qamp-b-200-demo\.mjs/);
+  assert.match(logical, /qampScenarioB200Design/);
+  assert.doesNotMatch(logical, /qampScenarioBActorDesign/);
+  assert.match(
+    presets,
+    /Synthetic 1,000-rank \/ 200-submitter complete-result synchronization wall/
+  );
+});
+
+test("Round 4H Advanced compiled graphs are lazily mounted", async () => {
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+  const builder = await readFile(
+    path.join(srcRoot, "components", "builder", "BuilderView.tsx"),
+    "utf8"
+  );
+
+  assert.match(explore, /const \[advancedOpen, setAdvancedOpen\]/);
+  assert.match(explore, /onToggle=.*setAdvancedOpen/s);
+  assert.match(explore, /\{advancedOpen \? \(/);
+  assert.match(explore, /Expanded compiled DES graph/);
+
+  assert.match(builder, /const \[advancedOpen, setAdvancedOpen\]/);
+  assert.match(builder, /onToggle=.*setAdvancedOpen/s);
+  assert.match(builder, /\{advancedOpen \? \(/);
+  assert.match(builder, /Compiled WorkflowSpec DAG/);
+});
+
+test("Round 4H default QPU summaries bound large task-id lists", async () => {
+  const summary = await readFile(
+    path.join(srcRoot, "components", "explore", "SimpleExplorerSummary.tsx"),
+    "utf8"
+  );
+
+  assert.match(summary, /compactTaskIds/);
+  assert.match(summary, /slice\(0, 3\)/);
+  assert.match(summary, /more/);
+  assert.doesNotMatch(summary, /qpu\.policyHeld\.join/);
+});
+
+test("Round 4H playback uses accepted indexed actor group summaries", async () => {
+  const hook = await readFile(
+    path.join(srcRoot, "components", "explore", "useExplorerPlayback.ts"),
+    "utf8"
+  );
+  const actorView = await readFile(
+    path.join(srcRoot, "playback", "actor-aware-view.mjs"),
+    "utf8"
+  );
+  const actorState = await readFile(
+    path.join(srcRoot, "design", "actor-state.mjs"),
+    "utf8"
+  );
+
+  assert.match(hook, /deriveActorGroupSummaryAt/);
+  assert.match(actorView, /deriveActorGroupSummaryAt/);
+  assert.match(actorState, /actor-state-index\.mjs/);
+  assert.match(actorState, /WeakMap/);
+});
