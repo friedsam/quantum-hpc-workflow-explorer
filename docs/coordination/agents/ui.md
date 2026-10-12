@@ -1430,3 +1430,234 @@ No further Agent-C work unless browser acceptance finds a concrete defect.
 **Checkpoint 3 (feasibility first):** C latency/data wall and D throughput/throttle pipeline at tutorial-like scale. Identify exact missing representational or performance constraints before implementing; no hand-coded counters, invented provider queues, or fabricated B/C/D ranks. In D target ~50 admitted jobs (QPU 1 run +49 resource queued) distinct from policy-held demand; if actor Waiting/Blocked from admission is unrepresentable under current actorWait event vocabulary, raise the issue for F/A rather than labeling policy-held actors Blocked. C should not create a QPU queue wall when modeling communication-only delay.
 
 **Deliverable each checkpoint:** exact paths/commit, tests/CI, synthetic assumptions, performance evidence, unresolved defects, recommended PORT/REIMPLEMENT/DEFER and STOP for F review. Frozen DES, GitHub Actions, Advanced diagnostics, custom authoring and Compare must survive. Do not add UI-heavy actor authoring or post-prototype features.
+
+
+## Round 4G Checkpoint 1 completion — public 1,000-actor Scenario A
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F REVIEW.**
+
+Green code head before this handoff:
+`5f68a9337c7d898f5c70ebb732a220327f59e677`
+
+Validated GitHub Actions run:
+`38310612630` — **success**
+
+### Public Scenario A conversion
+
+The public `scenario-a` preset now uses the accepted Round-4F producer:
+
+- `app/src/presets/qamp-a-1000-demo.mjs`
+- accepted integration blob: `a945de6e7aea9fb8c86dbcd3317737d9e5092731`
+
+The public bundle retains the existing preset key/identity in the preset registry while using the accepted design/config/profile:
+
+- 1,000 persistent HPC-rank actors;
+- 4 logical tasks;
+- 4 compiled DES tasks;
+- one aggregate independent-classical task covering ranks 2–1000;
+- rank 1 local submission → one QPU request → local resumed work;
+- CPU capacity 1,000;
+- QPU capacity 1;
+- no baseline max-in-flight/admission control;
+- no global synchronization gate;
+- all numeric times explicitly synthetic.
+
+Default UI remains compact because actor scale is represented in actor counts, not DOM/DAG node count.
+
+### Accepted symbolic selectors ported selectively
+
+Selectively ported from accepted `agent/integration` rather than merging the branch:
+
+- `app/src/design/types.ts` = `dcee438a3069789f69b847054d92c03e426a5e14`
+- `app/src/design/compiler.mjs` = `9da33034e8416772fb6f8c62a655cc7a1f469155`
+- `app/src/design/actor-state.mjs` = `1562ee2fd5d6065b7f7c71249f2df8aef7f746f1`
+
+Public A uses:
+- `range(1..1)` for rank 1;
+- `all-except [1]` for ranks 2–1000.
+
+No frozen-DES change.
+
+### Four-rank regression fixture preserved
+
+The small actor-aware A fixture remains in the repository and test matrix:
+
+- `app/src/presets/qamp-a-actor-regimes.mjs` = `19db68047aeb183046736bfb59dc5f5d635b7eb8`
+- `app/tests/scenario-a-regimes.test.mjs` retained.
+
+This remains the compact regression fixture; it is no longer the public A preset.
+
+### Public A behavioral acceptance
+
+Verified:
+
+- actor count = **1,000**;
+- logical tasks = **4**;
+- compiled DES tasks = **4**;
+- at t=0.5: **1000 Working / 0 Blocked / 0 Idle**;
+- at t=1.5: **999 Working / 1 Blocked / 0 Idle**;
+- at t=4 and t=7: **1000 Working / 0 Blocked / 0 Idle**;
+- QPU idle in restored equilibrium;
+- QPU queue wait = **0**;
+- QPU admission wait = **0**;
+- local branch completes at t=8;
+- independent background completes at t=10;
+- makespan = t=10;
+- local quantum branch therefore remains **strictly off the critical path**.
+
+### Builder / edit / re-simulate / Compare evidence
+
+Added `app/tests/round4g-a-ui.test.mjs`.
+
+It verifies:
+
+- public A is the accepted compact 1,000-actor producer;
+- the Builder-style design/profile path remains compilable;
+- a modeled-wall-time edit re-simulates deterministically;
+- baseline makespan 10 → edited background-wall-time makespan 12;
+- saved RunRecord envelopes retain design/config/profile/manifest/result;
+- baseline and edited runs remain directly comparable through authoritative result metrics;
+- user-entered edit provenance is preserved.
+
+Existing Compare component/source path is unchanged.
+
+### Synthetic provenance
+
+The public A profile explicitly retains:
+
+- provenance kind `synthetic`;
+- source `Round 4F Scenario A 1000-rank demo`;
+- profile assumption that all numeric times are synthetic and illustrative.
+
+Public preset description also identifies the 1,000-rank scale as synthetic.
+
+### Playback / visible-state acceptance
+
+Actor-aware playback uses the existing accepted Round-4C playback path unchanged.
+
+Verified:
+
+- restored-equilibrium frames exist with 1,000 Working / 0 Blocked / 0 Idle;
+- logical DAG remains 4 nodes;
+- default Explore shows aggregate actor counts and QPU state;
+- expanded DES remains under Advanced / Diagnostics;
+- no one-node-per-rank expansion;
+- no raw-event blinking;
+- one synchronized time cursor remains unchanged.
+
+### Measured Checkpoint-1 performance
+
+Measured on GitHub Actions CI using the current accepted baseline actor projection (not Agent-A's still-unreviewed Round-4G optimization):
+
+Compile, 7 repeats:
+- min **0.071 ms**
+- median **0.295 ms**
+- max **0.837 ms**
+
+Frozen-DES simulation, 7 repeats:
+- min **0.062 ms**
+- median **0.151 ms**
+- max **7.004 ms**
+
+Four actor snapshots (t=0.5, 1.5, 4, 7), 7 repeats:
+- min **4.938 ms**
+- median **5.608 ms**
+- max **13.938 ms**
+- median per queried snapshot ≈ **1.402 ms**
+
+Full actor-aware keyframe construction, 5 repeats:
+- keyframes: **5**
+- min **5.136 ms**
+- median **13.975 ms**
+- max **21.972 ms**
+
+Process-memory observation across the benchmark test:
+- RSS: 50,970,624 → 73,392,128 bytes; delta **22,421,504 bytes**
+- heap used: 5,812,752 → 6,908,512 bytes; delta **1,095,760 bytes**
+
+These are CI-process observations, not isolated browser peak-memory measurements.
+
+Conclusion for Checkpoint 1:
+- A-1000 is comfortably usable under the current projection in CI.
+- **No claim is made about B-200 or D-1000 scalability.**
+- Agent A's separate Round-4G optimization is still pending Agent-F review and was deliberately not imported.
+
+### Round-4D / browser-safe preservation
+
+Verified unchanged:
+
+- frozen DES `app/src/engine/runtime.mjs` = `4023b3daf8ae7e50c6e7b7be8a886e2ea392dc84`;
+- browser-safe Scenario-B module = `d8343e544ff693160af9f2bcae84fec3be66e703`;
+- `ExploreView.tsx` = `a519cbd107035429c9729011d00412baaef76b45`;
+- Round-4D topology strip = `c37b826d6ee78b4330100f06de7474da3ec329f0`;
+- Round-4D bounded logical routing = `ccd50e7356853ef4039c228faa28dfcc4016f71f`.
+
+No B/C/D public conversion was started.
+
+### Validation
+
+Green run `38310612630`:
+
+- engine: **17/17**
+- design/compiler: **7/7**
+- actor model/state: **6/6**
+- 4-rank Scenario A/regimes: **7/7**
+- 1,000-rank Scenario A: **5/5**
+- QAMP A-D regression fixtures: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback: **7/7**
+- Round-4C product acceptance: **6/6**
+- Round-4G public-A UI/data path: **4/4**
+- Round-4G A-1000 performance evidence: **1/1**
+- architecture/UI: **14/14**
+
+Total Node tests: **97/97**.
+
+Also green:
+
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 222 modules transformed.
+
+Build output:
+
+- CSS ~42.06 kB / 8.41 kB gzip;
+- JS ~1.981 MB / 607.47 kB gzip;
+- existing non-blocking large-chunk warning remains.
+
+### Exact Checkpoint-1 production changes
+
+From the Round-4G assignment head, only A/selectors/tests changed:
+
+- `app/src/design/types.ts`
+- `app/src/design/compiler.mjs`
+- `app/src/design/actor-state.mjs`
+- `app/src/presets/qamp-a-1000-demo.mjs`
+- `app/src/presets/qamp-a-actor-regimes.mjs` (latest accepted small regression fixture)
+- `app/src/presets/logical-presets.mjs` (A bundle switch only)
+- `app/src/presets/presets.ts` (A description only)
+- A-focused test/package/architecture files.
+
+### Failures corrected during checkpoint
+
+Two intermediate CI failures were expected migration mismatches:
+
+1. producer was ported before the latest 4-rank regression test, so the old test briefly expected the prior critical-path timing;
+2. the Round-4C public A-D test still referenced the old public A task ID / makespan assumptions.
+
+Both were corrected by porting/updating accepted regression expectations. No DES or public model behavior was changed to satisfy the tests.
+
+### Dependencies / workflows
+
+No dependency change.
+
+GitHub Actions workflow semantics unchanged.
+
+### Proposal
+
+**PORT Checkpoint 1.**
+
+Do not begin public-scale B on this branch until Agent F reviews/promotes this checkpoint and separately decides whether to port Agent A's Round-4G actor-projection optimization.
+
+STOP here for Agent F review.
