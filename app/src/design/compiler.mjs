@@ -43,37 +43,102 @@ function validateProvenanced(entry, label) {
   validateProvenance(entry.provenance, label);
 }
 
-function validateActorSelectionShape(selection, label) {
-  if (!isObject(selection) ||
-      !["all", "one-per-instance", "ordinals"].includes(selection.kind)) {
-    fail(`${label} must be all, one-per-instance, or ordinals`);
-  }
-
-  if (selection.kind !== "ordinals") return;
-
-  if (!Array.isArray(selection.actorOrdinals) ||
-      selection.actorOrdinals.length === 0) {
-    fail(`${label}.actorOrdinals must be a non-empty array`);
+function validateOrdinalList(actorOrdinals, label) {
+  if (!Array.isArray(actorOrdinals) ||
+      actorOrdinals.length === 0) {
+    fail(`${label} must be a non-empty array`);
   }
 
   const seen = new Set();
-  for (const ordinal of selection.actorOrdinals) {
+  for (const ordinal of actorOrdinals) {
     if (!positiveInteger(ordinal) || seen.has(ordinal)) {
-      fail(`${label}.actorOrdinals must contain unique positive integers`);
+      fail(`${label} must contain unique positive integers`);
     }
     seen.add(ordinal);
   }
 }
 
-function validateActorSelectionAgainstCount(selection, count, label) {
-  validateActorSelectionShape(selection, label);
-  if (selection.kind !== "ordinals") return;
+function validateActorSelectionShape(selection, label) {
+  if (!isObject(selection) ||
+      ![
+        "all",
+        "one-per-instance",
+        "ordinals",
+        "range",
+        "all-except",
+      ].includes(selection.kind)) {
+    fail(
+      `${label} must be all, one-per-instance, ordinals, range, or all-except`
+    );
+  }
 
-  for (const ordinal of selection.actorOrdinals) {
-    if (ordinal > count) {
-      fail(`${label}: actor ordinal ${ordinal} exceeds actor count ${count}`);
+  if (selection.kind === "ordinals" ||
+      selection.kind === "all-except") {
+    validateOrdinalList(
+      selection.actorOrdinals,
+      `${label}.actorOrdinals`
+    );
+    return;
+  }
+
+  if (selection.kind === "range") {
+    if (!positiveInteger(selection.startActorOrdinal) ||
+        !positiveInteger(selection.endActorOrdinal) ||
+        selection.startActorOrdinal > selection.endActorOrdinal) {
+      fail(
+        `${label} range bounds must be positive integers with start <= end`
+      );
     }
   }
+}
+
+function validateActorSelectionAgainstCount(selection, count, label) {
+  validateActorSelectionShape(selection, label);
+
+  if (selection.kind === "ordinals" ||
+      selection.kind === "all-except") {
+    for (const ordinal of selection.actorOrdinals) {
+      if (ordinal > count) {
+        fail(
+          `${label}: actor ordinal ${ordinal} exceeds actor count ${count}`
+        );
+      }
+    }
+    return;
+  }
+
+  if (selection.kind === "range" &&
+      selection.endActorOrdinal > count) {
+    fail(
+      `${label}: range end ${selection.endActorOrdinal} exceeds actor count ${count}`
+    );
+  }
+}
+
+function compileActorSelection(selection) {
+  if (selection.kind === "all") {
+    return { kind: "all" };
+  }
+
+  if (selection.kind === "ordinals" ||
+      selection.kind === "all-except") {
+    return {
+      kind: selection.kind,
+      actorOrdinals: [...selection.actorOrdinals],
+    };
+  }
+
+  if (selection.kind === "range") {
+    return {
+      kind: "range",
+      startActorOrdinal: selection.startActorOrdinal,
+      endActorOrdinal: selection.endActorOrdinal,
+    };
+  }
+
+  fail(
+    `compileActorSelection cannot directly compile ${selection.kind}`
+  );
 }
 
 function taskMultiplicity(task) {
@@ -738,22 +803,12 @@ function buildActorAssignments(task, instance, runConfiguration) {
     const actorCount =
       runConfiguration.actorGroupCounts[participation.actorGroupId];
 
-    if (participation.selection.kind === "all") {
+    if (participation.selection.kind !== "one-per-instance") {
       assignments.push({
         actorGroupId: participation.actorGroupId,
-        selection: { kind: "all" },
-        stateDuringTask: participation.stateDuringTask,
-      });
-      continue;
-    }
-
-    if (participation.selection.kind === "ordinals") {
-      assignments.push({
-        actorGroupId: participation.actorGroupId,
-        selection: {
-          kind: "ordinals",
-          actorOrdinals: [...participation.selection.actorOrdinals],
-        },
+        selection: compileActorSelection(
+          participation.selection
+        ),
         stateDuringTask: participation.stateDuringTask,
       });
       continue;
@@ -818,18 +873,11 @@ function buildActorWaitManifest(
   const manifest = {};
 
   for (const wait of design.actorWaits ?? []) {
-    if (wait.selection.kind === "all" ||
-        wait.selection.kind === "ordinals") {
+    if (wait.selection.kind !== "one-per-instance") {
       manifest[wait.id] = {
         designWaitId: wait.id,
         actorGroupId: wait.actorGroupId,
-        selection:
-          wait.selection.kind === "all"
-            ? { kind: "all" }
-            : {
-                kind: "ordinals",
-                actorOrdinals: [...wait.selection.actorOrdinals],
-              },
+        selection: compileActorSelection(wait.selection),
         activation: compileActorWaitBoundary(
           wait.activation,
           expandedTasks,

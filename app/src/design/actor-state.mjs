@@ -13,6 +13,13 @@ function selectionSelectsActor(selection, actorOrdinal) {
   if (selection.kind === "ordinals") {
     return selection.actorOrdinals.includes(actorOrdinal);
   }
+  if (selection.kind === "range") {
+    return selection.startActorOrdinal <= actorOrdinal &&
+      actorOrdinal <= selection.endActorOrdinal;
+  }
+  if (selection.kind === "all-except") {
+    return selection.actorOrdinals.indexOf(actorOrdinal) === -1;
+  }
   return selection.actorOrdinal === actorOrdinal;
 }
 
