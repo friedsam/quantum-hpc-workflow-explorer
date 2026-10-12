@@ -25,3 +25,6 @@ jobs:
 
       - name: Scenario A 1000-rank benchmark
         run: node engine/benchmarks/scenario-a-1000-benchmark.mjs
+
+      - name: Scenario B 1000-actor projector benchmark
+        run: node --expose-gc engine/benchmarks/actor-projector-b200-benchmark.mjs
