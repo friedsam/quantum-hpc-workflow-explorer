@@ -96,3 +96,10 @@ Current external package verification:
 - Producer `agent/engine@099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, A CI `38321701185` success. Selective staging `db73f506eeee0649ffe0ee972900695a528e92e9`, integration CI `38322036602` success. Frozen DES and release CI workflows intact.
 - A benchmark reports mean compile ≈76.81 ms, DES simulation ≈268.27 ms, projector initialization ≈89.77 ms; count-query p95 ≈0.00284 ms. This is engine evidence, **not browser playback acceptance**.
 - Agent A CLOSED/IDLE; C still ACTIVE on Round 4H public B200. FTQC D015 remains documented/deferred.
+## 2026-10-12 — Round 4H C accepted; public Scenario C assigned
+
+[verified] C source `c80de454f1814dd42e7878a80113affea9760d67`, CI `38321963530` SUCCESS. Integration `39a8a628ce122342b88794d6c8914b657c81521c`, CI `38322560759` SUCCESS (122 tests, typecheck/build). No DES, D018 actor-wait union, dependency, or GitHub Actions change.
+
+Public B: 1,000 persistent actors; 200 paired prepare/QPU instances + full-result all-rank collective; logical DAG 3 nodes, compiled DES 401. At t=1: 200 Blocked/800 Idle, QPU Run 1, Queue 0, policy-held 199; t=2: all 1,000 Blocked; t=201.5: all 1,000 Working. Synthetic makespan 202 s. Indexed playback summary and lazy collapsed Advanced accepted.
+
+C Node benchmark: full 203-keyframe build median ~35.45 ms; cursor p95 ~0.988 ms. Browser paint/click and open Advanced-401 are **unverified**. C now addresses communication-dominated Scenario C; simultaneous 1,000 arrivals would falsely make QPU service the bottleneck, so cohort/stagger modeling must be explicit. D and FTQC remain later.

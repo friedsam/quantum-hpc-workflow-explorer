@@ -52,3 +52,8 @@ Do not select a final production implementation/toolchain until first checkpoint
 
 **A repair:** PORT accepted; `queued` authored actor-wait event compiles to existing frozen-v1 `task_queued`. Integration `db73f506eeee0649ffe0ee972900695a528e92e9`; CI `38322036602` SUCCESS. Source `agent/engine@099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`; CI `38321701185` SUCCESS. No DES event/scheduler modification. D stress fixture in `app/tests/fixtures`, no public D conversion yet. See D018/REVIEW_QUEUE.
 **Agent status:** A CLOSED/IDLE, C ACTIVE on B200, B/D/E idle. C should consume queued-wait contract at its natural heartbeat and must not be interrupted before B checkpoint. F next reviews B then coordinates C/D and release gates. D's full return to 1000 Working requires explicit authored next cycle; cannot fabricate it at final makespan.
+## Coordinator checkpoint — 2026-10-12 (B200 accepted, C underway)
+
+Agent-C public B200 PORT accepted from `c80de454f1814dd42e7878a80113affea9760d67` to integration `39a8a628ce122342b88794d6c8914b657c81521c`, CI `38322560759` green (122/122 tests). Preserves frozen DES and A's D018 `queued` actor-wait. B200 logical view 3 tasks / 1,000 actors, 200 serial QPU results, explicit synchronization wall; state/provenance and lazy diagnostics validated. Node timing is not browser proof.
+
+D019/Round 4I: C ACTIVE for source-grounded communication-dominated Scenario C with QPU idle during positive transfer + actor Blocked, no sustained queue or global barrier. A/B/D/E idle. Next F gate: C review/port, then D, browser acceptance, npm lock/CI, deployment, final docs and main. FTQC future only.

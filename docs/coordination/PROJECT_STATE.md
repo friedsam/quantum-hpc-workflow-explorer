@@ -5,9 +5,9 @@ Updated: 2026-10-11
 ## Current checkpoint — 2026-10-11 (supersedes 2026-10-02 onboarding status below)
 
 - **Canonical staging:** `agent/integration`; last accepted app integration `65277404c9cc0000e8170567874456a2ccdd6c20`; the Round-4E integration validation passed. The built app is React/TypeScript/Vite with a logical Builder, frozen deterministic DES, actor/causal playback, simplified Explorer, Advanced diagnostics, and Compare.
-- **Current open gate:** Round 4H Agent A's queued actor-wait D admission repair accepted/ported to integration at `db73f506eeee0649ffe0ee972900695a528e92e9`, CI `38322036602` SUCCESS. Agent A CLOSED/IDLE. Agent C continues public Scenario B (B200) work pending review; public C/D and browser acceptance remain future gates. Small A-D tests retained.
+- **Current open gate:** Round 4H public B200 accepted/ported to `agent/integration@39a8a628ce122342b88794d6c8914b657c81521c` (CI `38322560759`: 122/122 tests). Agent C ACTIVE on Round 4I, public transfer/latency-dominated Scenario C. A/B/D/E idle. Browser acceptance and public D are still pending.
 - **Resolved:** Scenario A quantum-dependent branch completes t=8 before independent background/makespan t=10, retaining restored full-actor work through t=7.
-- **Known release gates:** public B200 full playback/browser acceptance, public C/D scale/semantics and scenario-D authored second-cycle behavior, A-D browser smoke, custom editing/Compare, dependency lock/reproducible CI, `web/`→`app/` deployment root, README, and main promotion.
+- **Known release gates:** Scenario C faithful transfer wall; public D QPU throughput/admission and authored loop; actual browser A–D playback/Advanced/Builder/Compare; lockfile/reproducible `npm ci`; deployment-root move `web/`→`app/`; README/FTQC outlook; `main` promotion.
 - **Invariant:** frozen v1 DES authoritative; `WorkflowDesign + RunConfiguration + SystemProfile` compiles to DES input; actor counts and Working/Blocked/Idle are derived above DES. Slurm scheduler-neutral export is post-prototype.
 - **Future scope (documentation only):** FTQC extension to hierarchical logical-QPU resource profiles, QEC/decoder and magic-state constraints, and cloud vs tightly integrated HPC–QPU tradeoffs. Outline: `docs/coordination/FTQC_EXTENSION_OUTLOOK.md`; no change to Round 4G tasks, schema, frozen DES, or prototype claims.
 

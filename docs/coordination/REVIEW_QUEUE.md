@@ -620,3 +620,30 @@ Do not interrupt or change C's B200 deliverable. At next natural coordinator hea
 
 ### F — NEXT
 Review C's public B200 delivery independently and check full keyframe construction, hidden Advanced expanded-graph mounting, Builder/Explore/Compare, real browser responsiveness. Selectively port + CI. Then assess public C/D, browser acceptance, lock/deployment/docs/main. FTQC extension remains documented as future work only.
+
+## Round 4H final coordinator review — 2026-10-12
+
+**Agent C Checkpoint 2 — PORT ACCEPTED/CLOSED.** Agent-C HEAD `c80de454f1814dd42e7878a80113affea9760d67` CI `38321963530` success. Staged integration `39a8a628ce122342b88794d6c8914b657c81521c`, CI `38322560759` success (122 Node tests, typecheck/build). Accepted: B200 public grouped 3-node DAG/401 compiled tasks; 1,000 authored actors, 200 submitter results, one serial QPU, full-result collective gate, exact indexed actor summaries, bounded QPU-ID labels, lazy Advanced graph mounting. Small B remains regression. Frozen DES, D018 actor wait, dependencies, and CI workflows unchanged.
+
+**Unverified release gate:** actual React browser paint/click/playback and Advanced opened with 401 compiled nodes. Node CI full-keyframe median 35.451 ms and cursor p95 0.988 ms establish computation only, not browser responsiveness.
+
+## Round 4I — public Scenario C transfer/latency wall
+
+### C — ACTIVE; single bounded checkpoint
+**Branch:** `agent/ui`. Fetch/read latest `agent/integration` `AGENTS.md`, policy, `PROJECT_STATE.md`, `REVIEW_QUEUE.md`, `INTERFACE_CONTRACTS.md`, D018/D019 and source `https://github.com/HPC-Quantum/Documentation-website/blob/main/scenario-c.md`. Do not wholesale merge. Reconcile lab files with accepted B200 staging and D018 `queued` wait while preserving current A/B fixtures.
+
+**Goal:** author source-faithful public C at ~1,000 persistent MPI-rank actors using a compact logical DAG. Positive modeled dependency transfers (outbound and result return) dominate short QPU/classical tasks; QPU is frequently idle during transfer and no meaningful QPU queue/admission backlog is generated; independent results release local continuation without global synchronization. Support latency and/or data/bandwidth transfer assumptions as already modeled; no provider-queue invention.
+
+**Critical anti-invariant:** 1,000 simultaneous QPU-ready tasks at QPU capacity 1 create service saturation, which is **Scenario D, not C**. Use source-grounded staggered arrivals, bounded cohorts, or explicitly declared actor aggregation rather than falsifying queue/load. Avoid one rendered node per rank. Distinguish an aggregate modeled task from individual requests and label all synthetic assumptions. QPU capacity 1 remains the tutorial setting; do not silently inflate capacity to erase the queue.
+
+**Blocked semantics:** require a time interval with positive authored communication in flight, some ranks Blocked waiting for their *returned result*, QPU Running=0 and resource Queue=0. Explicit actor wait may activate on preparation completion and should release no earlier than the consumer's `task_ready` after positive return-transfer dependency completes; check half-open event boundaries and Working+Blocked conflicts. No UI-derived fictitious actor counters/transfer-state resource.
+
+**Acceptance:** communication duration dominates service; QPU utilization low and queue/admission wait near zero; independent consumers start before the final QPU result completes; no global gate; time/profile edit that lowers transfer latency reduces makespan/Blocked interval with same topology; Builder→recompile→simulate→Compare retains source provenance. Check raw-event playback compression, source-event keyframe mapping, full cursor/keyframe CI timing, and collapsed Advanced laziness. Preserve A/B/B200 tests, D1000 stress (once selectively ported into C lab) and D018. No DES changes, new framework or FTQC implementation.
+
+**Handoff:** report exact paths/commit, 1,000-rank actor grouping choice, measured timing/perf, CI/test evidence, known limits and PORT/DEFER recommendation. Update role file and STOP for F review. Do not implement public D yet.
+
+### A / B / D / E — CLOSED/IDLE
+A's higher-layer `queued -> task_queued` is accepted. Do not start another track without F's explicit request.
+
+### F — NEXT
+Review C transfer wall, selective PORT + integration CI; then scope public D as a separate gate, including authored next-cycle behavior. Full A–D browser/Builder/Compare smoke, dependency lock/npm ci, deployment-root migration to `app/`, README with deferred FTQC outlook, main promotion follow.

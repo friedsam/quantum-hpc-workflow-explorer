@@ -53,3 +53,8 @@ Integration CI after A-index: `38313659986` SUCCESS. Integration CI after C publ
 | F | ACTIVE — C review, browser, deployment/release |
 
 Agent A source `099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, integration `db73f506eeee0649ffe0ee972900695a528e92e9`, CI `38322036602` SUCCESS. No frozen DES or GitHub Actions changes. D1000 acceptance remains test-only; A's 1000 Idle at makespan is not a rendered next-loop Working phase.
+## Current status — Round 4I, 2026-10-12
+- A/B/D/E: CLOSED/IDLE.
+- C: ACTIVE on source-faithful C communication wall; public A1000 and B200 accepted/ported.
+- F: ACTIVE integration, browser and release gates.
+- Staging B200: `39a8a628ce122342b88794d6c8914b657c81521c`; CI `38322560759` SUCCESS. Deferred D018 next-cycle fidelity and FTQC D015 future scope preserved.
