@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { DependencySpec, TaskSpec, WorkflowSpec } from "../../domain/types";
 import type { ValidationIssue } from "../../domain/validation";
 import type { DesignDependency, DesignTask } from "../../design/types";
@@ -51,6 +51,8 @@ function LogicalBuilder({
   onDesignBundleChange: (bundle: WorkflowDesignBundle) => void;
   issues: ValidationIssue[];
 }) {
+
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const bundle = compilationContext.bundle;
   const selectedTask = bundle.design.tasks.find(
@@ -297,8 +299,14 @@ function LogicalBuilder({
         </aside>
       </div>
 
-      <details className="advanced-diagnostics builder-advanced">
+      <details
+        className="advanced-diagnostics builder-advanced"
+        onToggle={(event) =>
+          setAdvancedOpen(event.currentTarget.open)
+        }
+      >
         <summary>Advanced · compiled DES preview</summary>
+        {advancedOpen ? (
         <div className="advanced-stack">
           {compilationContext.manifest ? (
             <CompilationProvenance
@@ -318,6 +326,7 @@ function LogicalBuilder({
             </div>
           )}
         </div>
+        ) : null}
       </details>
     </>
   );
