@@ -264,8 +264,8 @@ test("user-facing logical A-D presets compile and preserve their accepted mechan
   );
 
   const b = simulateWorkflow(compiled.B);
-  assert.equal(compiled.B.tasks.length, 5);
-  assert.equal(b.metrics.makespanS, 8);
+  assert.equal(compiled.B.tasks.length, 401);
+  assert.equal(b.metrics.makespanS, 202);
   assert.equal(b.metrics.queueWaitSecondsByPool.qpu, 0);
   assert.ok(b.metrics.admissionWaitSecondsByPool.qpu > 0);
 
