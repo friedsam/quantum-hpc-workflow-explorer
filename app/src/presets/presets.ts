@@ -74,7 +74,7 @@ export const presets: WorkflowPreset[] = [
   {
     key: "scenario-a",
     label: "Scenario A",
-    description: "Local overlap: QPU path remains off the overall critical path.",
+    description: "Synthetic 1,000-rank actor-aware local overlap; one rank uses the QPU while 999 continue useful classical work.",
     source: "design",
     designBundle: scenarioALogicalBundle
   },

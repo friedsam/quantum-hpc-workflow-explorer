@@ -1,8 +1,8 @@
 import {
-  qampScenarioAActorDesign,
-  qampScenarioAActorRunConfiguration,
-  qampScenarioABaselineProfile
-} from "./qamp-a-actor-regimes.mjs";
+  qampScenarioA1000Design,
+  qampScenarioA1000RunConfiguration,
+  qampScenarioA1000Profile
+} from "./qamp-a-1000-demo.mjs";
 import {
   qampScenarioBActorDesign,
   qampScenarioBActorRunConfiguration,
@@ -88,9 +88,9 @@ export const customLogicalBundle = {
 };
 
 export const scenarioALogicalBundle = {
-  design: structuredClone(qampScenarioAActorDesign),
-  runConfiguration: structuredClone(qampScenarioAActorRunConfiguration),
-  systemProfile: structuredClone(qampScenarioABaselineProfile)
+  design: structuredClone(qampScenarioA1000Design),
+  runConfiguration: structuredClone(qampScenarioA1000RunConfiguration),
+  systemProfile: structuredClone(qampScenarioA1000Profile)
 };
 
 export const scenarioBLogicalBundle = {

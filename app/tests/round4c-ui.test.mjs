@@ -250,7 +250,7 @@ test("user-facing logical A-D presets compile and preserve their accepted mechan
     a.events.find(
       (event) =>
         event.type === "task_started" &&
-        event.taskId === "local-consume"
+        event.taskId === "local-resume"
     ).simTimeS,
     3
   );
@@ -258,7 +258,7 @@ test("user-facing logical A-D presets compile and preserve their accepted mechan
     a.events.find(
       (event) =>
         event.type === "task_completed" &&
-        event.taskId === "local-consume"
+        event.taskId === "local-resume"
     ).simTimeS,
     8
   );
