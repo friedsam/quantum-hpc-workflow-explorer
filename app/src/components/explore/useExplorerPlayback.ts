@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CompilationManifest } from "../../design/types";
-import { deriveActorStateDetailAt } from "../../design/actor-state.mjs";
+import {
+  deriveActorGroupSummaryAt,
+  deriveActorStateDetailAt
+} from "../../design/actor-state.mjs";
 import type { SimulationResult } from "../../domain/types";
 import {
   buildActorAwareVisualKeyframes,
@@ -41,7 +44,8 @@ export function useExplorerPlayback(
     () =>
       buildActorAwareVisualKeyframes(result, {
         manifest: manifest ?? undefined,
-        deriveActorStateDetailAt
+        deriveActorStateDetailAt,
+        deriveActorGroupSummaryAt
       }),
     [result, manifest]
   );
