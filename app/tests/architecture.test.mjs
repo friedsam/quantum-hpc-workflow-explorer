@@ -230,3 +230,39 @@ test("accepted graph dependencies remain the only new runtime frameworks", async
   assert.ok(pkg.dependencies.elkjs);
   assert.equal(Object.keys(pkg.dependencies).length, 4);
 });
+
+
+test("Round 4G public Scenario A uses the compact 1,000-actor producer", async () => {
+  const logical = await readFile(
+    path.join(srcRoot, "presets", "logical-presets.mjs"),
+    "utf8"
+  );
+  const presets = await readFile(
+    path.join(srcRoot, "presets", "presets.ts"),
+    "utf8"
+  );
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+
+  assert.match(logical, /qamp-a-1000-demo\.mjs/);
+  assert.match(logical, /qampScenarioA1000Design/);
+  assert.doesNotMatch(logical, /qampScenarioAActorDesign/);
+  assert.match(presets, /Synthetic 1,000-rank actor-aware local overlap/);
+  assert.match(explore, /projectDesignDag/);
+  assert.match(explore, /Advanced \/ Diagnostics/);
+  assert.match(explore, /Expanded compiled DES graph/);
+});
+
+test("Round 4G keeps original 4-rank A regression fixture and Compare path", async () => {
+  await access(path.join(srcRoot, "presets", "qamp-a-actor-regimes.mjs"));
+  await access(path.join(appRoot, "tests", "scenario-a-regimes.test.mjs"));
+
+  const compare = await readFile(
+    path.join(srcRoot, "components", "compare", "CompareView.tsx"),
+    "utf8"
+  );
+  assert.match(compare, /runSpec/);
+  assert.match(compare, /runResult/);
+});
