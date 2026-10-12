@@ -1661,3 +1661,13 @@ GitHub Actions workflow semantics unchanged.
 Do not begin public-scale B on this branch until Agent F reviews/promotes this checkpoint and separately decides whether to port Agent A's Round-4G actor-projection optimization.
 
 STOP here for Agent F review.
+
+## Coordinator Round 4H assignment — 2026-10-12
+
+**ACTIVE — public Scenario B / Checkpoint 2 only, STOP for F review.** F accepted/staged your public 1,000-rank A checkpoint (`d57abf5`, integration CI `38313789867`). Fetch/read `origin/agent/integration` at/after **`f59849ea58ca5f123821ed470814802a5fdb0371`**, D016/D017, `REVIEW_QUEUE.md` Round 4H, `PROJECT_STATE.md`, `INTERFACE_CONTRACTS.md`, and `AGENTS.md`. Do not wholesale merge branches; port accepted actor-state index from F staging into your lab so C does not benchmark old scan code.
+
+**Build public B200:** 1,000 persistent ranks, ~200 submitters/results, one QPU service lane, complete-result global synchronization and 1,000-rank collective recovery. Keep only a few logical DAG nodes; small B stays regression. Separate QPU resource queued from policy-held and make synchronization/dependency, not policy admission, the explanation of the collective wall. Use `app/tests/fixtures/qamp-b-200-stress.mjs` in integration as test/reference, but author a clearly labeled synthetic public preset separately.
+
+**Performance gate:** measure actual full `buildActorAwareVisualKeyframes` + time-cursor snapshot, React Explorer/Builder interactions, not just A actor index microbenchmark; verify expanded ~401-task compiled DAG does NOT mount/render/layout while Advanced is closed (lazy disclosure or equivalent). Ensure no raw blinking, maintain single cursor, preserve QPU labels, Scenario B browser `process` guard, custom edit and Compare, and no new libraries. CI tests + typecheck/build, and browser smoke if accessible.
+
+**Deliverable:** exact commits/paths, numeric performance, proof of public B actor transitions and DAG compactness, failures, PORT recommendation. STOP before C/D implementation; A's separate D queued-trigger repair is pending F review.
