@@ -41,3 +41,10 @@ Do not select a final production implementation/toolchain until first checkpoint
 **Current parallel assignments:** A performance/indexing for large actor projections, C public A–D grouped presets. B/D/E idle. Required: check their branch heads and artifacts independently; selectively PORT only compatible changes, CI after each. Actor-state and playback performance at B200/D50 scale is an open gate, not solved. D admitted/blocked vs policy-held/idle state may require a higher-layer event contract repair; never fake counts. Preserve GitHub Actions and `main` until shippable.
 
 **Next F actions:** review A/C checkpoints, CI, browser acceptance of A–D and custom edit/Compare, cleanup/lockfile/deployment/docs, and final promotion decision. Git is the durable record.
+## Coordinator checkpoint — 2026-10-12
+
+**F Round 4G review accepted:** indexed actor projection (A) and public 1,000-rank Scenario A (C). Selective app staging commits `e8d872c67e6e0530c4bcfb14ca7a7818ccb70ec9` and `d57abf519babb9a8a9770b6ff9c6dd11927f3b6f`; respective CI runs `38313659986` and `38313789867` SUCCESS. Frozen DES/GitHub Actions unchanged. Documentation at D016 and Round 4G final review.
+
+**Round 4H:** A is activated for minimal high-level `queued` actor wait trigger (D017); C is activated for public B200 and whole-playback/browser perf. Both STOP at bounded checkpoint. Do not represent actor-blocked counts through UI guesswork; high-level wait claims + exact DES events only. C must not render expanded 401-node DES graph while Advanced is closed.
+
+**F next:** review A/C; port selectively; run CI/browser acceptance; then C/D public conversion; dependency lock, deployment root migration, README, main promotion. FTQC D015 documentation-only.

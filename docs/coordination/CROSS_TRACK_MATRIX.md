@@ -1,6 +1,6 @@
 # Cross-Track Matrix
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 
 | Track | Accepted contribution | Production location/status |
 |---|---|---|
@@ -31,3 +31,15 @@ Updated: 2026-10-11
 | F Integration | Active: selective promotion/CI, staging coherence, browser acceptance | Review A/C checkpoints independently; preserve release gates |
 
 **Accepted Round-4F staging:** `b52116ddaff7e435f16ab8c7e13336d0d9ffd7b6` and successful app CI `38119401020`. Frozen DES and .github Actions unchanged. New actor selectors are **above** the engine input/output contract. Source-derived performance extrapolation is not a measured B/C/D benchmark.
+## Round 4H active status (supersedes Round 4G table above)
+
+| Track | Current state | Gate |
+|---|---|---|
+| A | Round 4G actor index accepted/ported; active on D017 `queued` actor-wait trigger above frozen DES | Exact D50 admissions / actor semantics, CI, F review |
+| B | Idle | No assignment |
+| C | Round 4G public A accepted/ported; active on B200 public preset | Full playback, hidden expanded-graph work, browser/perf, CI, F review |
+| D | Idle | No assignment |
+| E | Idle | No assignment |
+| F | Coordinator active; acceptance, selective staging, release | A/C review, C/D completion and browser smoke, lock/deploy/docs/main |
+
+Integration CI after A-index: `38313659986` SUCCESS. Integration CI after C public A: `38313789867` SUCCESS. The 401-task B expansion and D actor-admission state are **not yet browser-accepted**. FTQC remains post-prototype documentation only.

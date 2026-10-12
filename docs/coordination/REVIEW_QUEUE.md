@@ -560,3 +560,47 @@ No changes without a concrete F-approved defect.
 ## Future FTQC extension (documentation only) — 2026-10-12
 
 **Status:** DEFER implementation. User priority remains finishing a credible, browser-demonstrable prototype. Agent F should include a short, accurately qualified future-work paragraph in final README / IBM description, using `FTQC_EXTENSION_OUTLOOK.md` and D015. Concept: coupled *application orchestration + FTQC execution/resource tuning* across cloud-accessed and tightly integrated HPC–QPU deployment profiles. Do not conflate remote internet latency with QEC feedback loops, which must run on the quantum-system/local real-time control path. Preserve the present frozen DES and all active Round-4G A/C assignments; no additional developer track is opened.
+
+## Round 4G coordinator final reviews — 2026-10-12
+
+### A — indexed actor projection: PORT ACCEPTED
+- Agent branch `054dce39c5becf214c4f2718f5d8ea2cd4bd53e1`; CI `38311060733` SUCCESS. Actual B200 microbenchmark: run `38310735762`.
+- Accepted reusable `createActorStateProjector`, WeakMap cache over immutable manifest/result identities, indexed task-event/actor-interval/group-summary derivation, and preserved legacy detail/count APIs. A 1,000-rank, 200-result Scenario-B test fixture with reference oracle verifies exact interval boundaries, blocked reasons, conflict rejection and deterministic signatures.
+- Selective app PORT at `e8d872c67e6e0530c4bcfb14ca7a7818ccb70ec9`; integration `38313659986` SUCCESS. Tests and typecheck/build pass. Frozen DES untouched.
+- D admission-trigger representational gap accepted as bounded follow-up under D017, not silently added.
+
+### C — public 1,000-rank Scenario A: PORT ACCEPTED
+- Agent branch `efc3b11c513a911b1f0f5905ce8743a5215c508e`; CI `38310788980` SUCCESS. Checkpoint-1 code CI `38310612630` SUCCESS, 97/97 Node tests.
+- Public Scenario A now loads accepted four-node, 1,000-actor fixture with correct local quantum wait, restored classical work, no queue/admission, and strict off-critical path (local t=8, makespan t=10). Four-rank regression remains.
+- Selective app PORT at `d57abf519babb9a8a9770b6ff9c6dd11927f3b6f`; integration `38313789867` SUCCESS. A-only acceptance tests, source descriptions, and run-comparison provenance preserved.
+- No B/C/D public-scale changes were made by C. UI browser acceptance is still pending.
+
+## Round 4H — source-faithful B demo and minimal D admission-wait repair
+
+### Agent A — Engine/model: ACTIVE (bounded D repair, D017)
+Branch `agent/engine`. Read latest integration D016/D017, this Round 4H assignment, AGENTS and frozen v1 contract before changing code.
+
+**Implement only an additive actor-wait event `queued` above DES:** extend `ActorWaitTaskEvent`, `CompiledActorWaitEventType`, high-level compiler validation and mapping `queued → task_queued`; update associated .d.ts/.d.mts types, actor-state index compatibility and regression tests. The frozen DES already emits `task_queued` both for QPU work immediately started and work waiting on QPU resources after admission. **Do not alter DES events or scheduling.**
+
+Create a deterministic *test-only* D stress producer: ~1,000 persistent MPI-rank actors, corresponding classical preparation + QPU requests + local continuations, QPU capacity 1 and max-in-flight 50. Test interior/exact timestamps such that:
+- while the initial 1,000 classical preparations execute, their actors are Working;
+- after preparations hand off, exactly 50 admitted actors are Blocked (1 QPU running +49 resource-queued), with ~950 still policy-held/Idle;
+- after one quantum completion, one actor resumes local classical work while another is admitted and Blocked; ensure resource queue and policy-held counts stay distinct and Working+Blocked never overlaps;
+- the original 4-rank B and D tests and optimized projector oracle still pass.
+Use only synthetically declared task durations. Test the zero-width immediate-queue/start case and resulting actor interval. Report whether the existing wait lifecycle can represent D all the way to eventual restored Working without inventing ranks or temporal semantics.
+
+Provide exact benchmark/CI/paths, affected types and any limitation. No UI, no generalized admission ontology, no new dependencies. STOP for F review. If the proposed `queued` event cannot preserve correct actor behavior, report the precise counterexample instead of widening scope.
+
+### Agent C — UI/product: ACTIVE (Checkpoint 2, public B200)
+Branch `agent/ui`. Read latest integration D016/D017 and Round 4H; selectively port accepted A's indexed actor-projection files from `agent/integration` into the C lab instead of reverting them or merging entire branches. Preserve public 1,000-rank A and small A/B fixtures.
+
+Implement **Scenario B** public preset with ~1,000 persistent actors, ~200 submitters/QPU evaluations, one serial QPU lane, explicit complete-result global synchronization, 1,000-actor collective recovery, and a **compact logical DAG** (not 401 visible default nodes). The accepted A B200 stress fixture under `app/tests/fixtures/qamp-b-200-stress.mjs` is reference/test data; place production B in a dedicated public preset with explicit synthetic provenance. Policy admission may serialize service, but the *explanatory* bottleneck is full-result dependency; resource queue must not be misrepresented as cause.
+
+Validation must measure full `buildActorAwareVisualKeyframes`, time-cursor scrubbing, actor-state snapshots, and Browser Builder/Explore responsiveness, not just the indexed actor microbenchmark. Confirm Advanced's expanded DES graph is lazily mounted or bounded when collapsed so 401 concrete nodes do not silently render behind disclosure. Retain one synchronized cursor, no raw-event blinking, test custom edits/recompile/rerun and Compare, preserve Scenario B `process` browser-import guard. Do not replace frozen DES or import new UI frameworks.
+
+Run npm tests, typecheck/build, CI; provide exact SHA/files, measured timings, known defects and PORT/DEFER assessment. STOP for F review before beginning public C/D. Scenario D's queued wait type is under A's separate repair; do not hand-code D counters.
+
+### B / D / E — CLOSED/IDLE
+
+### Agent F — NEXT
+Review both A and C bounded checkpoints; selectively PORT and require integration CI. Then decide C/D public implementation and full browser acceptance. Finish dependency lock, deployment-root migration, docs, and main only once coherent. FTQC D015 remains documentation-only and is not on the development critical path.

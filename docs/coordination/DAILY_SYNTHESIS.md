@@ -82,3 +82,10 @@ Current external package verification:
 - A baseline 1,000-actor snapshots measured ~0.65 ms mean with only four tasks plus one wait; B/D high-multiplicity performance is **unmeasured**, and naïve actor × task/wait scanning can dominate the UI. Do not treat complexity extrapolation as a benchmark.
 - Need source-faithful C/D behavior without invented global gates, provider queues, admission-blocked actors, or raw frame counters.
 - Browser acceptance, dependency lock/reproducible `npm ci`, deployment root `web/` -> `app/`, product docs, and `main` promotion remain pending.
+## 2026-10-12 — Round 4G reviews, staging and Round 4H activation
+
+- A checkpoint: indexed actor-state projection and B-200 stress/equivalence tests accepted. Original API preserved; one-time precompute and cached queries operate above frozen DES. Agent benchmark run `38310735762` reported indexed current-style B200 signature sweep p95 ~0.454 ms/cursor after precompute, but this is **not** end-to-end UI playback. App PORT `e8d872c67e6e0530c4bcfb14ca7a7818ccb70ec9`; app CI `38313659986` SUCCESS.
+- C checkpoint: 1,000-rank public Scenario A is live in logical preset registry with four-node DAG, synthetic timing, local wait, full-rank resumed classical work, no admission/queue. Small A fixture remains. App PORT `d57abf519babb9a8a9770b6ff9c6dd11927f3b6f`; app CI `38313789867` SUCCESS.
+- D gap proven: actor-wait events cannot distinguish 50 admitted/in-flight actors from 950 policy-held actors using only ready/started/completed. DES already emits `task_queued` on admission, so F accepted a targeted above-DES `queued` actor-wait addition (D017), **implementation pending**.
+- New bounded parallel work: A implements/tests D queued-trigger, C public B200 plus full playback/browser performance. B/D/E idle. FTQC outlook remains documentation-only.
+- No frozen DES, dependency, or GitHub Actions workflow changed during integration. Browser acceptance, public C/D, lockfile, deployment root, release README and main promotion remain pending.
