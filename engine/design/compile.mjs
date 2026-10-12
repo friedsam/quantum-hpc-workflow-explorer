@@ -1,6 +1,6 @@
 const RESOURCE_KINDS = new Set(["cpu", "gpu", "qpu"]);
 const PROVENANCE_KINDS = new Set(["synthetic", "user-entered", "measured", "fitted"]);
-const ACTOR_WAIT_EVENTS = new Set(["ready", "started", "completed"]);
+const ACTOR_WAIT_EVENTS = new Set(["ready", "queued", "started", "completed"]);
 const ACTOR_WAIT_INSTANCES = new Set([
   "matching-instance",
   "any-instance",
@@ -8,6 +8,7 @@ const ACTOR_WAIT_INSTANCES = new Set([
 ]);
 const ACTOR_WAIT_EVENT_TYPE = {
   ready: "task_ready",
+  queued: "task_queued",
   started: "task_started",
   completed: "task_completed",
 };
