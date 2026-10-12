@@ -322,6 +322,52 @@ export interface ActorStateCounts {
   idle: number;
 }
 
+export interface ActorGroupSummary {
+  actorGroupId: string;
+  label: string;
+  kind?: ActorGroupKind;
+  count: number;
+  working: number;
+  blocked: number;
+  idle: number;
+  blockedReasonCounts: Record<string, number>;
+  evidence: "authored+derived";
+}
+
+export interface ActorStateProjectorStats {
+  actorGroupCount: number;
+  actorCount: number;
+  participationClaimCount: number;
+  waitClaimCount: number;
+  actorSegmentCount: number;
+  summarySegmentCount: number;
+  indexedEventCount: number;
+  indexedRunningIntervalCount: number;
+}
+
+export interface ActorStateProjector {
+  detailAt(
+    actorGroupId: string,
+    actorOrdinal: number,
+    simTimeS: number
+  ): DerivedActorStateDetail;
+  countsAt(
+    actorGroupId: string,
+    simTimeS: number
+  ): ActorStateCounts;
+  summaryAt(
+    actorGroupId: string,
+    simTimeS: number
+  ): ActorGroupSummary;
+  transitionTimes(actorGroupId: string): number[];
+  stats: ActorStateProjectorStats;
+}
+
+export function createActorStateProjector(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult
+): ActorStateProjector;
+
 export function deriveActorStateDetailAt(
   manifest: CompilationManifest,
   simulationResult: SimulationResult,
@@ -344,3 +390,17 @@ export function deriveActorStateCountsAt(
   actorGroupId: string,
   simTimeS: number
 ): ActorStateCounts;
+
+export function deriveActorGroupSummaryAt(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult,
+  actorGroupId: string,
+  simTimeS: number
+): ActorGroupSummary;
+
+export function actorStateTransitionTimes(
+  manifest: CompilationManifest,
+  simulationResult: SimulationResult,
+  actorGroupId: string
+): number[];
+
