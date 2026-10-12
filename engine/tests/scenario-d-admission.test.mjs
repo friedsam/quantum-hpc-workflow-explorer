@@ -15,6 +15,16 @@ import {
   qampScenarioD1000StressWorkflowSpec,
 } from "./fixtures/qamp-d-1000-stress.mjs";
 
+const dCompilation =
+  qampScenarioD1000StressCompilation;
+const dManifest = dCompilation.manifest;
+const dWorkflowSpec = dCompilation.workflowSpec;
+const dResult = simulateWorkflow(dWorkflowSpec);
+const dProjector = createActorStateProjector(
+  dManifest,
+  dResult
+);
+
 function intervalContains(interval, simTimeS) {
   return (
     interval.startS <= simTimeS &&
@@ -125,9 +135,9 @@ test("queued actor-wait boundary compiles to existing task_queued event", () => 
 });
 
 test("D1000 initial preparation has all actors Working", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
 
   assert.deepEqual(
     deriveActorStateCountsAt(
@@ -147,9 +157,9 @@ test("D1000 initial preparation has all actors Working", () => {
 });
 
 test("D1000 admission creates exactly 1 running +49 resource-queued, 50 Blocked actors and 950 policy-held Idle", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
 
   assert.deepEqual(
     qpuTaskStateCountsAt(result, 1),
@@ -199,9 +209,9 @@ test("D1000 admission creates exactly 1 running +49 resource-queued, 50 Blocked 
 });
 
 test("immediate task_queued -> task_started at one timestamp still creates a nonzero actor wait interval", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
 
   const queued = eventFor(
     result,
@@ -267,9 +277,9 @@ test("immediate task_queued -> task_started at one timestamp still creates a non
 });
 
 test("D1000 first completion resumes one actor and replenishes the 50 admitted slots without collisions", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
 
   assert.deepEqual(
     qpuTaskStateCountsAt(result, 2),
@@ -368,9 +378,9 @@ test("D1000 first completion resumes one actor and replenishes the 50 admitted s
 });
 
 test("D1000 queued-wait lifecycle remains equivalent to the pre-index semantic oracle for selected actors", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
 
   for (const simTimeS of [
     0.5,
@@ -415,13 +425,10 @@ test("D1000 queued-wait lifecycle remains equivalent to the pre-index semantic o
 });
 
 test("D1000 eventually restores completed actors to Working then Idle with no Blocked collision", () => {
-  const { manifest, workflowSpec } =
-    qampScenarioD1000StressCompilation;
-  const result = simulateWorkflow(workflowSpec);
-  const projector = createActorStateProjector(
-    manifest,
-    result
-  );
+  const manifest = dManifest;
+  const workflowSpec = dWorkflowSpec;
+  const result = dResult;
+  const projector = dProjector;
 
   assert.equal(result.metrics.makespanS, 1001.5);
 
