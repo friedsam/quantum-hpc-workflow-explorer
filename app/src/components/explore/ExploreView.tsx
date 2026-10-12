@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { deriveSystemStateSnapshot } from "../../causal/systemState.mjs";
-import { deriveActorStateDetailAt } from "../../design/actor-state.mjs";
+import {
+  deriveActorGroupSummaryAt,
+  deriveActorStateDetailAt
+} from "../../design/actor-state.mjs";
 import type { SimulationResult, WorkflowSpec } from "../../domain/types";
 import {
   attachActorStateToSystemSnapshot
@@ -39,6 +42,7 @@ function SimulatedExplore({
   compilationContext: CompilationContext | null;
 }) {
   const [inspectionTimeS, setInspectionTimeS] = useState(0);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     setInspectionTimeS(0);
@@ -66,7 +70,8 @@ function SimulatedExplore({
         genericSnapshot,
         manifest ?? undefined,
         result,
-        manifest ? deriveActorStateDetailAt : undefined
+        manifest ? deriveActorStateDetailAt : undefined,
+        manifest ? deriveActorGroupSummaryAt : undefined
       ),
     [genericSnapshot, manifest, result]
   );
@@ -142,8 +147,14 @@ function SimulatedExplore({
         playback={playback}
       />
 
-      <details className="advanced-diagnostics explore-advanced">
+      <details
+        className="advanced-diagnostics explore-advanced"
+        onToggle={(event) =>
+          setAdvancedOpen(event.currentTarget.open)
+        }
+      >
         <summary>Advanced / Diagnostics</summary>
+        {advancedOpen ? (
         <div className="advanced-stack">
           <p className="field-note advanced-intro">
             Expanded DES structure, exact resource accounting, metrics,
@@ -188,6 +199,7 @@ function SimulatedExplore({
             <Assumptions result={result} />
           </div>
         </div>
+        ) : null}
       </details>
     </div>
   );
