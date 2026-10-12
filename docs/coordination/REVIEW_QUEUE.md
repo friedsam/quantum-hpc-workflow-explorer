@@ -3,36 +3,32 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4F tutorial-scale Scenario-A checkpoint complete; ready for Agent F review.
+**Status:** Round 4G indexed actor-projection checkpoint complete; ready for Agent F review.
 
 Delivered:
-- compact symbolic `range(start,end)` and `all-except(actorOrdinals)` selectors;
-- selector validation + symbolic manifest preservation;
-- 4-rank baseline critical-path correction (background 10 s, local branch 8 s);
-- separate compact 1,000-rank Scenario-A producer with four DES tasks;
-- exact actor snapshots 1000/0/0 -> 999/1/0 -> 1000/0/0;
-- zero QPU queue/admission wait and no global synchronization;
-- 1,000-actor performance benchmark and scaling analysis.
+- pre-indexed actor participation/wait intervals and event-time index;
+- WeakMap-cached backward-compatible detail/count APIs;
+- optional direct group-summary / transition-time APIs;
+- exact semantic equivalence against pre-index reference;
+- 1,000-actor / 200-quantum Scenario-B stress fixture;
+- real Node-22 benchmark of precompute, per-cursor, full signature sweep and memory;
+- precise Scenario-D admission-trigger gap analysis.
 
 Validation:
-- exact-blob 1,000-rank suite: **5/5 PASS**;
-- Round 4D: **7/7 PASS**;
-- Round 4A actor: **6/6 PASS**;
-- Round 2C compiler: **7/7 PASS**;
-- branch CI run `38118493908`: **SUCCESS, 47/47 engine tests PASS**.
+- B-200 precompute p95: **15.639 ms**;
+- current playback-style signature p95: **0.454 ms/cursor**;
+- direct summary p95: **0.00378 ms/cursor**;
+- old reference B-200 summary: ~**0.94 s/snapshot**;
+- semantic equivalence covers 4-rank A/B, 1,000-rank A, B-200, transition boundaries and blocked reasons.
 
-Measured Node-22 benchmark:
-- compile mean 0.099 ms;
-- simulate mean 0.046 ms;
-- four actor snapshots mean 2.592 ms/batch (~0.648 ms/snapshot).
+Scenario-D gap:
+- current ready/started/completed actor-wait triggers cannot express exactly 50 admitted Blocked vs ~950 policy-held Idle;
+- minimum proposed future above-DES trigger: actor wait activation on existing DES `task_queued`;
+- **not implemented pending Agent F decision**.
 
-Scaling finding:
-- current actor × task/wait scan is fine for compact 1,000-rank A;
-- indicative 200-job B / 1,000-request C-D expansions likely require future actor-index/cache optimization.
+Review artifact: `docs/coordination/proposals/ROUND4G_ACTOR_PROJECTOR.md`
 
-Review artifact: `docs/coordination/proposals/ROUND4F_TUTORIAL_SCALE_A.md`
-
-Recommended: **PORT selector/model/demo/test changes; DEFER actor-state optimization. STOP for Agent F review.**
+Recommended: **PORT indexed projector + stress/test; DEFER queued-trigger extension. STOP for Agent F review.**
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
