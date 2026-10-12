@@ -604,3 +604,19 @@ Run npm tests, typecheck/build, CI; provide exact SHA/files, measured timings, k
 
 ### Agent F — NEXT
 Review both A and C bounded checkpoints; selectively PORT and require integration CI. Then decide C/D public implementation and full browser acceptance. Finish dependency lock, deployment-root migration, docs, and main only once coherent. FTQC D015 remains documentation-only and is not on the development critical path.
+
+## Round 4H Agent-A acceptance — 2026-10-12
+
+### Agent A — CLOSED/IDLE (PORT ACCEPTED)
+- Producer HEAD `agent/engine@099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`; CI `38321701185` SUCCESS; focused implementation CI `38321518049` SUCCESS, reported 63/63 tests. Synthetic D1000 stress accepted.
+- Staging PORT `db73f506eeee0649ffe0ee972900695a528e92e9`; CI `38322036602` SUCCESS (Node tests, typecheck and Vite build). Production files: `app/src/design/compiler.mjs`, `app/src/design/types.ts`. Test-only: `app/tests/fixtures/qamp-d-1000-stress.mjs`, `app/tests/scenario-d-admission.test.mjs`, package test script.
+- Semantic contract: authored `queued` wait activates from existing `task_queued` event, even if QPU task starts immediately, and releases on result completion. Policy-held, not admitted requests remain actor Idle unless other explicit claims apply. No frozen-DES changes, no new dependencies/GitHub Actions modifications.
+- Round-4H D1000 fixture models only the *single* request-and-local-continuation cycle: actors return to Idle at final makespan, not to a new 1,000-Working loop. Public Scenario D can restart only through new authored work/repeat; no visual fabrication.
+- Performance reported from A's Node 22 benchmark for 3,000 expanded tasks: compile ≈76.8 ms mean; DES ≈268.3 ms mean; projector build ≈89.8 ms mean; indexed count p95 ≈0.00284 ms. **Not** a measured complete browser playback result.
+- A remains idle. No further A task until public C/D work identifies a concrete defect.
+
+### Agent C — CONTINUES Round 4H public B200 checkpoint
+Do not interrupt or change C's B200 deliverable. At next natural coordinator heartbeat, consume D018 and the higher-layer `queued` actor wait contract. Scenario D authoring remains a separate future checkpoint *after* B review. Do not import D1000 as public D automatically.
+
+### F — NEXT
+Review C's public B200 delivery independently and check full keyframe construction, hidden Advanced expanded-graph mounting, Builder/Explore/Compare, real browser responsiveness. Selectively port + CI. Then assess public C/D, browser acceptance, lock/deployment/docs/main. FTQC extension remains documented as future work only.

@@ -43,3 +43,13 @@ Updated: 2026-10-12
 | F | Coordinator active; acceptance, selective staging, release | A/C review, C/D completion and browser smoke, lock/deploy/docs/main |
 
 Integration CI after A-index: `38313659986` SUCCESS. Integration CI after C public A: `38313789867` SUCCESS. The 401-task B expansion and D actor-admission state are **not yet browser-accepted**. FTQC remains post-prototype documentation only.
+## Round 4H Agent-A completion — 2026-10-12
+
+| Track | Current status |
+|---|---|
+| A Engine | **CLOSED/IDLE** — `queued → task_queued` actor-wait adapter accepted, D1000 tests staged, CI green |
+| C UI | **ACTIVE** — public B200 checkpoint; no C/D public demo acceptance yet |
+| B / D / E | CLOSED/IDLE |
+| F | ACTIVE — C review, browser, deployment/release |
+
+Agent A source `099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, integration `db73f506eeee0649ffe0ee972900695a528e92e9`, CI `38322036602` SUCCESS. No frozen DES or GitHub Actions changes. D1000 acceptance remains test-only; A's 1000 Idle at makespan is not a rendered next-loop Working phase.

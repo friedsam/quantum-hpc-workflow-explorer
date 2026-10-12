@@ -89,3 +89,10 @@ Current external package verification:
 - D gap proven: actor-wait events cannot distinguish 50 admitted/in-flight actors from 950 policy-held actors using only ready/started/completed. DES already emits `task_queued` on admission, so F accepted a targeted above-DES `queued` actor-wait addition (D017), **implementation pending**.
 - New bounded parallel work: A implements/tests D queued-trigger, C public B200 plus full playback/browser performance. B/D/E idle. FTQC outlook remains documentation-only.
 - No frozen DES, dependency, or GitHub Actions workflow changed during integration. Browser acceptance, public C/D, lockfile, deployment root, release README and main promotion remain pending.
+## 2026-10-12 — Round 4H Agent-A queued wait accepted
+
+- [verified] Agent A completed minimal authored actor-wait `queued` trigger mapped to existing `task_queued` DES event. It distinguishes 50 admitted (1 running +49 resource queued) actor Blocked claims from 950 policy-held/Idle actors. At t=2, one result completes, continuation #1 Working and next task admitted, yielding Working1 /Blocked50 /Idle949.
+- [verified] D1000 fixture expands 3×1000 concrete tasks and 1000 one-per-instance waits; at t=1001.5 all 1000 actors Idle, since another work cycle is not authored. No manual reset to 1000 Working.
+- Producer `agent/engine@099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, A CI `38321701185` success. Selective staging `db73f506eeee0649ffe0ee972900695a528e92e9`, integration CI `38322036602` success. Frozen DES and release CI workflows intact.
+- A benchmark reports mean compile ≈76.81 ms, DES simulation ≈268.27 ms, projector initialization ≈89.77 ms; count-query p95 ≈0.00284 ms. This is engine evidence, **not browser playback acceptance**.
+- Agent A CLOSED/IDLE; C still ACTIVE on Round 4H public B200. FTQC D015 remains documented/deferred.

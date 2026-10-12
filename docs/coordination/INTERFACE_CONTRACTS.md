@@ -196,3 +196,8 @@ The UI may not:
 ## Change process
 
 Any v1 change requires a concrete compatibility defect, affected producer/consumer analysis, migration impact, and regression test. Agent F records the accepted change in DECISION_LOG.
+## Additive higher-level actor-wait contract — 2026-10-12 (D018)
+
+The frozen **DES v1 input/output and event set remain unchanged**. In the higher-level `WorkflowDesign` layer, actor wait activation/release events include `"queued"` in addition to `"ready" | "started" | "completed"`. The compiler maps `"queued"` to existing DES `"task_queued"` (the compiled actor-wait event type union includes `task_queued`). For a QPU task, frozen v1 emits `task_queued` **when it is admitted** to the running + resource-queued in-flight set, even if `task_started` follows at the same timestamp; policy-held tasks emit it only upon later admission. An actor's explicit `queued → completed` wait therefore covers admitted service/queue lifetime, not unadmitted policy wait. This is an **authored explanatory claim**, separate from exact DES resource queue state. Existing designs and `schemaVersion: 1` remain compatible.
+
+This does **not** establish a generic remote-provider queue, production scheduler semantics, or a global DES task-state `Blocked`. Evidence: Round 4H Agent-A D1000 acceptance suite and integration CI `38322036602`. A completed single cycle ends with actors Idle; a repeat requires authored workflow phases.

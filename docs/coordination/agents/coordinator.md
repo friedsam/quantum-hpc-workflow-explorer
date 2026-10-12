@@ -48,3 +48,7 @@ Do not select a final production implementation/toolchain until first checkpoint
 **Round 4H:** A is activated for minimal high-level `queued` actor wait trigger (D017); C is activated for public B200 and whole-playback/browser perf. Both STOP at bounded checkpoint. Do not represent actor-blocked counts through UI guesswork; high-level wait claims + exact DES events only. C must not render expanded 401-node DES graph while Advanced is closed.
 
 **F next:** review A/C; port selectively; run CI/browser acceptance; then C/D public conversion; dependency lock, deployment root migration, README, main promotion. FTQC D015 documentation-only.
+## Coordinator checkpoint — 2026-10-12 (Round 4H A accepted)
+
+**A repair:** PORT accepted; `queued` authored actor-wait event compiles to existing frozen-v1 `task_queued`. Integration `db73f506eeee0649ffe0ee972900695a528e92e9`; CI `38322036602` SUCCESS. Source `agent/engine@099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`; CI `38321701185` SUCCESS. No DES event/scheduler modification. D stress fixture in `app/tests/fixtures`, no public D conversion yet. See D018/REVIEW_QUEUE.
+**Agent status:** A CLOSED/IDLE, C ACTIVE on B200, B/D/E idle. C should consume queued-wait contract at its natural heartbeat and must not be interrupted before B checkpoint. F next reviews B then coordinates C/D and release gates. D's full return to 1000 Working requires explicit authored next cycle; cannot fabricate it at final makespan.
