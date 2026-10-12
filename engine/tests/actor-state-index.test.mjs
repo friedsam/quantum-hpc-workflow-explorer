@@ -354,3 +354,47 @@ test("projector exposes deterministic transition times and indexed statistics", 
     times
   );
 });
+
+
+test("B-200 indexed transition/signature sweep is deterministic across projector builds", () => {
+  const { manifest, workflowSpec } =
+    qampScenarioB200StressCompilation;
+  const result = simulateWorkflow(workflowSpec);
+
+  const first = createActorStateProjector(
+    manifest,
+    result
+  );
+  const second = createActorStateProjector(
+    manifest,
+    result
+  );
+
+  const times = first.transitionTimes("ranks");
+  assert.deepEqual(
+    second.transitionTimes("ranks"),
+    times
+  );
+
+  const signature = (projector) =>
+    times.map((simTimeS) => {
+      const summary = projector.summaryAt(
+        "ranks",
+        simTimeS
+      );
+      return {
+        simTimeS,
+        working: summary.working,
+        blocked: summary.blocked,
+        idle: summary.idle,
+        blockedReasonCounts:
+          summary.blockedReasonCounts,
+      };
+    });
+
+  assert.deepEqual(
+    signature(first),
+    signature(second)
+  );
+  assert.deepEqual(first.stats, second.stats);
+});
