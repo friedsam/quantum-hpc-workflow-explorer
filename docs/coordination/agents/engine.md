@@ -1990,3 +1990,15 @@ Detailed proposal:
 - `docs/coordination/proposals/ROUND4H_QUEUED_ACTOR_WAIT.md`.
 
 **Recommended decision: PORT the queued actor-wait union/compiler mapping; retain D1000 acceptance tests in integration; STOP for Agent F review.**
+
+## Coordinator Round 4H final review — 2026-10-12
+
+**Decision: PORT ACCEPTED; Agent A CLOSED/IDLE.**
+
+[verified] Source `099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, engine CI `38321701185` SUCCESS. Additive authored `queued -> task_queued` actor-wait accepted; no frozen DES changes.
+
+Selective integration `db73f506eeee0649ffe0ee972900695a528e92e9`, app CI `38322036602` SUCCESS (Node, TypeScript, Vite). D018 recorded on integration `c51ee0216861ac6a9693574b61f317b1093774c9`.
+
+D1000 test at t=1: 1 QPU Running +49 resource-queued /950 policy-held; 50 actor Blocked /950 Idle. At t=2: 1 Working /50 Blocked /949 Idle. A single D cycle ends with 1000 Idle at t=1001.5; public 1000 Working reset requires another authored phase, not animation-only counters.
+
+Ported: app compiler/types and test-only D1000 fixture/test. Benchmark and branch-lab CI steps remain on Agent A's branch. Agent A remains idle until F assigns a concrete new defect.
