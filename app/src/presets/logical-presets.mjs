@@ -4,10 +4,10 @@ import {
   qampScenarioA1000Profile
 } from "./qamp-a-1000-demo.mjs";
 import {
-  qampScenarioBActorDesign,
-  qampScenarioBActorRunConfiguration,
-  qampScenarioBActorSystemProfile
-} from "./qamp-b-actor.mjs";
+  qampScenarioB200Design,
+  qampScenarioB200RunConfiguration,
+  qampScenarioB200Profile
+} from "./qamp-b-200-demo.mjs";
 
 const synthetic = (source, notes) => ({
   kind: "synthetic",
@@ -94,9 +94,9 @@ export const scenarioALogicalBundle = {
 };
 
 export const scenarioBLogicalBundle = {
-  design: structuredClone(qampScenarioBActorDesign),
-  runConfiguration: structuredClone(qampScenarioBActorRunConfiguration),
-  systemProfile: structuredClone(qampScenarioBActorSystemProfile)
+  design: structuredClone(qampScenarioB200Design),
+  runConfiguration: structuredClone(qampScenarioB200RunConfiguration),
+  systemProfile: structuredClone(qampScenarioB200Profile)
 };
 
 export const scenarioCLogicalBundle = {

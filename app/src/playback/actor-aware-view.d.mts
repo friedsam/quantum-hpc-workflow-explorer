@@ -1,4 +1,8 @@
-import type { CompilationManifest, DerivedActorStateDetail } from "../design/types";
+import type {
+  ActorGroupSummary,
+  CompilationManifest,
+  DerivedActorStateDetail
+} from "../design/types";
 import type { SimulationResult } from "../domain/types";
 import type { SystemStateSnapshot } from "../causal/systemState.mjs";
 import type { VisualKeyframe } from "./trace-playback.mjs";
@@ -20,11 +24,13 @@ export interface ActorStateProjection {
   groups: readonly ActorGroupStateSummary[];
 }
 
-export interface ActorAwareSystemStateSnapshot extends SystemStateSnapshot {
+export interface ActorAwareSystemStateSnapshot
+  extends SystemStateSnapshot {
   actors: ActorStateProjection;
 }
 
-export interface ActorAwareVisualKeyframe extends VisualKeyframe {
+export interface ActorAwareVisualKeyframe
+  extends VisualKeyframe {
   actors: ActorStateProjection;
 }
 
@@ -36,25 +42,35 @@ export type ActorDeriver = (
   simTimeS: number
 ) => DerivedActorStateDetail;
 
+export type ActorSummaryDeriver = (
+  manifest: CompilationManifest,
+  result: SimulationResult,
+  actorGroupId: string,
+  simTimeS: number
+) => ActorGroupSummary;
+
 export function deriveActorGroupSummariesAt(
   manifest: CompilationManifest,
   result: SimulationResult,
   simTimeS: number,
-  deriveActorStateDetailAt: ActorDeriver
+  deriveActorStateDetailAt?: ActorDeriver,
+  deriveActorGroupSummaryAt?: ActorSummaryDeriver
 ): readonly ActorGroupStateSummary[];
 
 export function actorCompositionSignatureAt(
   manifest: CompilationManifest,
   result: SimulationResult,
   simTimeS: number,
-  deriveActorStateDetailAt: ActorDeriver
+  deriveActorStateDetailAt?: ActorDeriver,
+  deriveActorGroupSummaryAt?: ActorSummaryDeriver
 ): string;
 
 export function attachActorStateToSystemSnapshot(
   genericSnapshot: SystemStateSnapshot,
   manifest: CompilationManifest | undefined,
   result: SimulationResult,
-  deriveActorStateDetailAt?: ActorDeriver
+  deriveActorStateDetailAt?: ActorDeriver,
+  deriveActorGroupSummaryAt?: ActorSummaryDeriver
 ): ActorAwareSystemStateSnapshot;
 
 export function buildActorAwareVisualKeyframes(
@@ -62,6 +78,7 @@ export function buildActorAwareVisualKeyframes(
   options?: {
     manifest?: CompilationManifest;
     deriveActorStateDetailAt?: ActorDeriver;
+    deriveActorGroupSummaryAt?: ActorSummaryDeriver;
     [key: string]: unknown;
   }
 ): readonly ActorAwareVisualKeyframe[];
