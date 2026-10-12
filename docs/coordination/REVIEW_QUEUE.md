@@ -3,32 +3,34 @@
 Updated: 2026-10-02
 
 ## A — Engine
-**Status:** Round 4G indexed actor-projection checkpoint complete; ready for Agent F review.
+**Status:** Round 4H queued actor-wait admission repair complete; ready for Agent F review.
 
 Delivered:
-- pre-indexed actor participation/wait intervals and event-time index;
-- WeakMap-cached backward-compatible detail/count APIs;
-- optional direct group-summary / transition-time APIs;
-- exact semantic equivalence against pre-index reference;
-- 1,000-actor / 200-quantum Scenario-B stress fixture;
-- real Node-22 benchmark of precompute, per-cursor, full signature sweep and memory;
-- precise Scenario-D admission-trigger gap analysis.
+- additive authored actor-wait event `queued`;
+- compile mapping `queued -> existing task_queued`;
+- no DES event/scheduler/metric change;
+- deterministic 1,000-actor Scenario-D stress fixture with QPU capacity 1 and max-in-flight 50;
+- exact 1 running +49 resource-queued +950 policy-held distinction;
+- actor state 50 Blocked /950 Idle at initial admission;
+- first-result local progress + slot replenishment without Working/Blocked collision;
+- immediate `task_queued` + `task_started` same-timestamp actor-wait acceptance;
+- end-to-end return to Working/Idle;
+- optimized projector/reference compatibility.
 
 Validation:
-- B-200 precompute p95: **15.639 ms**;
-- current playback-style signature p95: **0.454 ms/cursor**;
-- direct summary p95: **0.00378 ms/cursor**;
-- old reference B-200 summary: ~**0.94 s/snapshot**;
-- semantic equivalence covers 4-rank A/B, 1,000-rank A, B-200, transition boundaries and blocked reasons.
+- branch CI `38321518049`: **63/63 PASS**;
+- D1000 simulation mean 268.27 ms;
+- projector build mean 89.77 ms;
+- 2,002-transition summary sweep total 3.239 ms.
 
-Scenario-D gap:
-- current ready/started/completed actor-wait triggers cannot express exactly 50 admitted Blocked vs ~950 policy-held Idle;
-- minimum proposed future above-DES trigger: actor wait activation on existing DES `task_queued`;
-- **not implemented pending Agent F decision**.
+Migration:
+- `ActorWaitTaskEvent` adds `queued`;
+- `CompiledActorWaitEventType` adds `task_queued`;
+- app mirror types must receive same union additions when ported.
 
-Review artifact: `docs/coordination/proposals/ROUND4G_ACTOR_PROJECTOR.md`
+Review artifact: `docs/coordination/proposals/ROUND4H_QUEUED_ACTOR_WAIT.md`
 
-Recommended: **PORT indexed projector + stress/test; DEFER queued-trigger extension. STOP for Agent F review.**
+Recommended: **PORT queued actor-wait union/compiler mapping + D acceptance tests. STOP for Agent F review.**
 
 ## B — Playback
 **Status:** start independently against mock v0 trace.
