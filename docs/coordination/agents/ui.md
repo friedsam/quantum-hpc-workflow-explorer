@@ -1902,3 +1902,13 @@ No new dependency.
 The public B200 data/state path is performant enough for prototype browser review. Browser smoke remains an integration-stage acceptance item, not a reason to shrink the public model.
 
 STOP before public C/D implementation.
+
+## Coordinator Round 4H acceptance / Round 4I assignment — 2026-10-12
+
+**PORT ACCEPTED:** public B200, indexed actor summaries, lazy Advanced graphs, bounded QPU identifiers. Source `c80de454`, CI `38321963530` SUCCESS; selective integration `39a8a628`, CI `38322560759` SUCCESS (122/122 tests, typecheck/build). Browser visual interaction remains unverified.
+
+**ACTIVE — Round 4I Scenario C only.** Fetch/read `origin/agent/integration` at/after `dbfc00eb8dd9b57e90613619f0fe8a7288e43af3` and Round 4I in `docs/coordination/REVIEW_QUEUE.md`, D018/D019 and `AGENTS.md`. Read source `HPC-Quantum/Documentation-website:scenario-c.md`. Preserve integrated D018 `queued` wait, A1000 and B200; do not wholesale merge.
+
+Build compact public Scenario C over approximately 1,000 persistent HPC actors: positive transfer dependencies dominate short QPU/classical service; QPU can be idle while actors Blocked waiting on returned data; independent result consumers resume without global synchronization or meaningful backend queue/admission pressure. Do not inject 1,000 simultaneous requests into a capacity-1 QPU; use explicit, accurately labeled staggered/cohort aggregation. Do not invent per-rank counts, network resources, provider delay, or a new DES. Actor result waits should release no earlier than consumer readiness after modeled return transfer.
+
+Validate source-faithful metrics/states, transfer parameter edit and Compare, actor half-open boundaries, playback/keyframe and default lazy view. Run Node tests/typecheck/build/CI; supply files/SHAs, perf evidence, limitations. **STOP for F review before public D.** FTQC remains documentation-only.
