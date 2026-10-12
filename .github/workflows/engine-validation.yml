@@ -28,3 +28,6 @@ jobs:
 
       - name: Scenario B 1000-actor projector benchmark
         run: node --expose-gc engine/benchmarks/actor-projector-b200-benchmark.mjs
+
+      - name: Scenario D 1000-actor admission benchmark
+        run: node --expose-gc engine/benchmarks/scenario-d-admission-benchmark.mjs
