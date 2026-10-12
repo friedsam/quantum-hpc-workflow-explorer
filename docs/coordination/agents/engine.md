@@ -1537,3 +1537,261 @@ Detailed proposal:
 **Minimum stress:** source-grounded synthetic Scenario B (1,000 ranks, ~200 submitters/quantum tasks, serialized QPU, global gate), plus current 4-rank A/B and 1,000-rank A regression. Benchmark indexed creation, actor-state count/detail queries, and a full keyframe-like cursor/signature sweep; report actual runtime/memory, not just complexity extrapolation. Flag exact Scenario-D 50 admitted/blocked vs 950 policy-idle modeling gap if current task-event wait boundaries cannot express it; propose the smallest above-DES admission trigger if required, but do not silently implement a new semantic.
 
 **Deliverable:** implementation+tests/bench, migration/API notes for C/F, exact SHA/CI and measured results, then STOP for F. Keep dependencies unchanged. C is active in parallel for public presets but must not assume high-scale playback is performant until your evidence is reviewed.
+
+
+## Agent A Round 4G response — 2026-10-12
+
+**Status:** **Round 4G actor-projection scalability checkpoint complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Coordinator inputs consumed
+
+- current `agent/integration` Round 4G coordination at/after `f8766ce63a37947b20d96d83d4728c70a9c19bbd`;
+- D013 and D014;
+- published QAMP workflow-scenario framing for B/D mechanisms.
+
+### Indexed actor projector
+
+New production module:
+- `engine/design/actor-state-index.mjs`.
+
+New additive API:
+- `createActorStateProjector(manifest, simulationResult)`.
+
+Precomputed/indexed data:
+- task event times;
+- task running intervals;
+- actor participation/wait claim intervals;
+- per-actor half-open state intervals;
+- group Working/Blocked/Idle + blocked-reason intervals;
+- transition times.
+
+Existing source APIs remain:
+- `deriveActorStateDetailAt`;
+- `deriveActorStateAt`;
+- `deriveActorStateCountsAt`.
+
+They now use a WeakMap-cached projector by manifest/result object identity.
+
+New optional summary APIs:
+- `deriveActorGroupSummaryAt`;
+- `actorStateTransitionTimes`;
+- direct projector `summaryAt/countsAt/detailAt`.
+
+Cache assumption: CompilationManifest and SimulationResult are immutable run evidence after construction. If semantics/evidence are changed, callers should supply new objects.
+
+### Semantic-equivalence evidence
+
+Test-only pre-index oracle:
+- `engine/tests/helpers/actor-state-reference.mjs`.
+
+Optimized/reference equivalence covers:
+- 4-rank A;
+- 4-rank B;
+- 1,000-rank A;
+- 1,000-actor / 200-QPU-result B stress.
+
+Preserved:
+- half-open interval boundaries;
+- exact counts;
+- exact actor details;
+- blocked-reason counts;
+- multiple blocked reasons;
+- Working+Blocked error;
+- multiple-Working error behavior;
+- query-time conflict rejection.
+
+B-200 exact boundary checks include:
+- t=1 -> 200 Blocked / 800 Idle;
+- t=2 -> all 1,000 Blocked;
+- rank 1 at t=2 = global-synchronization only;
+- rank 2 at t=2 = global-synchronization + quantum-result;
+- t=201 -> all 1,000 Working in collective;
+- t=202 -> all 1,000 Idle.
+
+Projector builds also produce deterministic transition/signature sweeps across repeated builds.
+
+### High-scale Scenario-B stress
+
+New producer:
+- `engine/examples/qamp-b-200-stress.mjs`.
+
+Scale:
+- actor count = 1,000;
+- submitting actor/task multiplicity = 200;
+- compiled tasks = 401;
+- compiled actor waits = 201;
+- QPU capacity = 1;
+- QPU max in-flight = 1;
+- resource queue wait = 0;
+- global complete-result synchronization gate retained.
+
+Synthetic timings:
+- prepare = 1 s;
+- each quantum result = 1 s;
+- collective = 1 s;
+- makespan = 202 s.
+
+Mechanism remains Scenario-B synchronization + serialized quantum service; policy admission is scaffolding and must not be presented as the user-facing bottleneck.
+
+### Measured performance
+
+GitHub Actions benchmark:
+- run `38310735762`;
+- Ubuntu 24.04;
+- Node v22.23.3;
+- cursor points = 405.
+
+Projector structure:
+- actor segments = 3,398;
+- group summary segments = 202;
+- indexed task-event entries = 1,803;
+- indexed running intervals = 401.
+
+#### Precompute — 12 builds
+
+- mean 14.602 ms;
+- median 13.895 ms;
+- p95 15.639 ms;
+- max 20.568 ms.
+
+#### Count query — 2,000 queries
+
+- mean 0.00203 ms;
+- p95 0.00299 ms.
+
+#### Detail query — 20,000 queries
+
+- mean 0.000342 ms;
+- p95 0.000832 ms.
+
+#### Current playback-style signature path
+
+This reproduces C's current actor-aware pattern: 1,000 detail queries plus blocked-reason aggregation per cursor.
+
+405-cursor full sweep:
+- total 50.842 ms;
+- mean 0.1250 ms/cursor;
+- median 0.0855 ms/cursor;
+- p95 0.4544 ms/cursor;
+- max 0.6803 ms/cursor.
+
+Round-4G soft target p95 < 30 ms:
+- **PASS by ~66× margin**.
+
+#### Direct indexed summary path
+
+405-cursor full sweep:
+- total 1.557 ms;
+- mean 0.00371 ms/cursor;
+- p95 0.00378 ms/cursor.
+
+Optional for future C simplification; not required for B-200 responsiveness.
+
+#### Pre-index reference
+
+Single B-200 group-summary snapshot at t=100.5, 5 samples:
+- mean 951.17 ms;
+- median 932.51 ms;
+- measured p95 sample 936.32 ms;
+- max 1,030.81 ms.
+
+### Memory evidence
+
+With `--expose-gc` requested before retained snapshots:
+
+Before projector:
+- RSS 81,162,240 B;
+- heap used 5,623,016 B.
+
+After retained projector:
+- RSS 97,525,760 B;
+- heap used 6,355,976 B.
+
+Retained projector delta:
+- RSS +16,363,520 B;
+- heap used +732,960 B.
+
+After full sweeps:
+- additional RSS +434,176 B;
+- additional heap used +262,504 B.
+
+RSS remains allocator-dependent; these are retained-process measurements, not peak-memory guarantees.
+
+### Scenario-D actor admission gap
+
+**Representational gap confirmed.**
+
+Desired D interpretation:
+- 1 QPU running;
+- 49 QPU resource-queued;
+- those 50 admitted submitter actors Blocked;
+- ~950 dependency-ready policy-held actors Idle.
+
+Current actor-wait boundary vocabulary:
+- ready;
+- started;
+- completed.
+
+It cannot select the admitted set exactly:
+- activation on `ready` blocks all 1,000, including policy-held demand;
+- activation on `started` blocks only the single running actor, omitting the 49 admitted/resource-queued actors;
+- completion is too late.
+
+Frozen DES already emits `task_queued` exactly when work enters the admitted running+resource-queued set.
+
+**Minimum proposed above-DES extension — NOT implemented:**
+- add actor-wait event `queued`;
+- compiler maps `queued -> task_queued`;
+- one-per-instance wait activates on queued, releases on completed.
+
+No WorkflowSpec, SimulationResult, scheduler, metric, or DES event change would be needed.
+
+Do not activate actor blocking from `task_throttled` for the requested interpretation because policy-held actors are intentionally Idle.
+
+### Migration/API notes for C/F
+
+Zero-change compatibility:
+- port `actor-state-index.mjs` + updated `actor-state.mjs`;
+- current C use of `deriveActorStateDetailAt` benefits automatically from cached indexing;
+- measured current-style B-200 playback signature p95 = 0.454 ms.
+
+Optional:
+- C can later use `deriveActorGroupSummaryAt` or a retained projector's `summaryAt` to avoid its 1,000-detail summary loop.
+
+Type additions:
+- `ActorStateProjector`;
+- `ActorGroupSummary`;
+- projector statistics;
+- new summary/transition functions.
+
+No persisted model schema change.
+
+### Promotion scope
+
+**PORT:**
+- `engine/design/actor-state-index.mjs`;
+- `engine/design/actor-state.mjs`;
+- `engine/design/types.d.ts`;
+- `engine/examples/qamp-b-200-stress.mjs`;
+- `engine/tests/actor-state-index.test.mjs`.
+
+**Validation/reference only:**
+- `engine/tests/helpers/actor-state-reference.mjs`;
+- `engine/benchmarks/actor-projector-b200-benchmark.mjs`;
+- branch-lab CI benchmark step unless F wants to keep it.
+
+**DEFER pending F decision:**
+- Scenario-D `queued` actor-wait trigger;
+- playback migration to direct group-summary API.
+
+Dependencies added/changed: none.  
+UI/playback source changed: none.  
+Frozen DES changed: none.
+
+Code checkpoint before handoff documentation:
+- `b387a972f9232acb2f8893681ceb63a07c5b8fc6`.
+
+Detailed proposal:
+- `docs/coordination/proposals/ROUND4G_ACTOR_PROJECTOR.md`.
+
+**Recommended decision: PORT indexed actor projection + B-200 stress/test; DEFER the D admission-trigger extension until Agent F explicitly accepts it. STOP for review.**
