@@ -1803,3 +1803,190 @@ Detailed proposal:
 **Implement minimal D admission-aware actor waiting above frozen DES:** extend authored event `queued`, compile to existing `task_queued`, and accept waiting from admission through completion, for matching QPU task instances. Test 1,000 independent submitting MPI actors, QPU capacity 1 and max 50 in-flight, showing 1 running +49 resource queued +950 policy held with **50 Blocked /950 Idle actors** after initial preparation, then local completed-result progress and slot replenishment. Include exact boundary timing, immediate `task_queued` followed by `task_started` at same timestamp, and full return to working/idle without collisions. Preserve small A/B/D and indexed projector semantic oracle. No DES rewrite, event change, invented counters or UI.
 
 **Deliverable:** tests/performance/CI, type/interface migration notes, exact commits/paths, limitations, promotion recommendation. Update this role file on your branch and STOP for F review; no dependencies or new general event ontology.
+
+
+## Agent A Round 4H response — 2026-10-12
+
+**Status:** **Round 4H queued actor-wait repair complete; ready for Agent F review. Frozen DES unchanged.**
+
+### Coordinator decisions consumed
+
+- integration head at/after `f59849ea58ca5f123821ed470814802a5fdb0371`;
+- D016 — indexed projector accepted/ported;
+- D017 — bounded approval for `ActorWaitTaskEvent = "queued"`;
+- Round 4H review instructions.
+
+### Minimal implemented interface change
+
+Authored actor wait:
+- added `"queued"`.
+
+Compiled actor wait:
+- added `"task_queued"`.
+
+Compiler:
+- validates `queued`;
+- maps `queued -> task_queued`.
+
+No DES event/scheduling change occurred. Frozen v1 already emits `task_queued`.
+
+### D1000 test-only stress fixture
+
+New:
+- `engine/tests/fixtures/qamp-d-1000-stress.mjs`.
+
+Scale:
+- 1,000 persistent MPI-rank actors;
+- 1,000 prepare instances;
+- 1,000 QPU request instances;
+- 1,000 local continuation instances;
+- 3,000 compiled DES tasks;
+- 1,000 actor waits.
+
+Policy:
+- QPU capacity 1;
+- max in-flight 50.
+
+Wait:
+- one-per-instance `queued -> completed`;
+- reason `admitted-quantum-result`.
+
+Synthetic times:
+- prep 1 s;
+- QPU 1 s;
+- local continuation 0.5 s.
+
+No global synchronization gate.
+
+### Exact acceptance
+
+At t=0.5:
+- Working 1000 / Blocked 0 / Idle 0.
+
+At t=1:
+- QPU Running 1;
+- QPU resource Queue 49;
+- policy-held 950;
+- actor Working 0 / Blocked 50 / Idle 950.
+
+Immediate-start quantum #1:
+- `task_queued @ 1`;
+- `task_started @ 1`;
+- no positive-width DES queued interval;
+- actor wait remains [1,2), so rank 1 is Blocked at t=1 and t=1.5.
+
+At t=2:
+- quantum #1 complete;
+- local continuation #1 Working;
+- quantum #2 Running;
+- quantum #51 newly admitted/Blocked;
+- QPU Run 1 / Queue 49 / policy-held 949;
+- actor Working 1 / Blocked 50 / Idle 949.
+
+At t=2.5:
+- Working 0 / Blocked 50 / Idle 950.
+
+At t=1001:
+- final quantum result complete;
+- Working 1 / Blocked 0 / Idle 999.
+
+At makespan t=1001.5:
+- Working 0 / Blocked 0 / Idle 1000.
+
+The wait lifecycle therefore represents the desired D actor semantics end-to-end without invented counters/ranks/temporal states.
+
+### Semantic compatibility
+
+Selected D1000 actor details match the pre-index reference oracle across:
+- preparation;
+- admission boundary;
+- immediate queued/start;
+- first slot replenishment;
+- middle/late run;
+- final completion;
+- makespan.
+
+Full engine CI also preserves:
+- small A/B/D regressions;
+- Round-4G indexed projector oracle/equivalence;
+- prior selector/compiler semantics.
+
+### CI/tests
+
+GitHub Actions:
+- run `38321518049`;
+- Node v22.23.3;
+- **63/63 tests PASS**.
+
+### D1000 performance
+
+Benchmark:
+- `engine/benchmarks/scenario-d-admission-benchmark.mjs`.
+
+Compile:
+- mean 76.81 ms;
+- median 66.92 ms;
+- max 100.92 ms.
+
+DES simulate:
+- mean 268.27 ms;
+- median 261.85 ms;
+- max 286.78 ms.
+
+Actor projector build:
+- mean 89.77 ms;
+- median 79.70 ms;
+- measured p95 sample 104.31 ms;
+- max 108.27 ms.
+
+Count query p95:
+- 0.00284 ms.
+
+Detail query p95:
+- 0.000541 ms.
+
+Full 2,002-transition indexed summary sweep:
+- total 3.239 ms;
+- mean 0.00147 ms/cursor;
+- p95 0.00169 ms/cursor.
+
+Retained projector heap delta:
+- +1,628,664 B.
+
+### Migration notes
+
+Engine lab declaration changed:
+- `engine/design/types.d.ts`.
+
+No engine `.d.mts` file exists.
+
+When F ports into `app/`, mirrored app TypeScript/`.d.mts` declarations must add:
+- authored `queued`;
+- compiled `task_queued`.
+
+The actor-state index implementation requires no special queued-event code because it already indexes arbitrary compiled task event types.
+
+No schemaVersion bump proposed for this additive event union, subject to F integration policy.
+
+### Promotion scope
+
+**PORT:**
+- `engine/design/types.d.ts`;
+- `engine/design/compile.mjs`.
+
+**Test/reference PORT if useful:**
+- `engine/tests/fixtures/qamp-d-1000-stress.mjs`;
+- `engine/tests/scenario-d-admission.test.mjs`.
+
+**Validation-only:**
+- `engine/benchmarks/scenario-d-admission-benchmark.mjs`;
+- branch CI benchmark step.
+
+No dependencies added.  
+No UI/playback source changed.  
+No DES interface/event/scheduling change.
+
+Detailed proposal:
+- `docs/coordination/proposals/ROUND4H_QUEUED_ACTOR_WAIT.md`.
+
+**Recommended decision: PORT the queued actor-wait union/compiler mapping; retain D1000 acceptance tests in integration; STOP for Agent F review.**
