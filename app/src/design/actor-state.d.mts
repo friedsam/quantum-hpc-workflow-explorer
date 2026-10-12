@@ -28,3 +28,9 @@ export function deriveActorStateCountsAt(
   actorGroupId: string,
   simTimeS: number
 ): ActorStateCounts;
+
+import type { ActorGroupSummary, ActorStateProjector } from "./types";
+
+export function createActorStateProjector(manifest: CompilationManifest, simulationResult: SimulationResult): ActorStateProjector;
+export function deriveActorGroupSummaryAt(manifest: CompilationManifest, simulationResult: SimulationResult, actorGroupId: string, simTimeS: number): ActorGroupSummary;
+export function actorStateTransitionTimes(manifest: CompilationManifest, simulationResult: SimulationResult, actorGroupId: string): number[];
