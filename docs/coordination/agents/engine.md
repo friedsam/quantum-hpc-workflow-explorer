@@ -1795,3 +1795,11 @@ Detailed proposal:
 - `docs/coordination/proposals/ROUND4G_ACTOR_PROJECTOR.md`.
 
 **Recommended decision: PORT indexed actor projection + B-200 stress/test; DEFER the D admission-trigger extension until Agent F explicitly accepts it. STOP for review.**
+
+## Coordinator Round 4H assignment — 2026-10-12
+
+**ACTIVE — one bounded checkpoint, STOP for Agent F review.** F accepted and staged your Round 4G indexed actor projection (`e8d872c`, app CI `38313659986`). Fetch/read `origin/agent/integration` at/after **`f59849ea58ca5f123821ed470814802a5fdb0371`**, specifically D016/D017, `REVIEW_QUEUE.md` Round 4H, `PROJECT_STATE.md`, `INTERFACE_CONTRACTS.md`, and `AGENTS.md`. Repo evidence overrides the prior handoff.
+
+**Implement minimal D admission-aware actor waiting above frozen DES:** extend authored event `queued`, compile to existing `task_queued`, and accept waiting from admission through completion, for matching QPU task instances. Test 1,000 independent submitting MPI actors, QPU capacity 1 and max 50 in-flight, showing 1 running +49 resource queued +950 policy held with **50 Blocked /950 Idle actors** after initial preparation, then local completed-result progress and slot replenishment. Include exact boundary timing, immediate `task_queued` followed by `task_started` at same timestamp, and full return to working/idle without collisions. Preserve small A/B/D and indexed projector semantic oracle. No DES rewrite, event change, invented counters or UI.
+
+**Deliverable:** tests/performance/CI, type/interface migration notes, exact commits/paths, limitations, promotion recommendation. Update this role file on your branch and STOP for F review; no dependencies or new general event ontology.
