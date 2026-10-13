@@ -4,10 +4,10 @@ Updated: 2026-10-12
 
 ## Current checkpoint — 2026-10-12 (supersedes 2026-10-02 onboarding status below)
 
-- **Canonical staging:** `agent/integration`; last accepted app integration `65277404c9cc0000e8170567874456a2ccdd6c20`; the Round-4E integration validation passed. The built app is React/TypeScript/Vite with a logical Builder, frozen deterministic DES, actor/causal playback, simplified Explorer, Advanced diagnostics, and Compare.
-- **Current open gate:** Round 4I Agent C public Scenario C accepted and ported to `agent/integration@53248bf1a2c7488d52982a77191919f5ff4b0b0e`, CI `38326633662` SUCCESS (135/135 tests). Round 4J Agent C ACTIVE: public 1,000-rank/50-in-flight Scenario D. A/B/D/E idle; F owns release/browser checks.
+- **Canonical staging:** `agent/integration` at accepted public A–D code checkpoint `e49954bc9caf5f3e18472b3d229c96b9ebdd2c70`, CI `38332756103` SUCCESS (143/143 tests, TS, Vite). React/TypeScript/Vite Builder, frozen deterministic DES, causal/actor playback, simple Explorer/Advanced, Compare.
+- **Current open gate:** Round 4J public D accepted; **A–D feature scope frozen**. Round 4K release-hardening/browser acceptance is ACTIVE. F owns staging/main; C provides bounded lockfile and browser/test support; A/B/D/E idle. See D021/D022 and `RELEASE_ACCEPTANCE.md`.
 - **Resolved:** Scenario A quantum-dependent branch completes t=8 before independent background/makespan t=10, retaining restored full-actor work through t=7.
-- **Known release gates:** public D throughput/actor fidelity and one-shot/loop distinctions; full browser A–D playback/Advanced, Builder edit→simulate→Compare; dependency lock/reproducible `npm ci`; `web/`→`app/` deployment root; final documentation/FTQC future outlook; then shippable `main`.
+- **Known release gates:** actual browser A–D playback/Builder/edit/Compare/Advanced smoke, lockfile + clean `npm ci`/CI, deployment root `web/`→`app/`, accurate README and FTQC future scope, final staging CI and `main` promotion.
 - **Invariant:** frozen v1 DES authoritative; `WorkflowDesign + RunConfiguration + SystemProfile` compiles to DES input; actor counts and Working/Blocked/Idle are derived above DES. Slurm scheduler-neutral export is post-prototype.
 - **Future scope (documentation only):** FTQC extension to hierarchical logical-QPU resource profiles, QEC/decoder and magic-state constraints, and cloud vs tightly integrated HPC–QPU tradeoffs. Outline: `docs/coordination/FTQC_EXTENSION_OUTLOOK.md`; no change to Round 4G tasks, schema, frozen DES, or prototype claims.
 

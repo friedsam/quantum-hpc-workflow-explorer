@@ -62,3 +62,8 @@ D019/Round 4I: C ACTIVE for source-grounded communication-dominated Scenario C w
 C Round 4I PORT accepted: `agent/ui@e25d21b8c85b263efc4e8947dbf261632d4b28e7` CI `38326263206`; staging `53248bf1a2c7488d52982a77191919f5ff4b0b0e` integration CI `38326633662` SUCCESS (135/135 tests, TS/build). Exactly five synthetic aggregate QPU requests over five 200-rank cohorts with 1000 authored actor-state claims, positive transfer wall, QPU idle/queue-free; no production QPU workload realism claim. Frozen DES untouched, D018 retained.
 
 D020/Round 4J: Agent C ACTIVE for public D capacity wall at 1000 rank/50 admitted job limit. No invented D6/D9 frames; explicit task/actor/queue/event provenance only. C STOP for F review; A/B/D/E idle. F owns browser/Advanced and release checks after D. FTQC documentation only.
+## Coordinator checkpoint — 2026-10-12 (Round 4J accepted, release gate)
+
+**Public A–D integrated:** Round 4J D source `806459aeebc2bac22e8acc5fdd86c3c1309eba40`, port `e49954bc9caf5f3e18472b3d229c96b9ebdd2c70`, CI `38332756103` SUCCESS (143 tests, TS, Vite). Public D is an explicit 1000-request, max-50-admitted, one-shot causal model; 3 logical/3000 expanded tasks with Advanced scale guard. It ends 1000 Idle. No DES or legacy-tutorial frame counter.
+
+**D021/D022 release boundary:** Feature scope frozen, `main` remains old/non-shippable. Browser acceptance is missing; app lockfile and deployment root need resolution. C to help with bounded clean-install and browser smoke, if environment permits. F owns release evidence, documentation, and final main promotion. See `RELEASE_ACCEPTANCE.md` for exact gates. D015 FTQC remains a future extension only.

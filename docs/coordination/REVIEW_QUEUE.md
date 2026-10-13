@@ -678,3 +678,25 @@ No additional task.
 
 ### F — NEXT
 Review/port C public D if technically faithful; run app CI; then full browser A–D, Builder→edit→simulate→Compare, diagnostic disclosures/performance, dependency lock/npm-ci and deployment-root migration, README with FTQC future outlook, main release decision. Preserve GitHub Actions and source-era history.
+
+## Round 4J coordinator final acceptance — 2026-10-12
+
+**C public D1000: PORT ACCEPTED / feature track CLOSED.** C `agent/ui@806459aeebc2bac22e8acc5fdd86c3c1309eba40`, CI `38328951941` success; staged `agent/integration@e49954bc9caf5f3e18472b3d229c96b9ebdd2c70`, CI `38332756103` SUCCESS (143/143 Node tests, TS, Vite). Public D models 1,000 QPU jobs with 1 running/49 queued and 950 policy-held at saturation, independently released local consumers, no global barrier. Three logical nodes / 3,000 expanded DES tasks; Advanced guards omit >500 compiled-task graph/details. One-shot drain finishes 1,000 Idle, **not** a fabricated restored Working frame. DES, D018, existing A/B/C, dependencies and workflows preserved.
+
+**All four public A–D scenarios are integrated.** Browser and release gates are open. C's Node performance benchmark does not prove React paint, time-to-interactive, or opened-Advanced UX. Detailed release criteria: `docs/coordination/RELEASE_ACCEPTANCE.md`.
+
+## Round 4K — one bounded release-hardening / acceptance pass
+
+### F — Coordinator: ACTIVE, release owner
+- Freeze feature scope; review high-risk paths and ensure no regression after `e49954b`.
+- Perform/coordinate actual browser test of each A–D preset (Builder, slow/step/playback, exact actor/QPU interpretation; advanced 401-node B and guarded 3,000-task D); one custom parameter edit → simulate → Compare, plus basic invalid-input test. Record browser evidence or explicitly mark unavailable. Do not equate Node tests with browser acceptance.
+- Ensure a reproducible app dependency lock, validate clean `npm ci`, retain existing GitHub Actions and safely adjust install step if needed; check Vercel deployment root `app/` versus existing legacy `web/` and do not change `main` prematurely.
+- Review/document limitations (synthetic durations, fixed FIFO, no provider queue/network contention, C cohort aggregation, one-shot D) and FTQC future scope per D015. Final green CI and main promotion only after browser/reproducibility/deployment gates.
+
+### C — UI: bounded release-support assignment after F notice
+- Produce `app/package-lock.json` using Node 22 and prove clean `npm ci`, `npm test`, `npm run build` on the lab branch; preserve deployed dependencies and existing workflows. Propose the smallest integration CI install-step update and exact SHA/CI evidence. No new UI features/framework/optimizer/FTQC.
+- If a usable browser/headless environment is available, capture real A–D Builder/Explore/Compare smoke evidence, including D scale guard and B401 Advanced-open. Otherwise provide an exact manual/browser test checklist and flag evidence as *unverified*; do not fabricate browser performance.
+- STOP at release checkpoint for F. Only staging/main owner F may PORT.
+
+### A/B/D/E — CLOSED/IDLE
+No work unless a concrete acceptance defect warrants a targeted fix.
