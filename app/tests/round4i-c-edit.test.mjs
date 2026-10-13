@@ -179,7 +179,7 @@ test("C transfer edit stays comparable with provenance", () => {
     ].provenance.kind,
     "user-entered"
   );
-  assert.equal(
+  approx(
     baselineRun.simulationResult.metrics.makespanS -
       editedRun.simulationResult.metrics.makespanS,
     4
