@@ -13,7 +13,7 @@ import {
   qampScenarioC1000Profile
 } from "../src/presets/qamp-c-1000-demo.mjs";
 
-function compile(bundle) {
+function approx(actual, expected, epsilon = 1e-9) {\n  assert.ok(\n    Math.abs(actual - expected) <= epsilon,\n    `expected ${actual} ≈ ${expected}`\n  );\n}\n\nfunction compile(bundle) {
   return compileWorkflowDesignDetailed(
     bundle.design,
     bundle.runConfiguration,
@@ -71,8 +71,8 @@ test("public C transfer edit preserves topology and reduces makespan/blocked dur
     editedBundle.design,
     baselineBundle.design
   );
-  assert.equal(baselineResult.metrics.makespanS, 12.8);
-  assert.equal(editedResult.metrics.makespanS, 8.8);
+  approx(baselineResult.metrics.makespanS, 12.8);
+  approx(editedResult.metrics.makespanS, 8.8);
   assert.equal(editedResult.metrics.queueWaitSecondsByPool.qpu, 0);
   assert.equal(
     editedResult.metrics.admissionWaitSecondsByPool.qpu,
