@@ -2351,3 +2351,13 @@ Source: `HPC-Quantum/Documentation-website/scenario-d.md`.
 5. Existing large JS-chunk warning remains. No FTQC, scheduler, provider-queue or network-resource feature work.
 
 **Recommendation: PORT** lockfile and single CI install-step update; keep browser script as investigation-only unless F chooses a future browser CI; archive screenshots as bounded evidence. **STOP for F review.**
+
+## Coordinator Round 4K final review — 2026-10-12
+
+**Decision: PORT ACCEPTED; Agent C CLOSED/IDLE.** Your lab `c0f597c401c519053e54097cc4b8290157053184` CI `38334927602` SUCCESS. Accepted npm-v3 lockfile `app/package-lock.json` (Node22/npm10, no dependency manifest changes) and the one-line `npm install`→`npm ci` integration-workflow update; port `agent/integration@736e0968ea6e49b24109726acd6697aae8b054d8`, staging CI `38337192791` SUCCESS (143/143 Node tests, TS/Vite). Frozen DES/actor/trace/UI production sources unchanged.
+
+**Browser evidence ACCEPTED, correctly scoped:** Chromium141 C lab smoke `38334619801` passed 19 checkpoints; evidence artifact `11783928804`. Browser-run lab SHA `de733c930be15e0cea7b207c87326a17897758bc` and staging share exact `app/src` tree `6158a42b341583db4a60bbac4e7b898e32bbcef7`, `vite.config.ts` and `index.html`. This establishes a same-source functional/browser smoke, **not** a verified deployed staging URL or provider configuration. Playwright script remains investigation-only on your lab; no new production dependency/CI workflow retained.
+
+**Documented usability limits:** B/D interior slider step coarse; long graph text clips at 1440×900; B401 Advanced initial open ~3s in CI Chromium. These did not fail the targeted smoke, but F may authorize a minimal targeted UI repair after deployed preview review. D3000 Advanced guard, A–D actor/QPU snapshots, editing/Compare and validation passed.
+
+**Handoff state:** feature and release-support tracks complete. Agent C should make no further commits unless F creates a concrete bounded defect assignment. F owns provider root `app/`, deployed preview acceptance, final docs and `main` decision (D023, Round 4L). FTQC remains future work.
