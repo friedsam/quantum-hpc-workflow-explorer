@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Controls,
@@ -6,7 +6,8 @@ import {
   ReactFlow,
   type Connection,
   type Edge,
-  type Node
+  type Node,
+  type ReactFlowInstance
 } from "@xyflow/react";
 import type { SystemStateSnapshot } from "../../causal/systemState.mjs";
 import type { DagRuntimeState, DagViewModel } from "./types";
@@ -123,6 +124,8 @@ export function WorkflowDag({
   const [nodes, setNodes] = useState<Node[]>(sourceNodes);
   const [edges, setEdges] = useState<Edge[]>(sourceEdges);
   const [layoutError, setLayoutError] = useState("");
+  const [layoutRevision, setLayoutRevision] = useState(0);
+  const flowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,11 +136,13 @@ export function WorkflowDag({
         if (cancelled) return;
         setNodes(layout.nodes);
         setEdges(layout.edges);
+        setLayoutRevision((revision) => revision + 1);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         setNodes(sourceNodes);
         setEdges(sourceEdges);
+        setLayoutRevision((revision) => revision + 1);
         setLayoutError(
           error instanceof Error ? error.message : "ELK layout failed."
         );
@@ -149,6 +154,21 @@ export function WorkflowDag({
     // Runtime/playback state is intentionally excluded: layout is topology/size driven only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topologyKey]);
+
+  // ELK resolves after React Flow mounts. Refit only after a new topology/layout,
+  // never in response to simulation-time or actor-status updates.
+  useEffect(() => {
+    if (!layoutRevision) return;
+    const frame = window.requestAnimationFrame(() => {
+      void flowRef.current?.fitView({
+        padding: 0.14,
+        minZoom: 0.1,
+        maxZoom: 0.85,
+        duration: 180
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [layoutRevision]);
 
   const displayedNodes = useMemo(
     () =>
@@ -226,10 +246,14 @@ export function WorkflowDag({
           edges={displayedEdges}
           nodeTypes={nodeTypes}
           colorMode="dark"
+          onInit={(instance) => { flowRef.current = instance; }}
           fitView
-          fitViewOptions={{ padding: 0.22 }}
-          minZoom={0.35}
+          fitViewOptions={{ padding: 0.14, minZoom: 0.1, maxZoom: 0.85 }}
+          minZoom={0.1}
           maxZoom={1.6}
+          zoomOnScroll={false}
+          zoomOnDoubleClick={false}
+          preventScrolling={false}
           nodesDraggable={false}
           nodesConnectable={Boolean(onConnectTasks)}
           elementsSelectable

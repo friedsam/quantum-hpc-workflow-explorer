@@ -242,10 +242,6 @@ function LogicalBuilder({
     <>
       <div className="builder-grid">
         <div className="builder-main">
-          <SystemTopologyStrip
-            runConfiguration={bundle.runConfiguration}
-          />
-
           <WorkflowDag
             model={dag}
             selectedTaskId={selectedTaskId}
@@ -254,6 +250,10 @@ function LogicalBuilder({
             onDeleteDependencies={deleteDependencies}
             logical
             heading="Logical workflow"
+          />
+
+          <SystemTopologyStrip
+            runConfiguration={bundle.runConfiguration}
           />
 
           <div className="builder-toolbar">

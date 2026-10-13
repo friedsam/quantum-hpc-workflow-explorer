@@ -171,6 +171,7 @@ select:hover, input:hover { border-color: var(--border-strong); }
   border-radius: 13px;
   background: #07111b;
 }
+.builder-main > .workflow-surface .workflow-dag { height: 310px; }
 .workflow-dag .react-flow__renderer { border-radius: inherit; }
 .workflow-dag .react-flow__node-default.dag-node {
   width: 210px;
