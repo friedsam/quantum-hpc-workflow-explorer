@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - agent/ui
-    paths:
-      - .github/workflows/agent-ui-browser-smoke.yml
 
 permissions:
   contents: read
