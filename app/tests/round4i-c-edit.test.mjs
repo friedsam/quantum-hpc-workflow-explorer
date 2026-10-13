@@ -13,7 +13,14 @@ import {
   qampScenarioC1000Profile
 } from "../src/presets/qamp-c-1000-demo.mjs";
 
-function approx(actual, expected, epsilon = 1e-9) {\n  assert.ok(\n    Math.abs(actual - expected) <= epsilon,\n    `expected ${actual} ≈ ${expected}`\n  );\n}\n\nfunction compile(bundle) {
+function approx(actual, expected, epsilon = 1e-9) {
+  assert.ok(
+    Math.abs(actual - expected) <= epsilon,
+    `expected ${actual} ≈ ${expected}`
+  );
+}
+
+function compile(bundle) {
   return compileWorkflowDesignDetailed(
     bundle.design,
     bundle.runConfiguration,
