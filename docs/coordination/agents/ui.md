@@ -1912,3 +1912,286 @@ STOP before public C/D implementation.
 Build compact public Scenario C over approximately 1,000 persistent HPC actors: positive transfer dependencies dominate short QPU/classical service; QPU can be idle while actors Blocked waiting on returned data; independent result consumers resume without global synchronization or meaningful backend queue/admission pressure. Do not inject 1,000 simultaneous requests into a capacity-1 QPU; use explicit, accurately labeled staggered/cohort aggregation. Do not invent per-rank counts, network resources, provider delay, or a new DES. Actor result waits should release no earlier than consumer readiness after modeled return transfer.
 
 Validate source-faithful metrics/states, transfer parameter edit and Compare, actor half-open boundaries, playback/keyframe and default lazy view. Run Node tests/typecheck/build/CI; supply files/SHAs, perf evidence, limitations. **STOP for F review before public D.** FTQC remains documentation-only.
+
+
+## Round 4I completion — public transfer-dominated Scenario C
+
+**Status: GREEN CHECKPOINT — STOPPED FOR AGENT F REVIEW.**
+
+Green code head before this handoff:
+`f539b22a4a4bdbd260b1259b987b99b9ac6cb6be`
+
+Validated GitHub Actions run:
+`38326092092` — **success**
+
+### Source basis
+
+Public C was authored from:
+- `HPC-Quantum/Documentation-website/scenario-c.md`;
+- accepted D018 queued-wait contract;
+- D019 public-B acceptance / Round-4I coordinator constraints.
+
+Source-faithful mechanism retained:
+- transfer/data movement dominates short classical/QPU service;
+- no global synchronization;
+- no provider/backend queue invention;
+- QPU can be idle while actors remain Blocked waiting for results;
+- independent consumers resume as their own result transfer completes;
+- QPU capacity remains 1;
+- no meaningful QPU resource queue or admission backlog.
+
+### Actor/grouping choice
+
+Public C uses **1,000 persistent MPI-rank actors** represented by **five explicitly labeled 200-rank cohorts**.
+
+This is an authored aggregation, not an inference that each cohort is one physical rank or one exact real request stream.
+
+Each cohort has a compact chain:
+
+`classical preparation → positive outbound transfer → short aggregate QPU request → positive return transfer → independent classical continuation`
+
+Production logical model:
+- 5 preparation tasks;
+- 5 aggregate QPU tasks;
+- 5 independent continuation tasks;
+- **15 logical tasks total**;
+- **15 compiled DES tasks**;
+- no per-rank nodes;
+- no 1,000 simultaneous QPU-ready tasks.
+
+The five cohort preparation wall times are staggered synthetically:
+- 0.2 s;
+- 1.2 s;
+- 2.2 s;
+- 3.2 s;
+- 4.2 s.
+
+Synthetic profile:
+- outbound dependency latency = **5 s**;
+- QPU service = **0.1 s**;
+- return dependency latency = **3 s**;
+- continuation = **0.5 s**.
+
+All numeric values are explicitly synthetic/illustrative.
+
+### Actor waiting semantics
+
+Each 200-rank cohort:
+- is Working during its authored preparation;
+- becomes Blocked after preparation completes;
+- remains Blocked across outbound transfer, QPU service, and positive return transfer;
+- releases only when its own consumer becomes ready/starts after the return-transfer dependency completes;
+- resumes independently, without a global gate.
+
+Wait reason:
+- `quantum-result`.
+
+No `global-synchronization` wait is authored.
+
+Half-open boundary acceptance:
+- immediately before cohort-1 consumer start at t≈8.3, all 1,000 actors remain Blocked;
+- at consumer start/ready after return-transfer completion, cohort 1 releases and 200 actors become Working.
+
+### Source-visible C states
+
+Verified representative states:
+
+- **t=3.5:** 200 Working / 800 Blocked / 0 Idle, QPU idle.
+- **t=4.5:** 0 Working / 1,000 Blocked / 0 Idle, QPU idle, five modeled communications active, QPU queue depth 0.
+- **t=5.25:** 0 Working / 1,000 Blocked / 0 Idle, QPU Run=1, queue 0.
+- **t=8.5:** 200 Working / 800 Blocked / 0 Idle, QPU idle while transfer remains active.
+
+Independent continuation:
+- first consumer starts at t≈8.3;
+- final QPU result completes at t≈9.3;
+- therefore an independent cohort resumes before the final QPU result is complete.
+
+This reproduces the tutorial's transfer-wall pattern without a global barrier or backend saturation.
+
+### Metrics / anti-D acceptance
+
+Verified public C:
+- makespan ≈ **12.8 s**;
+- QPU resource queue wait = **0**;
+- QPU admission wait = **0**;
+- QPU utilization < **0.05**;
+- aggregate modeled communication duration > summed task service time;
+- no `maxInFlightQuantumByPool` policy;
+- no global synchronization metadata.
+
+At the full-stall t=4.5 state:
+- QPU active units = 0;
+- resource queue depth = 0;
+- policy-held quantum tasks = 0;
+- active modeled communications = 5;
+- actors Blocked = 1,000.
+
+This is explicitly Scenario C rather than Scenario D.
+
+### Transfer parameter edit / Compare evidence
+
+Focused test lowers transfer assumptions while preserving authored topology:
+- outbound latency 5 → **2.5 s**;
+- return latency 3 → **1.5 s**.
+
+Results:
+- baseline makespan ≈ **12.8 s**;
+- edited makespan ≈ **8.8 s**;
+- reduction ≈ **4.0 s**;
+- QPU queue/admission wait remain 0;
+- baseline at t=5: 1,000 Blocked;
+- edited at t=5: 800 Blocked / 200 Idle.
+
+Saved RunRecord comparison preserves:
+- identical design topology;
+- distinct profile assumptions;
+- user-entered transfer provenance;
+- authoritative result metrics.
+
+### D018 selectively ported and preserved
+
+Before implementing C, Agent C selectively ported F-accepted D018 support:
+- actor wait event `queued` → existing DES `task_queued`;
+- no frozen-DES changes.
+
+Regression retained:
+- `app/tests/fixtures/qamp-d-1000-stress.mjs`;
+- `app/tests/scenario-d-admission.test.mjs`.
+
+D1000 tests remain green, including:
+- 1 running +49 resource-queued +950 policy-held at the accepted boundary;
+- queued actor waits;
+- immediate queued→started boundary;
+- actor-state semantic-oracle equivalence.
+
+Public D was **not** implemented.
+
+### Playback / source-event mapping
+
+Public C actor-aware playback:
+- uses the accepted indexed actor projector;
+- preserves one synchronized simulation-time cursor;
+- keeps semantic source-event sequence ranges;
+- produces fewer keyframes than raw events;
+- preserves blocked actor compositions;
+- no raw-event blinking;
+- collapsed Advanced remains lazily mounted.
+
+### Performance evidence
+
+GitHub Actions CI, current accepted indexed projection:
+
+Full `buildActorAwareVisualKeyframes`, 5 repeats:
+- keyframes = **23**
+- median = **1.291 ms**
+- max = **14.432 ms**
+
+Explorer-style cursor sweep:
+- **257 positions** from 0 through makespan;
+- each derives generic system state + indexed actor-aware projection;
+- median = **0.063 ms**
+- p95 = **0.160 ms**
+- max = **1.657 ms**
+- total = **20.635 ms**
+
+Process-memory observation across the performance test:
+- RSS delta = **11,849,728 bytes**
+- heap-used delta = **6,404,944 bytes**
+
+These are CI Node process measurements, not isolated browser paint/click/peak-memory measurements.
+
+### Validation
+
+Green run `38326092092`:
+
+- engine: **17/17**
+- design/compiler: **7/7**
+- small actor model: **6/6**
+- indexed actor projector/oracle: **9/9**
+- 4-rank Scenario A: **7/7**
+- public A1000: **5/5**
+- accepted D018/D1000: **7/7**
+- QAMP regression fixtures: **5/5**
+- causal derivation: **4/4**
+- trace playback: **14/14**
+- actor-aware playback: **7/7**
+- Round-4C product acceptance: **6/6**
+- Round-4G A UI/data path: **4/4**
+- Round-4G A performance: **1/1**
+- Round-4H B state: **2/2**
+- Round-4H B edit/provenance: **2/2**
+- Round-4H B performance: **1/1**
+- Round-4I C state/semantics: **5/5**
+- Round-4I C edit/Compare/provenance: **3/3**
+- Round-4I C playback/performance: **2/2**
+- architecture/UI: **21/21**
+
+Total Node tests: **135/135**.
+
+Also green:
+- TypeScript `tsc --noEmit`;
+- Vite 8.3.4 production build;
+- 224 modules transformed.
+
+Build output:
+- CSS ~42.06 kB / 8.41 kB gzip;
+- JS ~1.990 MB / 609.95 kB gzip;
+- existing non-blocking large-chunk warning remains.
+
+### Failures corrected during Round 4I
+
+1. First C compile attempt omitted the required actor-wait `instance` field for range-selected actors. Corrected to explicit `any-instance` activation/release; no timing/topology/resource values changed.
+2. Exact decimal assertions exposed binary floating-point values such as 9.299999999999999 / 12.799999999999999. Tests now use bounded tolerance; model values unchanged.
+3. Initial tolerance-helper patch accidentally wrote literal escaped-newline text into two test files; test source was repaired.
+4. One remaining makespan-delta assertion used strict equality and was converted to the same tolerance helper.
+
+No product semantics were changed to satisfy these test-source fixes.
+
+### Exact Round-4I production changes
+
+From the accepted Round-4H head:
+- `app/src/design/types.ts` — D018 additive queued wait union;
+- `app/src/design/compiler.mjs` — D018 queued→task_queued mapping;
+- `app/src/presets/qamp-c-1000-demo.mjs`;
+- `app/src/presets/qamp-c-1000-demo.d.mts`;
+- `app/src/presets/logical-presets.mjs` — public C bundle switch;
+- `app/src/presets/presets.ts` — public C description;
+- focused C/D018 tests and package/architecture scripts.
+
+Unchanged:
+- frozen DES;
+- public A1000;
+- public B200;
+- small A/B fixtures;
+- B browser guard;
+- indexed actor projector;
+- Round-4D Builder clarity;
+- Round-4H lazy Advanced behavior;
+- Compare/custom authoring;
+- no new dependency/framework.
+
+### Known limitations
+
+1. Five 200-rank cohorts are an explicit synthetic aggregation chosen to preserve the transfer-wall mechanism without creating a false QPU-saturation regime. They are not a measured per-rank arrival model.
+2. Transfer is represented as dependency communication cost, not a network resource or topology model.
+3. No provider queue, bandwidth contention between simultaneous transfers, or stochastic latency is modeled.
+4. The current public C is one iteration; repeated iterative behavior would require explicit authored repeats/new work.
+5. Browser paint/click/playback remains an Agent-F integration acceptance item; this checkpoint measures data/state/keyframe computation in CI.
+
+### Source provenance
+
+Primary conceptual source:
+`HPC-Quantum/Documentation-website/scenario-c.md` — *Scenario C / Latency Wall (Transfer-Dominated Workflow)*.
+
+The model preserves the source distinctions:
+- transfer dominates;
+- QPU can be idle while HPC actors wait;
+- no global barrier;
+- queue/throttling is not the cause;
+- independent continuation resumes as results return.
+
+### Recommendation
+
+**PORT Round 4I public Scenario C.**
+
+STOP here for Agent F review. Do not begin public D.
