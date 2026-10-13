@@ -88,7 +88,7 @@ export const presets: WorkflowPreset[] = [
   {
     key: "scenario-c",
     label: "Scenario C",
-    description: "Compact communication/data-movement wall with independent paths.",
+    description: "Synthetic 1,000-rank transfer wall using five staggered 200-rank cohorts, low QPU load, and independent result return.",
     source: "design",
     designBundle: scenarioCLogicalBundle
   },
