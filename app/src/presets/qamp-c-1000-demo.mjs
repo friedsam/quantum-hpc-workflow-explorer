@@ -97,11 +97,13 @@ for (const cohort of COHORTS) {
       kind: "task-event",
       taskId: prepareId,
       event: "completed",
+      instance: "any-instance",
     },
     release: {
       kind: "task-event",
       taskId: consumerId,
       event: "started",
+      instance: "any-instance",
     },
     reason: "quantum-result",
   });
