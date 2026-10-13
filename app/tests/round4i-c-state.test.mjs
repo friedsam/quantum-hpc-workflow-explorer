@@ -18,7 +18,14 @@ const compiled = qampScenarioC1000Compilation;
 const spec = qampScenarioC1000WorkflowSpec;
 const result = simulateWorkflow(spec);
 
-function approx(actual, expected, epsilon = 1e-9) {\n  assert.ok(\n    Math.abs(actual - expected) <= epsilon,\n    `expected ${actual} ≈ ${expected}`\n  );\n}\n\nfunction actorCounts(simTimeS) {
+function approx(actual, expected, epsilon = 1e-9) {
+  assert.ok(
+    Math.abs(actual - expected) <= epsilon,
+    `expected ${actual} ≈ ${expected}`
+  );
+}
+
+function actorCounts(simTimeS) {
   return deriveActorStateCountsAt(
     compiled.manifest,
     result,
