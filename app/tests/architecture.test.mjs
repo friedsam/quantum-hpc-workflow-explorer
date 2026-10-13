@@ -402,3 +402,21 @@ test("Round 4I preserves lazy Advanced and indexed actor summary path", async ()
   assert.match(explore, /Expanded compiled DES graph/);
   assert.match(hook, /deriveActorGroupSummaryAt/);
 });
+
+
+test("Graph overview can expand for large C-class logical DAGs without trapping page wheel", async () => {
+  const dag = await readFile(
+    path.join(srcRoot, "components", "graph", "WorkflowDag.tsx"),
+    "utf8"
+  );
+  const css = await readFile(path.join(srcRoot, "styles.css"), "utf8");
+  assert.match(dag, /workflow-surface-expanded/);
+  assert.match(dag, /Expand diagram/);
+  assert.match(dag, /Return to page/);
+  assert.match(dag, /event\.key === "Escape"/);
+  assert.match(dag, /zoomOnScroll=\{false\}/);
+  assert.match(dag, /preventScrolling=\{false\}/);
+  assert.match(dag, /fitViewRef\.current\?\.\(expanded \? 1\.05 : 0\.85\)/);
+  assert.match(css, /\.workflow-surface-expanded\.workflow-surface \.workflow-dag/);
+  assert.match(css, /position: fixed/);
+});

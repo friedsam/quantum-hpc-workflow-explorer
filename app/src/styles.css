@@ -1171,3 +1171,45 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Lightweight large-DAG inspection: overview in the page, expanded readable canvas. */
+.workflow-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  text-align: right;
+}
+.workflow-heading-actions .secondary-action { flex: 0 0 auto; }
+.workflow-surface-expanded {
+  position: fixed;
+  inset: 12px;
+  z-index: 1000;
+  margin: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.70);
+}
+.workflow-surface-expanded.workflow-surface .workflow-dag {
+  flex: 1 1 auto;
+  min-height: 150px;
+  height: auto;
+}
+.workflow-surface-expanded .surface-heading,
+.workflow-surface-expanded .dag-help { flex-shrink: 0; }
+.workflow-surface-expanded .edge-list {
+  flex: 0 0 auto;
+  max-height: 65px;
+  overflow-y: auto;
+}
+@media (max-width: 760px) {
+  .workflow-heading-actions { justify-content: flex-start; text-align: left; }
+  .workflow-surface-expanded { inset: 4px; padding: 10px; }
+  .workflow-surface-expanded .surface-heading { gap: 8px; }
+}

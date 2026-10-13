@@ -123,8 +123,9 @@ export function WorkflowDag({
   const [nodes, setNodes] = useState<Node[]>(sourceNodes);
   const [edges, setEdges] = useState<Edge[]>(sourceEdges);
   const [layoutError, setLayoutError] = useState("");
+  const [expanded, setExpanded] = useState(false);
   const [layoutRevision, setLayoutRevision] = useState(0);
-  const fitViewRef = useRef<(() => void) | null>(null);
+  const fitViewRef = useRef<((maxZoom: number) => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,10 +160,24 @@ export function WorkflowDag({
   useEffect(() => {
     if (!layoutRevision) return;
     const frame = window.requestAnimationFrame(() => {
-      fitViewRef.current?.();
+      fitViewRef.current?.(expanded ? 1.05 : 0.85);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [layoutRevision]);
+  }, [layoutRevision, expanded]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", escape);
+    };
+  }, [expanded]);
 
   const displayedNodes = useMemo(
     () =>
@@ -211,7 +226,12 @@ export function WorkflowDag({
   }
 
   return (
-    <section className="surface workflow-surface" aria-labelledby="workflow-heading">
+    <section
+      className={expanded
+        ? "surface workflow-surface workflow-surface-expanded"
+        : "surface workflow-surface"}
+      aria-labelledby="workflow-heading"
+    >
       <div className="surface-heading">
         <div>
           <p className="section-kicker">
@@ -219,15 +239,25 @@ export function WorkflowDag({
           </p>
           <h2 id="workflow-heading">{heading}</h2>
         </div>
-        <span className="muted-label">
-          {logical
-            ? straightLogicalEdges
-              ? "one authored task = one node · linear logical flow"
-              : "one authored task = one node · multiplicity does not change geometry"
-            : debugSnapshot
-              ? "fixed geometry · state styling follows shared simulation cursor"
-              : "React Flow + deterministic ELK layered layout"}
-        </span>
+        <div className="workflow-heading-actions">
+          <span className="muted-label">
+            {logical
+              ? straightLogicalEdges
+                ? "one authored task = one node · linear logical flow"
+                : "one authored task = one node · multiplicity does not change geometry"
+              : debugSnapshot
+                ? "fixed geometry · state styling follows shared simulation cursor"
+                : "React Flow + deterministic ELK layered layout"}
+          </span>
+          <button
+            className="secondary-action"
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? "Return to page" : "Expand diagram"}
+          </button>
+        </div>
       </div>
 
       {layoutError ? (
@@ -241,11 +271,11 @@ export function WorkflowDag({
           nodeTypes={nodeTypes}
           colorMode="dark"
           onInit={(instance) => {
-            fitViewRef.current = () => {
+            fitViewRef.current = (maxZoom) => {
               void instance.fitView({
                 padding: 0.14,
                 minZoom: 0.1,
-                maxZoom: 0.85,
+                maxZoom,
                 duration: 180
               });
             };
