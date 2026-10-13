@@ -187,6 +187,40 @@ try {
   await page.getByRole("heading", { name: "Validation" }).waitFor();
   evidence.checkpoints.push({ label: "invalid-input", result: "blocked" });
   await shot("invalid-input");
+
+  // A directed cycle must be rejected without silent graph repair.
+  await page.locator("#preset-select").selectOption("scenario-d");
+  const add = page.locator(".dependency-add-row");
+  await add.getByLabel("Source").selectOption("consumer");
+  await add.getByLabel("Target").selectOption("prepare");
+  await add.getByRole("button", { name: "Add edge" }).click();
+  await nap(120);
+  const validationText = await page.locator(".validation-surface").textContent();
+  assert.equal(await page.getByRole("button", { name: "Simulate", exact: true })
+    .isDisabled(), true, "cycle did not block simulation");
+  assert.match(validationText, /cycle|acyclic|DAG/i, "cycle not explained");
+  evidence.checkpoints.push({ label: "invalid-DAG-cycle", validationText });
+  await shot("invalid-dag-cycle");
+
+  // Actual browser reduced-motion media preference, not inferred from source code.
+  const reduced = await browser.newPage({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: "reduce",
+  });
+  try {
+    await reduced.goto("http://127.0.0.1:5173", { waitUntil: "networkidle" });
+    await reduced.locator("#preset-select").selectOption("scenario-a");
+    await reduced.getByRole("button", { name: "Simulate", exact: true }).click();
+    await reduced.locator('section[aria-label="Simulation playback"]').waitFor();
+    assert.equal(await reduced.getByRole("button", { name: "Play", exact: true })
+      .isDisabled(), true, "reduced-motion should disable auto animation");
+    assert.equal(await reduced.getByRole("button", { name: "Next", exact: true })
+      .isDisabled(), false, "manual step must remain possible");
+    evidence.checkpoints.push({ label: "prefers-reduced-motion", result: "Play disabled, Next available" });
+  } finally {
+    await reduced.close();
+  }
+
   assert.deepEqual(evidence.pageErrors, [], "uncaught page errors");
 } catch (error) {
   evidence.errors.push(error.stack ?? String(error));
