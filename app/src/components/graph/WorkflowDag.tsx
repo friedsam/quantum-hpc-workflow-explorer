@@ -6,8 +6,7 @@ import {
   ReactFlow,
   type Connection,
   type Edge,
-  type Node,
-  type ReactFlowInstance
+  type Node
 } from "@xyflow/react";
 import type { SystemStateSnapshot } from "../../causal/systemState.mjs";
 import type { DagRuntimeState, DagViewModel } from "./types";
@@ -125,7 +124,7 @@ export function WorkflowDag({
   const [edges, setEdges] = useState<Edge[]>(sourceEdges);
   const [layoutError, setLayoutError] = useState("");
   const [layoutRevision, setLayoutRevision] = useState(0);
-  const flowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null);
+  const fitViewRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,12 +159,7 @@ export function WorkflowDag({
   useEffect(() => {
     if (!layoutRevision) return;
     const frame = window.requestAnimationFrame(() => {
-      void flowRef.current?.fitView({
-        padding: 0.14,
-        minZoom: 0.1,
-        maxZoom: 0.85,
-        duration: 180
-      });
+      fitViewRef.current?.();
     });
     return () => window.cancelAnimationFrame(frame);
   }, [layoutRevision]);
@@ -246,7 +240,16 @@ export function WorkflowDag({
           edges={displayedEdges}
           nodeTypes={nodeTypes}
           colorMode="dark"
-          onInit={(instance) => { flowRef.current = instance; }}
+          onInit={(instance) => {
+            fitViewRef.current = () => {
+              void instance.fitView({
+                padding: 0.14,
+                minZoom: 0.1,
+                maxZoom: 0.85,
+                duration: 180
+              });
+            };
+          }}
           fitView
           fitViewOptions={{ padding: 0.14, minZoom: 0.1, maxZoom: 0.85 }}
           minZoom={0.1}
