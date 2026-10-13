@@ -113,6 +113,11 @@ try {
   await runPreset("scenario-b");
   await seek(1); verify(await observe("B@1"), [0, 200, 800], [1, 0, 199]);
   await seek(2); verify(await observe("B@2"), [0, 1000, 0], [1, 0, 198]);
+  const prepText = await page.locator(".simple-explorer .react-flow__node")
+    .filter({ hasText: "Submitting-rank preparation" }).first().textContent();
+  evidence.checkpoints.push({ label: "B-preparation-visual-status", text: prepText });
+  console.log("BROWSER_LOGICAL_NODE", prepText);
+
   await shot("B-global-wall");
   const startAdvanced = Date.now();
   await advanced();
@@ -128,8 +133,8 @@ try {
   assert.ok(nodes > 0, "B Advanced expanded graph not rendered");
   await shot("B-advanced-open");
   await advanced();
-  await advance(201.5, 280);
-  verify(await observe("B@201.5"), [1000, 0, 0]);
+  await advance(201, 280);
+  verify(await observe("B@201"), [1000, 0, 0]);
 
   await runPreset("scenario-c");
   await seek(4.5); verify(await observe("C@4.5"), [0, 1000, 0], [0, 0, 0]);
