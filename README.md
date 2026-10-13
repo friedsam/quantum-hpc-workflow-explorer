@@ -1,41 +1,52 @@
 # Quantum–HPC Workflow Explorer
 
-**Status:** New React/TypeScript prototype is feature-complete on [`agent/integration`](https://github.com/friedsam/quantum-hpc-workflow-explorer/tree/agent/integration); code-equivalent Chromium smoke and clean-install CI pass; deployed-preview verification and promotion to `main` remain pending. `main` still retains the historical implementation.
+**QAMP 2025 Hello HPC · Continued prototype development (October 2026)**
 
-A pre-execution design and visual-debugging environment for hybrid HPC–quantum workflows:
+[**Try the interactive prototype**](https://quantum-hpc-workflow-explorer-next.vercel.app/) · [QAMP Hello HPC tutorials](https://hpc-quantum.github.io/Documentation-website/) · [Development roadmap](docs/ROADMAP.md) · [FTQC future outlook](docs/coordination/FTQC_EXTENSION_OUTLOOK.md)
 
-`Build an editable logical DAG → compile to resource-bound tasks → simulate with a deterministic discrete-event engine → inspect causal execution/playback → compare alternatives`.
+The Workflow Explorer is a **pre-execution design-space simulator and visual debugger** for hybrid HPC–quantum workflows. It helps users investigate *why* a workflow spends time in useful classical work, waiting on quantum results, moving data, or awaiting QPU admission. It is **not** an HPC/quantum scheduler or a prediction of vendor performance.
 
-Public demonstration presets connect to the [QAMP Hello HPC tutorial](https://hpc-quantum.github.io/Documentation-website/workflowscenarios/):
+## What's new since the original QAMP project?
 
-| Preset | Defining bottleneck | Demo abstraction |
+The original Hello HPC tutorial used static workflow scenarios to explain orchestration bottlenecks. The continuation replaces hand-authored frame sequences with a shared, deterministic simulation model:
+
+1. **Build:** Edit a logical workflow DAG, task multiplicities, resource capacities, assumed task/communication times and QPU admission limits.
+2. **Simulate:** Compile the design into a concrete DAG and run the frozen discrete-event simulator (DES). The engine—not UI counters—produces event traces and authoritative resource/queue metrics.
+3. **Explore:** Step or play through one synchronized timeline, showing authored HPC actors as **Working / Blocked / Idle** alongside QPU **running / resource-queued / policy-held** work. Inspect causal evidence and source-event provenance.
+4. **Compare:** Modify an assumption, rerun and compare the stored alternatives and their modeled outcomes.
+
+| Public demonstration | Mechanism | Scope of the *synthetic* example |
 |---|---|---|
-| A — local overlap | QPU off overall critical path | 1,000 persistent HPC actors; 4 logical tasks |
-| B — synchronization wall | full-result collective dependency | 1,000 actors; 200 QPU evaluations; 3 logical nodes |
-| C — transfer wall | communication-dominated local waiting | 1,000 actors in **five aggregate** 200-rank cohorts, five QPU evaluations |
-| D — bounded asynchronous throughput | QPU service capacity and admission throttling | 1,000 corresponding requests, maximum 50 in flight, no global barrier |
+| A · Local overlap | Local quantum wait, with the QPU branch off the critical path | 1,000 HPC actors, 4 logical tasks |
+| B · Synchronization wall | All-rank result dependency, not a resource-queue wall | 1,000 actors, 200 QPU evaluations |
+| C · Transfer wall | Positive communication delay and independent result return | 5 aggregate QPU requests representing five 200-rank actor cohorts |
+| D · Throughput throttling | One QPU execution lane; 50 admitted, excess demand policy-held | 1,000 independent QPU requests, 3 logical / 3,000 expanded tasks |
 
-The A–D values and service/transfer durations are **synthetic**, for causal understanding rather than measured performance prediction. In particular, C does **not** simulate 1,000 independent QPU requests; D does, and deliberately ends its one-shot drain with actors Idle rather than fabricate another working cycle.
+**Important:** Persistent actor count, the number of modeled QPU tasks, and QPU resource units are different quantities. C's five calls deliberately represent *cohorts*, whereas D models 1,000 calls individually. D's one-shot drain finishes with actors Idle; a further classical-work loop has not been fabricated.
 
-## Run the new staging app
+## Technical status and evidence
 
-Use Node 22:
+- [Verified] The React/TypeScript/Vite prototype with React Flow/ELK is deployed in a **separate** Vercel project; the original website and historical `main` branch remain untouched.
+- [Verified] The accepted integration branch passed **143/143 Node tests**, clean Node 22 `npm ci`, TypeScript checks and a production build. [CI evidence](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38337192791).
+- [Verified] A Chromium browser smoke test of the same application source passed 19 functional checkpoints across scenarios A–D, playback, editing/Compare and input validation. [Browser evidence](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801).
+- [In progress] Visual layout refinement, final browser acceptance of the separately deployed site and shareable documentation. The 143 automated tests are **not** a scientific validation against real HPC/QPU measurements.
+
+## Run locally
+
+Node 22 is the validated runtime:
 
 ```bash
 git checkout agent/integration
 cd app
-npm ci --no-audit --no-fund
+npm ci
 npm test
-npm run build
 npm run dev
 ```
 
-`app/package-lock.json` is committed and the integration validation workflow runs a clean `npm ci` (143/143 tests + TypeScript/Vite build; [CI run 38337192791](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38337192791)). Headless Chromium 141 A–D functional smoke passed on **byte-identical application source** in Agent C's laboratory run [38334619801](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801); direct deployed-preview acceptance remains pending. Details: [App documentation](app/README.md).
+The source remains under `app/` on `agent/integration`. The historical `main` branch is not yet the new application; do not treat it as the release source.
 
-## Architecture and limits
+## What's next?
 
-The frozen deterministic DES (`app/src/engine/runtime.mjs`) is the sole source of task scheduling, queue and resource metrics; actor projections, visuals and playback do not alter DES causality. Multiple resource pools and configurable QPU capacity are supported, though public A–D presets generally use one QPU lane. No live hardware jobs, real-provider queue model, stochastic/network-contention simulation, scheduling optimization, or vendor-accurate cost predictions are implied.
+See the [milestone-based roadmap](docs/ROADMAP.md) for near-term usability/reproducibility, a measured reference-workflow validation, parameter sensitivity, and scheduler-neutral HPC interoperability. [Fault-tolerant quantum computing](docs/coordination/FTQC_EXTENSION_OUTLOOK.md)—including QEC/decoding, magic-state resources, and cloud versus tightly integrated HPC–QPU architectures—is a **long-term research extension**, not implemented today.
 
-An **FTQC extension is future work**, potentially coupling application orchestration with logical-qubit/QEC decoder/magic-state resource estimates and comparing remote/cloud versus co-located HPC–QPU architectures. None of those FTQC features is implemented. See [FTQC outlook](docs/coordination/FTQC_EXTENSION_OUTLOOK.md).
-
-[Release acceptance checklist](docs/coordination/RELEASE_ACCEPTANCE.md) · [Repository operating contract](AGENTS.md)
+**Model limitations:** The current engine uses deterministic service times, an expanded DAG, explicitly specified capacities, FIFO admission, and independently modeled transfer delays; it does not capture live provider queues, network contention, uncertain runtimes, physical device noise, or real-time fault correction.
