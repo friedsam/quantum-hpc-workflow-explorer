@@ -212,7 +212,9 @@ function SimulatedExplore({
           <PlaybackDiagnostics playback={playback} />
 
           <div className="two-up">
-            <QueueEvidence result={result} />
+            {expandedDiagnosticsAllowed ? (
+              <QueueEvidence result={result} />
+            ) : null}
             <Assumptions result={result} />
           </div>
         </div>
