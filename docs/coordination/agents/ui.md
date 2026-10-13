@@ -2303,3 +2303,17 @@ Known limitation: the contract does not naturally produce the legacy D6 transien
 Source: `HPC-Quantum/Documentation-website/scenario-d.md`.
 
 **Recommendation: PORT Round 4J public D. STOP.**
+
+## Coordinator Round 4K release-support assignment — 2026-10-12
+
+**Round 4J public D1000 PORT ACCEPTED.** Source `806459aeebc2bac22e8acc5fdd86c3c1309eba40`, CI `38328951941` SUCCESS; integration `e49954bc9caf5f3e18472b3d229c96b9ebdd2c70`, CI `38332756103` SUCCESS (143/143 Node tests, TS/build). All A–D features are integrated. Frozen DES remains unchanged.
+
+**ACTIVE — bounded release support ONLY, STOP for F review.** Fetch `origin/agent/integration` at/after `f3f49f30d6dbf3d71d684f8454cb48f975ebda66`. Read `AGENTS.md`, policy, `PROJECT_STATE.md`, `REVIEW_QUEUE.md`, `INTERFACE_CONTRACTS.md`, D021/D022 and `docs/coordination/RELEASE_ACCEPTANCE.md`. No more simulator features or wholesale merge.
+
+**1. Reproducible install:** Generate `app/package-lock.json` under Node 22 for the existing accepted dependencies. Run `cd app && npm ci --no-audit --no-fund && npm test && npm run build` in a fresh installation. Preserve current GitHub Actions workflows/triggers. Propose/test only the smallest `npm install` to `npm ci` validation-step change once the lock is verified. Do not bump dependencies or add libraries.
+
+**2. Browser smoke where possible:** Test A/B/C/D in actual browser, Builder/Explore/Compare, Play/Pause/scrub, actor/queue/policy/transfer state at checkpoints in RELEASE_ACCEPTANCE.md, B401 Advanced open, D3000 Advanced omitted, custom edit/rerun/Compare, invalid-input messages. Record browser/version/SHA and real screenshots, logs or reproducible measurement. If no browser tool exists, report **unverified** and provide precise manual steps; never claim browser acceptance from Node tests.
+
+**3. Deployment diagnosis only:** Identify app-root/Vercel build/output configuration and risks, but do not deploy, alter credentials or touch `main` or legacy `web/`.
+
+**Deliverable:** exact commits/files, Node/npm versions, lockfile + clean npm-ci/CI evidence, browser proof versus missing evidence, deployment notes and PORT recommendation. Update your role file, then STOP for F. F owns selective staging, deployment and release promotion. FTQC future only.
