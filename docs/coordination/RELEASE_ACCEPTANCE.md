@@ -54,3 +54,11 @@ Scenario C's five quantum tasks **aggregate** 1,000 actors; D's 1,000 QPU tasks 
 ## Release verdict
 
 **As of Round 4K:** A–D models and clean locked CI PASS; code-equivalent Chromium lab functional smoke PASS (19 checkpoints). Direct staging/deployed-preview smoke, deployment-root migration/provider settings, and promotion to `main` remain **PENDING**.
+## Round 4L Vercel reconnaissance — 2026-10-12 (read-only, verified)
+
+- **Authenticated project located:** existing `quantum-hpc-workflow-explorer`, connected to `friedsam/quantum-hpc-workflow-explorer`; connector can inspect project, deployments and aliases.
+- **Production domain unchanged:** `quantum-hpc-workflow-explorer.vercel.app` points to a READY production deployment of historical `main@11b292844b196e7a920044e1d7c860d466f5fc68`, not to the new `app/` prototype.
+- **Integration preview exists:** READY Vercel preview for `agent/integration@fd8433f146b32125faf9f29b4af429a9e743eacb` at `https://quantum-hpc-workflow-explorer-oktbydldm.vercel.app/`; the preview's READY status is build/deployment status **only**, not verified app rendering.
+- **Current Vercel project metadata:** `nodeVersion = 24.x`, `framework = null`. Node 22 is the tested CI configuration. The retrieved API projection does **not** expose Root Directory, Build Command, Install Command, or Output Directory; do not infer those fields or silently change them.
+- **Access limitations:** Preview deployments are behind Vercel Authentication; the external browser fetch did not establish page content. Read-only build-event API returned a team-scope **403 forbidden** (needs corrected account/team authorization); deployment source-file enumeration was not available. Do not disable protection, request tokens, or claim preview-browser acceptance.
+- **Next safe action:** ask the user to open that existing protected preview to establish whether it renders the React Builder or the legacy site, or explicitly authorize a separate isolated app-root preview configuration. Before changing this existing project's project-wide root/Node/framework settings, confirm impact on `main` production builds and preserve current domain. Do not deploy or promote without explicit approval.
