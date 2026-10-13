@@ -43,6 +43,7 @@ function SimulatedExplore({
 }) {
   const [inspectionTimeS, setInspectionTimeS] = useState(0);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const expandedDiagnosticsAllowed = spec.tasks.length <= 500;
 
   useEffect(() => {
     setInspectionTimeS(0);
@@ -171,28 +172,44 @@ function SimulatedExplore({
 
           <MetricsGrid spec={spec} result={result} />
 
-          <WorkflowDag
-            model={projectWorkflowDag(spec)}
-            debugSnapshot={genericSnapshot}
-            heading="Expanded compiled DES graph"
-          />
+          {expandedDiagnosticsAllowed ? (
+            <>
+              <WorkflowDag
+                model={projectWorkflowDag(spec)}
+                debugSnapshot={genericSnapshot}
+                heading="Expanded compiled DES graph"
+              />
+
+              <FullSystemDebugger
+                spec={spec}
+                snapshot={genericSnapshot}
+              />
+
+              <AnalyticalStrips
+                spec={spec}
+                result={result}
+                simTimeS={inspectionTime}
+                onTimeChange={setInspectionTimeS}
+              />
+
+              <TaskTimeline spec={spec} result={result} />
+              <ResourceTimeline result={result} />
+            </>
+          ) : (
+            <section className="surface">
+              <p className="section-kicker">Scale-aware diagnostics</p>
+              <h2>Expanded task-level views omitted</h2>
+              <p className="field-note">
+                This run contains {spec.tasks.length} compiled tasks. Automatic
+                React Flow / ELK layout, per-task timelines, and task-level
+                debugger cards are not mounted above 500 tasks. Metrics,
+                playback provenance, queue evidence, and assumptions remain
+                available.
+              </p>
+            </section>
+          )}
 
           <PlaybackDiagnostics playback={playback} />
-
-          <FullSystemDebugger
-            spec={spec}
-            snapshot={genericSnapshot}
-          />
-
-          <AnalyticalStrips
-            spec={spec}
-            result={result}
-            simTimeS={inspectionTime}
-            onTimeChange={setInspectionTimeS}
-          />
-
-          <TaskTimeline spec={spec} result={result} />
-          <ResourceTimeline result={result} />
 
           <div className="two-up">
             <QueueEvidence result={result} />
