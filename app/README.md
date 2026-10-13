@@ -29,7 +29,7 @@ Use Node 22:
 
 ```bash
 cd app
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm test
 npm run build
 npm run dev
@@ -39,7 +39,7 @@ npm run dev
 
 ## Validation and limitations
 
-[Agent F's integration run 38332756103](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38332756103) passed **143/143 Node tests**, `tsc --noEmit`, and Vite build on the Round-4J D1000 checkpoint. **Actual browser interactions and deployment are not yet accepted.** Consult [release checklist](../docs/coordination/RELEASE_ACCEPTANCE.md) before promoting `main`.
+[Agent F's integration run 38332756103](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38332756103) passed **143/143 Node tests**, `tsc --noEmit`, and Vite build on the Round-4J D1000 checkpoint. Headless Chromium 141 functional smoke (19 checkpoints, Play/Pause/step, A–D, B Advanced, D guard, editing/Compare, validation) passed on Agent C's lab source, which has the exact same `app/src` tree (`6158a42b341583db4a60bbac4e7b898e32bbcef7`) and Vite entry files as staging. **The staging/deployed site itself has not been independently browser-tested**, and deployment root/settings are not yet verified. Consult [release checklist](../docs/coordination/RELEASE_ACCEPTANCE.md) before promoting `main`.
 
 Simulation timings and cost rates are explicit synthetic/user inputs, not automatically measured hardware properties. DES assumes fixed constant durations, deterministic strict FIFO, already-expanded DAGs, explicit capacity and non-contended dependency transfers. No live provider queue, network-resource contention, real-time hardware/QEC/FTQC, or production scheduler is modeled.
 

@@ -1,6 +1,6 @@
 # Quantum–HPC Workflow Explorer
 
-**Status:** New React/TypeScript prototype is feature-complete on [`agent/integration`](https://github.com/friedsam/quantum-hpc-workflow-explorer/tree/agent/integration); browser/release acceptance and promotion to `main` remain pending. `main` still retains the historical implementation.
+**Status:** New React/TypeScript prototype is feature-complete on [`agent/integration`](https://github.com/friedsam/quantum-hpc-workflow-explorer/tree/agent/integration); code-equivalent Chromium smoke and clean-install CI pass; deployed-preview verification and promotion to `main` remain pending. `main` still retains the historical implementation.
 
 A pre-execution design and visual-debugging environment for hybrid HPC–quantum workflows:
 
@@ -24,13 +24,13 @@ Use Node 22:
 ```bash
 git checkout agent/integration
 cd app
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm test
 npm run build
 npm run dev
 ```
 
-A reproducible `package-lock.json` / `npm ci` flow is a remaining release requirement and is **not yet available** at this checkpoint. Details: [App documentation](app/README.md).
+`app/package-lock.json` is committed and the integration validation workflow runs a clean `npm ci` (143/143 tests + TypeScript/Vite build; [CI run 38337192791](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38337192791)). Headless Chromium 141 A–D functional smoke passed on **byte-identical application source** in Agent C's laboratory run [38334619801](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801); direct deployed-preview acceptance remains pending. Details: [App documentation](app/README.md).
 
 ## Architecture and limits
 
