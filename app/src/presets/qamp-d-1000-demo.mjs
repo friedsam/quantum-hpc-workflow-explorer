@@ -42,10 +42,10 @@ export const qampScenarioD1000Design = {
       semanticType: "quantum-evaluation",
     },
     {
-      id: "continue",
+      id: "consumer",
       label: "Useful local classical continuation",
       multiplicity: 1000,
-      timingKey: "continue",
+      timingKey: "consumer",
       semanticType: "classical-continuation",
       actorParticipation: [
         {
@@ -84,9 +84,9 @@ export const qampScenarioD1000Design = {
       instanceMapping: "pairwise",
     },
     {
-      id: "quantum-continue",
+      id: "quantum-consumer",
       sourceTaskId: "quantum",
-      targetTaskId: "continue",
+      targetTaskId: "consumer",
       instanceMapping: "pairwise",
     },
   ],
@@ -116,7 +116,7 @@ export const qampScenarioD1000RunConfiguration = {
       resourcePoolId: "qpu",
       resourceCount: 1,
     },
-    continue: {
+    consumer: {
       resourcePoolId: "cpu",
       resourceCount: 1,
     },
