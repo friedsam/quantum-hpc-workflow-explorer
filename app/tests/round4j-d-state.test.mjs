@@ -75,7 +75,7 @@ test("public D1000 resumes locally before drain end and finishes Idle", () => {
   const firstContinue = result.events.find(
     (event) =>
       event.type === "task_started" &&
-      event.taskId === "continue#1"
+      event.taskId === "consumer#1"
   ).simTimeS;
   const lastQuantum = result.events.find(
     (event) =>
