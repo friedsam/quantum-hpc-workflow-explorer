@@ -9,8 +9,8 @@
 
 - [x] Commit a reviewed `app/package-lock.json` for Node 22 and current `app/package.json`; no unapproved production dependency changes.
 - [x] In a clean Node 22 checkout: `cd app && npm ci --no-audit --no-fund && npm test && npm run build`.
-- [x] Preserve existing GitHub Actions workflows and validation triggers. After reviewing the lockfile, change the *integration* app-validation install step from `npm install` to `npm ci` and confirm fresh CI success.
-- [ ] Review the Vite bundle warning (~610 kB gzip JS). Non-blocking only if actual demo startup/navigation is responsive.
+- [x] Preserve existing GitHub Actions triggers/steps; integration install is now `npm ci` with passing CI `38337192791`.
+- [x] Review the Vite bundle warning (~610 kB gzip JS). Headless Chromium lab A–D navigation/simulation was responsive (A 118 ms, B 168 ms, C 112 ms, D 756 ms measured in CI), but deployed preview/performance remains unverified.
 
 ## 2. Real-browser acceptance (lab source-equivalent PASS; deployed staging PENDING)
 

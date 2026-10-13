@@ -76,3 +76,11 @@ Public C1000 accepted on integration `53248bf1a2c7488d52982a77191919f5ff4b0b0e`,
 | F | ACTIVE RELEASE OWNER | Browser and deployment evidence, docs, final main decision |
 
 Feature staging `e49954bc9caf5f3e18472b3d229c96b9ebdd2c70`; CI `38332756103` SUCCESS (143 tests). A–D are integrated but **release/browser acceptance is pending**. FTQC remains future/documentation only.
+## Round 4L status — 2026-10-12
+
+| Track | Status | Gate |
+|---|---|---|
+| A/B/C/D/E | CLOSED/IDLE | All public A–D scenarios, lockfile and lab browser smoke accepted |
+| F | ACTIVE | Deployed-preview/root configuration; browser refresh/navigation, remaining UX risks, final main gate |
+
+Node22 clean integration `npm ci` and 143/143 tests PASS `38337192791`. Same-source real Chromium 141 19-checkpoint smoke PASS `38334619801`; `app/src` source blobs identical. **Provider/deployed browser still unverified**. Keep `main` as historical implementation until deliberate cutover.

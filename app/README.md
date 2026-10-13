@@ -35,7 +35,7 @@ npm run build
 npm run dev
 ```
 
-**Release TODO:** `package-lock.json` is not yet committed. Until it is reviewed/committed, `npm ci` will not work. The production integration workflow uses `npm install` and must be switched after clean-install validation.
+**Reproducible install resolved:** `package-lock.json` is committed; integration CI runs clean `npm ci --no-audit --no-fund` and 143/143 Node tests + TypeScript/Vite build ([run 38337192791](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38337192791)). The same-source Chromium 141 lab smoke passed 19 checkpoints ([run 38334619801](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801)); **deployed preview and provider root settings remain unverified**.
 
 ## Validation and limitations
 

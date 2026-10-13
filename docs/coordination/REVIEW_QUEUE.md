@@ -700,3 +700,13 @@ Review/port C public D if technically faithful; run app CI; then full browser A�
 
 ### A/B/D/E — CLOSED/IDLE
 No work unless a concrete acceptance defect warrants a targeted fix.
+
+## Round 4K coordinator final acceptance — 2026-10-12
+
+**C release-support: PORT ACCEPTED; C CLOSED/IDLE.** Source `agent/ui@c0f597c401c519053e54097cc4b8290157053184`, CI `38334927602` success. Node 22 npm-v3 lock (no package manifest/dependency changes) and integration single-line `npm install`→`npm ci` port `736e0968ea6e49b24109726acd6697aae8b054d8`, CI `38337192791` SUCCESS: `npm ci`, 143/143 Node tests, TS typecheck, Vite build. GitHub Actions triggers and other steps preserved.
+
+**Browser evidence:** C's real Chromium 141 [run 38334619801](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801) has 19 PASS checkpoints and [screen/log artifact](https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801/artifacts/11783928804). Validates A–D actor/QPU presentation, B401 Advanced-open, D3000 bounded diagnostics, Play/Pause/Next, D edit/Compare (makespan −500 s), invalid multiplicity/DAG cycle rejection and reduced-motion handling. Chromium-run source `app/src` tree, app entry HTML and Vite config are exact Git-blob matches to integration; lab vs staging SHA distinction retained. Browser console/page faults not reported.
+
+**Open UX/release issues:** slider cannot choose exact B/D interior sim-time values (semantic Next works); some 1440×900 logical DAG labels/status clip; B401 Advanced opening ~3s in CI Chromium. No demonstrated functional freeze. **Deployment-provider configuration and a deployed preview have not been independently verified.** `main` remains unchanged. F owns final deployed-app acceptance; no more A–D feature tasks, all agents idle unless a reproducible blocker is found.
+
+**Next F gate (Round 4L):** Inspect actual Vercel (or alternative) project root/build/output settings; select `app/` (Node22, `npm ci`, `npm run build`, `dist` relative to app), preserve old `web/` and avoid unreviewed live cutover. Verify production preview from same staging commit, check navigation/refreshed deep links and A–D. Record final acceptance/UX decisions and only then selective main promotion. FTQC D015 stays future documentation.
