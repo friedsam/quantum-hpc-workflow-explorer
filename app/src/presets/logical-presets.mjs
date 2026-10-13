@@ -8,6 +8,11 @@ import {
   qampScenarioB200RunConfiguration,
   qampScenarioB200Profile
 } from "./qamp-b-200-demo.mjs";
+import {
+  qampScenarioC1000Design,
+  qampScenarioC1000RunConfiguration,
+  qampScenarioC1000Profile
+} from "./qamp-c-1000-demo.mjs";
 
 const synthetic = (source, notes) => ({
   kind: "synthetic",
@@ -100,115 +105,9 @@ export const scenarioBLogicalBundle = {
 };
 
 export const scenarioCLogicalBundle = {
-  design: {
-    schemaVersion: 1,
-    id: "qamp-c-logical-design",
-    name: "QAMP C — communication/data-movement wall",
-    tasks: [
-      {
-        id: "producer",
-        label: "Independent producer",
-        multiplicity: 3,
-        timingKey: "producer",
-        semanticType: "classical-producer"
-      },
-      {
-        id: "quantum",
-        label: "Quantum evaluation",
-        multiplicity: 3,
-        timingKey: "quantum",
-        semanticType: "quantum-evaluation"
-      },
-      {
-        id: "consumer",
-        label: "Independent result consumer",
-        multiplicity: 3,
-        timingKey: "consumer",
-        semanticType: "classical-continuation"
-      }
-    ],
-    dependencies: [
-      {
-        id: "c-producer-quantum",
-        sourceTaskId: "producer",
-        targetTaskId: "quantum",
-        instanceMapping: "pairwise",
-        communicationKey: "producer-quantum"
-      },
-      {
-        id: "c-quantum-consumer",
-        sourceTaskId: "quantum",
-        targetTaskId: "consumer",
-        instanceMapping: "pairwise",
-        communicationKey: "quantum-consumer"
-      }
-    ],
-    assumptions: [
-      "Synthetic compact Scenario C: communication dominates service time; independent paths have no global barrier."
-    ],
-    metadata: { synchronization: "none" }
-  },
-  runConfiguration: {
-    schemaVersion: 1,
-    id: "qamp-c-logical-run",
-    workflowId: "qamp-c-logical-compiled",
-    resources: [
-      { id: "cpu", kind: "cpu", capacity: 3 },
-      { id: "qpu", kind: "qpu", capacity: 3 }
-    ],
-    taskResources: {
-      producer: { resourcePoolId: "cpu", resourceCount: 1 },
-      quantum: { resourcePoolId: "qpu", resourceCount: 1 },
-      consumer: { resourcePoolId: "cpu", resourceCount: 1 }
-    },
-    policy: { allocation: "release-aware" }
-  },
-  systemProfile: {
-    schemaVersion: 1,
-    id: "qamp-c-logical-profile",
-    taskServiceTimes: {
-      producer: {
-        value: { kind: "constant", seconds: 1 },
-        provenance: synthetic(
-          "QAMP C logical preset",
-          "Illustrative producer duration."
-        )
-      },
-      quantum: {
-        value: { kind: "constant", seconds: 0.5 },
-        provenance: synthetic(
-          "QAMP C logical preset",
-          "Illustrative short QPU duration."
-        )
-      },
-      consumer: {
-        value: { kind: "constant", seconds: 0.5 },
-        provenance: synthetic(
-          "QAMP C logical preset",
-          "Illustrative consumer duration."
-        )
-      }
-    },
-    dependencyCommunication: {
-      "producer-quantum": {
-        value: { fixedLatencyS: 8 },
-        provenance: synthetic(
-          "QAMP C logical preset",
-          "Synthetic communication delay chosen to dominate task service time; not provider queue delay."
-        )
-      },
-      "quantum-consumer": {
-        value: { fixedLatencyS: 4 },
-        provenance: synthetic(
-          "QAMP C logical preset",
-          "Synthetic result-transfer delay; not provider queue delay."
-        )
-      }
-    },
-    assumptions: [
-      "Compact logical Scenario C preserves the communication-dominated/no-global-sync mechanism; timings are synthetic."
-    ]
-  }
+  design: structuredClone(qampScenarioC1000Design),
+  runConfiguration: structuredClone(qampScenarioC1000RunConfiguration),
+  systemProfile: structuredClone(qampScenarioC1000Profile)
 };
 
 export const scenarioDLogicalBundle = {
