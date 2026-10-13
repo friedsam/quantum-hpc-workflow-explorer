@@ -146,7 +146,7 @@ export const qampScenarioD1000Profile = {
         "Single-lane QPU service time; no provider queue is modeled."
       ),
     },
-    continue: {
+    consumer: {
       value: { kind: "constant", seconds: 0.5 },
       provenance: synthetic(
         "Local result consumption plus resumed classical progress."
