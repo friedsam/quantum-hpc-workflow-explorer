@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./round4j-d-all.test.mjs";
 
 import { simulateWorkflow } from "../src/engine/runtime.mjs";
 import {
