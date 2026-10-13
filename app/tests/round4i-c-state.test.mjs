@@ -18,7 +18,7 @@ const compiled = qampScenarioC1000Compilation;
 const spec = qampScenarioC1000WorkflowSpec;
 const result = simulateWorkflow(spec);
 
-function actorCounts(simTimeS) {
+function approx(actual, expected, epsilon = 1e-9) {\n  assert.ok(\n    Math.abs(actual - expected) <= epsilon,\n    `expected ${actual} ≈ ${expected}`\n  );\n}\n\nfunction actorCounts(simTimeS) {
   return deriveActorStateCountsAt(
     compiled.manifest,
     result,
@@ -129,8 +129,8 @@ test("C has intermittent QPU execution and independent continuation before the f
       event.taskId === "cohort-5-quantum"
   ).simTimeS;
 
-  assert.equal(firstConsumerStart, 8.3);
-  assert.equal(finalQuantumComplete, 9.3);
+  approx(firstConsumerStart, 8.3);
+  approx(finalQuantumComplete, 9.3);
   assert.ok(firstConsumerStart < finalQuantumComplete);
 });
 
@@ -167,9 +167,9 @@ test("actor result wait releases at consumer start after positive return transfe
       event.taskId === "cohort-1-consumer"
   );
 
-  assert.equal(returnCompleted.simTimeS, 8.3);
-  assert.equal(consumerReady.simTimeS, 8.3);
-  assert.equal(consumerStarted.simTimeS, 8.3);
+  approx(returnCompleted.simTimeS, 8.3);
+  approx(consumerReady.simTimeS, 8.3);
+  approx(consumerStarted.simTimeS, 8.3);
 });
 
 test("communication dominates service while QPU utilization remains low", () => {
@@ -178,7 +178,7 @@ test("communication dominates service while QPU utilization remains low", () => 
     0
   );
 
-  assert.equal(result.metrics.makespanS, 12.8);
+  approx(result.metrics.makespanS, 12.8);
   assert.ok(
     result.metrics.aggregateCommunicationSeconds >
       serviceSeconds
