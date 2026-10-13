@@ -339,3 +339,66 @@ test("Round 4H playback uses accepted indexed actor group summaries", async () =
   assert.match(actorState, /actor-state-index\.mjs/);
   assert.match(actorState, /WeakMap/);
 });
+
+
+test("Round 4I public Scenario C uses explicit five-cohort transfer aggregation", async () => {
+  const logical = await readFile(
+    path.join(srcRoot, "presets", "logical-presets.mjs"),
+    "utf8"
+  );
+  const preset = await readFile(
+    path.join(srcRoot, "presets", "qamp-c-1000-demo.mjs"),
+    "utf8"
+  );
+  const presets = await readFile(
+    path.join(srcRoot, "presets", "presets.ts"),
+    "utf8"
+  );
+
+  assert.match(logical, /qamp-c-1000-demo\.mjs/);
+  assert.match(logical, /qampScenarioC1000Design/);
+  assert.match(preset, /5 cohorts × 200 persistent actors/);
+  assert.match(preset, /QPU capacity remains one execution lane/);
+  assert.match(preset, /fixedLatencyS: OUTBOUND_LATENCY_S/);
+  assert.match(preset, /fixedLatencyS: RETURN_LATENCY_S/);
+  assert.doesNotMatch(preset, /maxInFlightQuantumByPool/);
+  assert.match(
+    presets,
+    /Synthetic 1,000-rank transfer wall using five staggered 200-rank cohorts/
+  );
+});
+
+test("Round 4I keeps accepted queued actor-wait support and D1000 regression", async () => {
+  const compiler = await readFile(
+    path.join(srcRoot, "design", "compiler.mjs"),
+    "utf8"
+  );
+  const types = await readFile(
+    path.join(srcRoot, "design", "types.ts"),
+    "utf8"
+  );
+
+  assert.match(compiler, /queued: "task_queued"/);
+  assert.match(types, /"ready" \| "queued" \| "started" \| "completed"/);
+  await access(
+    path.join(appRoot, "tests", "fixtures", "qamp-d-1000-stress.mjs")
+  );
+  await access(
+    path.join(appRoot, "tests", "scenario-d-admission.test.mjs")
+  );
+});
+
+test("Round 4I preserves lazy Advanced and indexed actor summary path", async () => {
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"),
+    "utf8"
+  );
+  const hook = await readFile(
+    path.join(srcRoot, "components", "explore", "useExplorerPlayback.ts"),
+    "utf8"
+  );
+
+  assert.match(explore, /\{advancedOpen \? \(/);
+  assert.match(explore, /Expanded compiled DES graph/);
+  assert.match(hook, /deriveActorGroupSummaryAt/);
+});

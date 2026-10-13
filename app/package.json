@@ -12,7 +12,7 @@
     "test:causal": "node --test tests/causal-system-state.test.mjs",
     "test:playback": "node --test tests/playback.test.mjs",
     "test:architecture": "node --test tests/architecture.test.mjs",
-    "test": "npm run test:engine && npm run test:design && npm run test:actor && npm run test:actor-index && npm run test:scenario-a && npm run test:scenario-a-1000 && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:actor-playback && npm run test:round4c && npm run test:round4g-a && npm run test:round4g-a-perf && npm run test:round4h-b-state && npm run test:round4h-b-edit && npm run test:round4h-b-perf && npm run test:architecture",
+    "test": "npm run test:engine && npm run test:design && npm run test:actor && npm run test:actor-index && npm run test:scenario-a && npm run test:scenario-a-1000 && npm run test:scenario-d-admission && npm run test:qamp && npm run test:causal && npm run test:playback && npm run test:actor-playback && npm run test:round4c && npm run test:round4g-a && npm run test:round4g-a-perf && npm run test:round4h-b-state && npm run test:round4h-b-edit && npm run test:round4h-b-perf && npm run test:round4i-c-state && npm run test:round4i-c-edit && npm run test:round4i-c-playback && npm run test:architecture",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:actor": "node --test tests/actor-model.test.mjs",
@@ -25,7 +25,11 @@
     "test:actor-index": "node --test tests/actor-state-index.test.mjs",
     "test:round4h-b-state": "node --test tests/round4h-b-state.test.mjs",
     "test:round4h-b-edit": "node --test tests/round4h-b-edit.test.mjs",
-    "test:round4h-b-perf": "node --test tests/round4h-b-performance.test.mjs"
+    "test:round4h-b-perf": "node --test tests/round4h-b-performance.test.mjs",
+    "test:scenario-d-admission": "node --test tests/scenario-d-admission.test.mjs",
+    "test:round4i-c-state": "node --test tests/round4i-c-state.test.mjs",
+    "test:round4i-c-edit": "node --test tests/round4i-c-edit.test.mjs",
+    "test:round4i-c-playback": "node --test tests/round4i-c-playback.test.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",
