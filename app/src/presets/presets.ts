@@ -95,7 +95,7 @@ export const presets: WorkflowPreset[] = [
   {
     key: "scenario-d",
     label: "Scenario D",
-    description: "Compact asynchronous pipeline with QPU queue and separate policy hold.",
+    description: "Synthetic 1,000-rank asynchronous QPU throughput demo with bounded admitted work.",
     source: "design",
     designBundle: scenarioDLogicalBundle
   },
