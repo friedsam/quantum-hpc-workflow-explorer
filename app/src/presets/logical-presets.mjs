@@ -13,6 +13,11 @@ import {
   qampScenarioC1000RunConfiguration,
   qampScenarioC1000Profile
 } from "./qamp-c-1000-demo.mjs";
+import {
+  qampScenarioD1000Design,
+  qampScenarioD1000RunConfiguration,
+  qampScenarioD1000Profile
+} from "./qamp-d-1000-demo.mjs";
 
 const synthetic = (source, notes) => ({
   kind: "synthetic",
@@ -111,100 +116,9 @@ export const scenarioCLogicalBundle = {
 };
 
 export const scenarioDLogicalBundle = {
-  design: {
-    schemaVersion: 1,
-    id: "qamp-d-logical-design",
-    name: "QAMP D — throughput-limited asynchronous workflow",
-    tasks: [
-      {
-        id: "prep",
-        label: "Preparation",
-        multiplicity: 6,
-        timingKey: "prep",
-        semanticType: "quantum-preparation"
-      },
-      {
-        id: "quantum",
-        label: "Quantum evaluation",
-        multiplicity: 6,
-        timingKey: "quantum",
-        semanticType: "quantum-evaluation"
-      },
-      {
-        id: "consumer",
-        label: "Classical continuation",
-        multiplicity: 6,
-        timingKey: "consumer",
-        semanticType: "classical-continuation"
-      }
-    ],
-    dependencies: [
-      {
-        id: "d-prep-quantum",
-        sourceTaskId: "prep",
-        targetTaskId: "quantum",
-        instanceMapping: "pairwise"
-      },
-      {
-        id: "d-quantum-consumer",
-        sourceTaskId: "quantum",
-        targetTaskId: "consumer",
-        instanceMapping: "pairwise"
-      }
-    ],
-    assumptions: [
-      "Synthetic compact Scenario D: six independent paths share one QPU with bounded in-flight quantum work."
-    ],
-    metadata: { synchronization: "none" }
-  },
-  runConfiguration: {
-    schemaVersion: 1,
-    id: "qamp-d-logical-run",
-    workflowId: "qamp-d-logical-compiled",
-    resources: [
-      { id: "cpu", kind: "cpu", capacity: 6 },
-      { id: "qpu", kind: "qpu", capacity: 1 }
-    ],
-    taskResources: {
-      prep: { resourcePoolId: "cpu", resourceCount: 1 },
-      quantum: { resourcePoolId: "qpu", resourceCount: 1 },
-      consumer: { resourcePoolId: "cpu", resourceCount: 1 }
-    },
-    policy: {
-      allocation: "release-aware",
-      maxInFlightQuantumByPool: { qpu: 2 }
-    }
-  },
-  systemProfile: {
-    schemaVersion: 1,
-    id: "qamp-d-logical-profile",
-    taskServiceTimes: {
-      prep: {
-        value: { kind: "constant", seconds: 0.5 },
-        provenance: synthetic(
-          "QAMP D acceptance",
-          "Illustrative path preparation."
-        )
-      },
-      quantum: {
-        value: { kind: "constant", seconds: 2 },
-        provenance: synthetic(
-          "QAMP D acceptance",
-          "Illustrative serialized QPU service."
-        )
-      },
-      consumer: {
-        value: { kind: "constant", seconds: 0.5 },
-        provenance: synthetic(
-          "QAMP D acceptance",
-          "Illustrative local continuation."
-        )
-      }
-    },
-    assumptions: [
-      "No global synchronization or external/provider queue delay is modeled."
-    ]
-  }
+  design: structuredClone(qampScenarioD1000Design),
+  runConfiguration: structuredClone(qampScenarioD1000RunConfiguration),
+  systemProfile: structuredClone(qampScenarioD1000Profile)
 };
 
 export const logicalPresetBundles = Object.freeze({

@@ -53,6 +53,7 @@ function LogicalBuilder({
 }) {
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const expandedPreviewAllowed = spec.tasks.length <= 500;
 
   const bundle = compilationContext.bundle;
   const selectedTask = bundle.design.tasks.find(
@@ -316,10 +317,17 @@ function LogicalBuilder({
             />
           ) : null}
           {compilationContext.manifest ? (
-            <WorkflowDag
-              model={projectWorkflowDag(spec)}
-              heading="Compiled WorkflowSpec DAG"
-            />
+            expandedPreviewAllowed ? (
+              <WorkflowDag
+                model={projectWorkflowDag(spec)}
+                heading="Compiled WorkflowSpec DAG"
+              />
+            ) : (
+              <div className="notice">
+                Compiled preview omitted at {spec.tasks.length} tasks.
+                Scale threshold: 500.
+              </div>
+            )
           ) : (
             <div className="notice error">
               No current compiled DES preview: the logical draft is invalid.
