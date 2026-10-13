@@ -2195,3 +2195,17 @@ The model preserves the source distinctions:
 **PORT Round 4I public Scenario C.**
 
 STOP here for Agent F review. Do not begin public D.
+
+## Coordinator Round 4I acceptance / Round 4J assignment — 2026-10-12
+
+**Decision: PORT ACCEPTED.** Your source `e25d21b8c85b263efc4e8947dbf261632d4b28e7`, CI `38326263206` SUCCESS. Selective integration `53248bf1a2c7488d52982a77191919f5ff4b0b0e`, CI `38326633662` SUCCESS (135 tests, TS/build). Public C models five explicitly synthetic 200-rank cohorts (=1,000 logical actors) and **five aggregate quantum evaluations**, not 1,000 independent provider jobs. C transfer-wall and queue-free/actor-state semantics accepted; browser acceptance still pending.
+
+**ACTIVE — Round 4J public Scenario D ONLY.** Fetch/read `origin/agent/integration` at/after `63a52eba31ae47878690cbe69c55a6267148b504`, `AGENTS.md`, D018-D020, latest `PROJECT_STATE.md`, `INTERFACE_CONTRACTS.md`, and **Round 4J** in `REVIEW_QUEUE.md`. Ground in `HPC-Quantum/Documentation-website:scenario-d.md`; do not wholesale merge. Preserve accepted A/B/C1000, indexed actor projection, C editor/provenance tests and D018 `queued→task_queued` wait contract.
+
+Build a dedicated *public* 1,000-rank Scenario D asynchronous QPU throughput demo: actual modeled 1,000 independent quantum requests, one QPU running, max-in-flight 50 (running + up to49 resource-queued), excess ready tasks policy-held, no global result barrier. QPU admission event begins each corresponding actor's Blocked wait; policy-held non-working ranks stay Idle; each completed result releases one rank into explicit useful classical continuation. `app/tests/fixtures/qamp-d-1000-stress.mjs` is the accepted reference, not automatically a public preset.
+
+**No fake restored-Working frame:** The current reference ends with 1,000 Idle after one-shot drain. If useful classical continuation/repeat is authored, prove its timing and Working claims from real DES events. Do not claim 1,000 Working at the last quantum result or exact historical D6 off-load state without an actual task/transfer/wait mechanism; document any representational gap instead of inventing script counters or synchronization. Exclude provider queue and hidden transfer state-machine.
+
+Test exactly preserved QPU resource queue vs policy hold, local progress, queue bound and capacity-limited utilization. Parameter edit/recompile/simulate/Compare must change authoritative metrics/provenance. Default logical DAG stays compact; Advanced with thousands of tasks stays lazily unmounted while closed and cannot catastrophically freeze when opened. Measure full keyframes, cursor/scrub and memory at 1,000 requests, preserve first/last semantic moments and compress sustained middle cycles; no raw blinking. No frozen DES, new framework, or FTQC.
+
+**Handoff:** exact SHA/paths, tests/CI/typecheck/build, measured performance, source assumptions, limitations, PORT/DEFER recommendation. STOP for F review before further release work. F will handle browser acceptance and deployment.
