@@ -57,3 +57,8 @@ Do not select a final production implementation/toolchain until first checkpoint
 Agent-C public B200 PORT accepted from `c80de454f1814dd42e7878a80113affea9760d67` to integration `39a8a628ce122342b88794d6c8914b657c81521c`, CI `38322560759` green (122/122 tests). Preserves frozen DES and A's D018 `queued` actor-wait. B200 logical view 3 tasks / 1,000 actors, 200 serial QPU results, explicit synchronization wall; state/provenance and lazy diagnostics validated. Node timing is not browser proof.
 
 D019/Round 4I: C ACTIVE for source-grounded communication-dominated Scenario C with QPU idle during positive transfer + actor Blocked, no sustained queue or global barrier. A/B/D/E idle. Next F gate: C review/port, then D, browser acceptance, npm lock/CI, deployment, final docs and main. FTQC future only.
+## Coordinator checkpoint — 2026-10-12 (C accepted, D public next)
+
+C Round 4I PORT accepted: `agent/ui@e25d21b8c85b263efc4e8947dbf261632d4b28e7` CI `38326263206`; staging `53248bf1a2c7488d52982a77191919f5ff4b0b0e` integration CI `38326633662` SUCCESS (135/135 tests, TS/build). Exactly five synthetic aggregate QPU requests over five 200-rank cohorts with 1000 authored actor-state claims, positive transfer wall, QPU idle/queue-free; no production QPU workload realism claim. Frozen DES untouched, D018 retained.
+
+D020/Round 4J: Agent C ACTIVE for public D capacity wall at 1000 rank/50 admitted job limit. No invented D6/D9 frames; explicit task/actor/queue/event provenance only. C STOP for F review; A/B/D/E idle. F owns browser/Advanced and release checks after D. FTQC documentation only.

@@ -58,3 +58,12 @@ Agent A source `099cdf46f2b3dfd00a1a1dd7d2a7fcff4e32bf3d`, integration `db73f506
 - C: ACTIVE on source-faithful C communication wall; public A1000 and B200 accepted/ported.
 - F: ACTIVE integration, browser and release gates.
 - Staging B200: `39a8a628ce122342b88794d6c8914b657c81521c`; CI `38322560759` SUCCESS. Deferred D018 next-cycle fidelity and FTQC D015 future scope preserved.
+## Round 4J status — 2026-10-12
+
+| Track | Status / next gate |
+|---|---|
+| A / B / D / E | CLOSED/IDLE |
+| C | ACTIVE on public D: 1,000 ranks, max-in-flight 50, faithful admission/queue/actor state and watchable playback |
+| F | ACTIVE for C review, browser acceptance, release hardening, main gate |
+
+Public C1000 accepted on integration `53248bf1a2c7488d52982a77191919f5ff4b0b0e`, CI `38326633662` SUCCESS. Five synthetic 200-rank cohorts mean 5 aggregate QPU requests, **not 1,000 independently simulated QPU calls**. FTQC remains post-prototype.

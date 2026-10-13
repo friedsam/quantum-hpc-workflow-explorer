@@ -647,3 +647,34 @@ A's higher-layer `queued -> task_queued` is accepted. Do not start another track
 
 ### F — NEXT
 Review C transfer wall, selective PORT + integration CI; then scope public D as a separate gate, including authored next-cycle behavior. Full A–D browser/Builder/Compare smoke, dependency lock/npm ci, deployment-root migration to `app/`, README with deferred FTQC outlook, main promotion follow.
+
+## Round 4I Agent-C final acceptance — 2026-10-12
+
+**Status: PORT ACCEPTED / CLOSED for public Scenario C.** C HEAD `e25d21b8c85b263efc4e8947dbf261632d4b28e7`, CI `38326263206` SUCCESS; checkpoint source `f539b22a4a4bdbd260b1259b987b99b9ac6cb6be` CI `38326092092` SUCCESS. Selective staging `53248bf1a2c7488d52982a77191919f5ff4b0b0e`, integration CI `38326633662` SUCCESS (135/135 tests, TS, Vite).
+
+Accepted public C: 1,000 ranks modeled in five explicitly synthetic 200-actor cohorts; five aggregate QPU evaluations, 15 compact logical/compiled tasks; QPU capacity one with zero resource/admission wait; positive outbound 5 s + return 3 s transfer cost; no global synchronization. At t=4.5 QPU Idle/Queue0/PolicyHeld0, five transfers active, 1,000 actors Blocked; independent consumer first resumes ~t=8.3 before last QPU result ~t=9.3. Makespan ~12.8 s (not a measured wall-clock prediction); reduced-transfer profile yields ~8.8 s on same topology. Model does *not* assert 1,000 individual quantum jobs.
+
+Preserved: A1000, B200, source small-scenario test suite, D1000 D018 admission tests, indexed actor projection, frozen DES, synthetic provenance, Builder/Compare, lazy Advanced. No new dependencies or CI-workflow edits. Node benchmark: 23 keyframes median build 1.291 ms, cursor p95 0.160 ms. Actual browser playback/painting remains pending F acceptance.
+
+## Round 4J — public Scenario D capacity wall / asynchronous drain (2026-10-12)
+
+### Agent C — ACTIVE, one final scenario checkpoint
+**Branch:** `agent/ui`. Fetch/read latest `origin/agent/integration` coordination, D018–D020, `AGENTS.md`, `repo_policy.toml`, `INTERFACE_CONTRACTS.md`, `PROJECT_STATE.md`, and source `HPC-Quantum/Documentation-website:scenario-d.md`. Selectively reconcile code against integration; never wholesale merge. STOP for F after this checkpoint.
+
+**Goal:** Replace the public small Scenario D with a **source-faithful, 1,000-persistent-rank asynchronous throughput-limited model** and compact logical DAG. Use `app/tests/fixtures/qamp-d-1000-stress.mjs` as *test/reference*, not as an undeclared measured performance model. Authored task multiplicity and group actors are distinct; QPU capacity = 1 and `maxInFlightQuantumByPool.qpu = 50` means **1 Running + up to 49 QPU-resource Queued**. Other dependency-ready quantum requests are **policy-held**, not QPU queued. No global result/collective gate. All service times and costs synthetic.
+
+**Actor semantics:** Explicit matching wait `activation: quantum queued` (compiled to existing `task_queued`) until matching quantum completion; a rank is Blocked *only after admission*, while policy-held, non-working ranks remain Idle. Classical prep/offload/continuation represented as actual modeled work, with no fabricated transfer/queue state. The D1000 accepted reference shows t=0.5: 1,000 Working; t=1: 50 Blocked /950 Idle, QPU Run1/Queue49/PolicyHeld950; t=2: 1 Working /50 Blocked /949 Idle with slot replenishment. Preserve half-open transitions and show local resumed work before full quantum drain.
+
+**Important tutorial-fidelity distinction:** Published Scenario D also depicts early staggered submissions, intermittent off-load work, late 950/1,000 Working, and a recurring loop. These are **not automatically implied** by a one-shot 1,000-task FIFO workload. If additional states are included, they must result from explicit credible task/actor participation, dependencies and repeat phases. Do not use hand-coded frame counters, a fictitious collective/global barrier, unmodeled provider/transfer phases, or unreasonable task durations merely to match a screenshot. If D6's transient 2-Working/49-Blocked state or D9's full 1,000-Working restoration cannot be represented without new orchestration semantics, document the exact limitation and present the supported mechanism truthfully. At one-shot makespan, all 1,000 actors Idle is correct in the present D1000 reference.
+
+**Behavioral acceptance:** bounded resource queue depth ≤49 (or the actual bound if justified), positive policy-admission wait, high QPU utilization during demand, independent first result consumption before last result, no global actor wait, initial blocked/idle composition and slot replenishment consistent with DES events. Test contrasting policy limits or quantum service assumptions with same topology and explicit provenance; compare exact metrics for queue vs policy hold and two saved RunRecords. Preserve A/B/C public preset tests, D1000 oracle, custom edit/Compare. The public logical DAG must stay compact even if compiled task count is thousands; Advanced must stay unmounted while closed and be safe if opened (bounded/virtualized or disclose scale, avoid unbounded automatic ELK work).
+
+**Playback/performance:** Meaningful slow introductory/admission frames → compressed sustained drain → clear terminal states, with semantic source-event ranges, no relentless blinking or hand-authored activity counters. Benchmark *full* keyframe construction, cursor sweep/generic snapshot, rendering-size risk and Node memory at 1,000 requests; record any high-scale degradation. No invisible 1,000-node default DAG or 1,000-ID QPU label floods. Browser visual acceptance by F remains separate; CI computation alone does not prove responsive React interaction.
+
+**Scope/handoff:** No DES rewrite, added framework, stochastic/provider queue, arbitrary scheduler/optimizer or FTQC features. Include exact commit/paths, CI + TS/build, reproducible timings, source/limitations, recommended PORT/DEFER and updated role file. **STOP for F review.**
+
+### A / B / D / E — CLOSED/IDLE
+No additional task.
+
+### F — NEXT
+Review/port C public D if technically faithful; run app CI; then full browser A–D, Builder→edit→simulate→Compare, diagnostic disclosures/performance, dependency lock/npm-ci and deployment-root migration, README with FTQC future outlook, main release decision. Preserve GitHub Actions and source-era history.
