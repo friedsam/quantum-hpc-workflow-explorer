@@ -53,6 +53,7 @@ function LogicalBuilder({
 }) {
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const expandedPreviewAllowed = spec.tasks.length <= 500;
 
   const bundle = compilationContext.bundle;
   const selectedTask = bundle.design.tasks.find(
