@@ -2317,3 +2317,37 @@ Source: `HPC-Quantum/Documentation-website/scenario-d.md`.
 **3. Deployment diagnosis only:** Identify app-root/Vercel build/output configuration and risks, but do not deploy, alter credentials or touch `main` or legacy `web/`.
 
 **Deliverable:** exact commits/files, Node/npm versions, lockfile + clean npm-ci/CI evidence, browser proof versus missing evidence, deployment notes and PORT recommendation. Update your role file, then STOP for F. F owns selective staging, deployment and release promotion. FTQC future only.
+
+
+## Round 4K completion — reproducible installation + actual Chromium smoke (2026-10-12/13)
+
+**GREEN LAB CHECKPOINT — STOP FOR F REVIEW.** Product code remains F-accepted public A-D source 806459aeebc2bac22e8acc5fdd86c3c1309eba40; integration app staging is e49954bc9caf5f3e18472b3d229c96b9ebdd2c70. No DES/producer/actor/playback semantics or package-manifest change.
+
+### Exact code/CI handoff
+
+- **PORT:** app/package-lock.json, only changed file in bot commit df76022e5d7e9a1a12caea1fb6568a4aba0a7438. Generated on Actions Node 22 for existing accepted dependencies, no dependency bump. Bootstrap run 38333574146 **SUCCESS**: clean npm ci --no-audit --no-fund, all Node tests, TypeScript and Vite production build.
+- **PORT to F's integration workflow:** equivalent one-line npm install to npm ci change; C lab .github/workflows/agent-ui-validation.yml at 48c576502fe5341b4ed685f7cfbe052ddbddcd8c, CI 38334748083 **SUCCESS**. Existing triggers and all other validation steps preserved.
+- Browser clean-install runner Node v22.23.3, npm 10.9.9. Test-only Playwright driver installed ephemerally with --no-save --package-lock=false; no new production/dev library in package.json.
+- **Investigation-only:** app/tests/round4k-browser-smoke.mjs, test-only revision de733c930be15e0cea7b207c87326a17897758bc. Not part of canonical npm test because Playwright remains ephemeral.
+- Temporary lock-bootstrap and Chromium workflow files were deleted after evidence collection (352ec0f795bac5597a1a15dac68dbfb75c1be6f3, adc098942c9277ece68d54045fa72a6225bc8c83). Current agent/ui has only its original validation workflow with npm ci install.
+
+### Real-browser results
+
+- **SUCCESS** Chromium 141.0.7390.37, run 38334619801 on agent/ui@de733c9; 19 recorded checkpoints, zero browser page errors and zero console errors. Screen/log artifact ID 11783928804: https://github.com/friedsam/quantum-hpc-workflow-explorer/actions/runs/38334619801/artifacts/11783928804
+- A: t0.5 Working/Blocked/Idle 1000/0/0; t1.5 999/1/0 with QPU running; t4 restored 1000/0/0 and idle QPU. Play/Pause worked.
+- B: t1.01 0/200/800, QPU Run/Queue/PolicyHold 1/0/199; t2.02 0/1000/0, QPU 1/0/198; semantic frame t201 1000/0/0. B401 Advanced opened/rendered 401 React Flow nodes in about 3 seconds. Preparation logical node showed 200 complete.
+- C: t4.48 0/1000/0 and QPU Run/Queue/PolicyHold 0/0/0; t8.51 200/800/0 and QPU 0/0/0. This verifies independent actor return in browser, not the transfer-count implementation independently.
+- D: t1 0/50/950 with QPU 1/49/950; t2 1/50/949 with QPU 1/49/949; t1001.5 0/0/1000 and QPU idle. D3000 Advanced correctly omitted the compiled graph. Step/keyframe transitions remained usable.
+- D browser edit quantum wall time 1.0 to 0.5 s reran and Compare displayed baseline 16.69 min vs edited 8.36 min, B-A minus 500.00 s (engine exact makespan 1001.5 to 501.5). Invalid multiplicity blocked Simulate; adding a consumer-to-prepare cycle produced the error 'workflow dependencies must form a DAG' and blocked Simulate.
+- Actual reduced-motion browser preference disabled Play but left manual Next enabled.
+- Earlier failed browser trial 38334133648 was a **test expectation error**: semantic frames reached B recovery at t201 rather than providing a separate exact t201.5 keyframe. Corrected runs 38334405211 and 38334619801 passed.
+
+### Known limitations / release risks
+
+1. **[verified]** The default range slider uses step max(makespan/200,0.01), about 1.01 s for B and 5.01 s for D, so exact interior times B201.5/D1/D2 require semantic stepping or another selection mechanism; this is a UI precision limit, not a DES defect.
+2. **[verified]** 1440x900 screenshots show some long logical DAG nodes or status text clipped to the graph viewport; zoom/pan remains possible. **[likely]** Async ELK fit/width behavior may merit narrowly scoped polish, but root cause was not established. B Advanced first open takes around 3 seconds on CI Chromium; not an actual deployed-browser performance guarantee.
+3. **[verified]** Browser checks ran on C's laboratory SHA, NOT integration staging SHA. F must perform staging/deployed browser acceptance separately.
+4. **[verified]** No root vercel.json is tracked. The repository has both historical web/ and new app/. app/vite.config.ts uses relative base './'. Candidate Vercel configuration: Root Directory app; Node 22; install npm ci; build npm run build; output dist (repo-relative app/dist). Actual Vercel settings/routing could not be verified. No deploy, credential, main, or legacy web changes were made.
+5. Existing large JS-chunk warning remains. No FTQC, scheduler, provider-queue or network-resource feature work.
+
+**Recommendation: PORT** lockfile and single CI install-step update; keep browser script as investigation-only unless F chooses a future browser CI; archive screenshots as bounded evidence. **STOP for F review.**
