@@ -437,3 +437,25 @@ test("Very wide DAGs retain readable initial zoom with horizontal navigation", a
   assert.match(dag, /preventScrolling=\{false\}/);
   assert.match(css, /\.dag-horizontal-navigation input\[type="range"\]/);
 });
+
+
+test("Explore presents actor-count versus task-count distinctions and exact-time input", async () => {
+  const runtime = await readFile(
+    path.join(srcRoot, "components", "graph", "logicalRuntime.ts"), "utf8"
+  );
+  const explore = await readFile(
+    path.join(srcRoot, "components", "explore", "ExploreView.tsx"), "utf8"
+  );
+  const bar = await readFile(
+    path.join(srcRoot, "components", "explore", "SimplePlaybackBar.tsx"), "utf8"
+  );
+  const css = await readFile(path.join(srcRoot, "styles.css"), "utf8");
+  assert.match(runtime, /Collective waits/);
+  assert.match(runtime, /ranks working/);
+  assert.match(runtime, /global-synchronization/);
+  assert.match(explore, /snapshot\.actors/);
+  assert.match(css, /\.simple-explorer > \.workflow-surface \{/);
+  assert.match(css, /\.simple-explorer > \.simple-state-grid \{/);
+  assert.match(bar, /Go to exact simulation time in seconds/);
+  assert.match(bar, /onBlur=\{commitTime\}/);
+});
