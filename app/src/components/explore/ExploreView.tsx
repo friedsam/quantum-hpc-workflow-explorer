@@ -130,6 +130,7 @@ function SimulatedExplore({
       {logicalDag ? (
         <WorkflowDag
           model={logicalDag}
+          debugSnapshot={genericSnapshot}
           runtimeByNodeId={logicalRuntime}
           heading="Logical workflow"
           logical

@@ -211,7 +211,6 @@ test("communication dominates service while QPU utilization remains low", () => 
 });
 
 test("Scenario C first stalls during outbound transfer before any quantum job starts", () => {
-  const { deriveActiveTransferSummary } = awaitImportTransferSummary();
   const before = deriveSystemStateSnapshot(spec, result, 4.5);
   const transfer = deriveActiveTransferSummary(spec, before);
   assert.deepEqual(transfer, {
@@ -233,7 +232,12 @@ test("Scenario C first stalls during outbound transfer before any quantum job st
   assert.ok(returning.returning > 0);
 });
 
-// Static imported ES modules keep this source test dependency transparent.
-function awaitImportTransferSummary() {
-  return { deriveActiveTransferSummary };
-}
+
+test("Scenario C active outbound transfers map to visible logical dependency IDs", () => {
+  const snapshot = deriveSystemStateSnapshot(spec, result, 4.5);
+  const logicalIds = new Set(qampScenarioC1000Design.dependencies.map((dep) => dep.id));
+  assert.equal(snapshot.dag.activeCommunicationDependencyIds.length, 5);
+  for (const dependencyId of snapshot.dag.activeCommunicationDependencyIds) {
+    assert.ok(logicalIds.has(dependencyId), `logical edge not found: ${dependencyId}`);
+  }
+});
