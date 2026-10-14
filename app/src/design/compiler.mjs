@@ -503,6 +503,9 @@ function validateSystemProfile(systemProfile) {
     if (bytes > 0 && (!Number.isFinite(value.bandwidthBytesPerS) || value.bandwidthBytesPerS <= 0)) {
       fail(`dependencyCommunication.${key}: bandwidthBytesPerS must be > 0 when dataBytes > 0`);
     }
+    if (value.instanceStaggerS !== undefined && !nonnegativeFinite(value.instanceStaggerS)) {
+      fail(`dependencyCommunication.${key}: instanceStaggerS must be finite and >= 0`);
+    }
   }
 
   for (const [key, entry] of Object.entries(systemProfile.costPerUnitSecond ?? {})) {
@@ -677,14 +680,29 @@ function compileDependencies(design, prepared, systemProfile) {
   for (const dep of design.dependencies) {
     const communicationKey = dep.communicationKey ?? dep.id;
     const assumption = systemProfile.dependencyCommunication?.[communicationKey];
-    const resolved = assumption ? clone(assumption.value) : {};
+    const { instanceStaggerS, ...resolved } = assumption ? clone(assumption.value) : {};
+    const sourceMultiplicity = taskMultiplicity(prepared.tasks.get(dep.sourceTaskId));
+    const targetMultiplicity = taskMultiplicity(prepared.tasks.get(dep.targetTaskId));
+    const mapping = dep.instanceMapping ??
+      (sourceMultiplicity === targetMultiplicity ? "pairwise" : null);
+    if (instanceStaggerS !== undefined &&
+        (mapping !== "pairwise" || sourceMultiplicity !== targetMultiplicity)) {
+      fail(`dependency ${dep.id}: instanceStaggerS requires pairwise equal multiplicity`);
+    }
 
     for (const endpoint of expandedDependencyEndpoints(dep, prepared)) {
+      const ordinal = endpoint.sourceLogicalInstanceOrdinal ?? 1;
+      const fixedLatencyS = (resolved.fixedLatencyS ?? 0) +
+        (instanceStaggerS ?? 0) * (ordinal - 1);
+      if (!Number.isFinite(fixedLatencyS)) {
+        fail(`dependency ${dep.id}: staggered communication latency must be finite`);
+      }
       compiled.push({
         id: endpoint.id,
         sourceTaskId: endpoint.sourceTaskId,
         targetTaskId: endpoint.targetTaskId,
         ...resolved,
+        ...(instanceStaggerS !== undefined ? { fixedLatencyS } : {}),
       });
     }
   }

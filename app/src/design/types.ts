@@ -168,6 +168,10 @@ export interface SystemProfile {
       fixedLatencyS?: number;
       dataBytes?: number;
       bandwidthBytesPerS?: number;
+      /** Synthetic deterministic stagger for pairwise dependencies only.
+       * Instance k latency = fixedLatencyS + (k - 1)*instanceStaggerS.
+       * Not a network-contention or backend-queue simulation. */
+      instanceStaggerS?: number;
     }>
   >;
   costPerUnitSecond?: Record<string, Provenanced<number>>;

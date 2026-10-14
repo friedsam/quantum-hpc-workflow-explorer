@@ -116,6 +116,7 @@ export function LogicalDependencyEditor({ bundle, onChange }: Props) {
       fixedLatencyS: number;
       dataBytes: number;
       bandwidthBytesPerS: number;
+      instanceStaggerS: number;
     }>
   ) {
     if (!selected) return;
@@ -296,6 +297,27 @@ export function LogicalDependencyEditor({ bundle, onChange }: Props) {
                   }
                 />
               </label>
+
+              {communication?.instanceStaggerS !== undefined ? (
+                <label>
+                  <span>Synthetic arrival spacing (s/instance)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={communication.instanceStaggerS}
+                    onChange={(event) =>
+                      updateCommunication({
+                        instanceStaggerS: numberOrUndefined(event.target.value)
+                      })
+                    }
+                  />
+                  <small className="field-note">
+                    Incremental delay for pairwise requests, not modeled
+                    network bandwidth or provider queueing.
+                  </small>
+                </label>
+              ) : null}
 
               <button
                 className="danger-action"
