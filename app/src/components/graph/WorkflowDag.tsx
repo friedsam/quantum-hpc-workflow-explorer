@@ -21,6 +21,7 @@ interface Props {
   onDeleteDependencies?: (dependencyIds: string[]) => void;
   debugSnapshot?: SystemStateSnapshot;
   runtimeByNodeId?: Record<string, DagRuntimeState>;
+  activeLogicalDependencyIds?: readonly string[];
   heading?: string;
   logical?: boolean;
 }
@@ -102,6 +103,7 @@ export function WorkflowDag({
   onDeleteDependencies,
   debugSnapshot,
   runtimeByNodeId,
+  activeLogicalDependencyIds,
   heading = "Workflow DAG",
   logical = false
 }: Props) {
@@ -277,8 +279,9 @@ export function WorkflowDag({
   );
 
   const activeCommunicationIds = useMemo(
-    () => new Set(debugSnapshot?.dag.activeCommunicationDependencyIds ?? []),
-    [debugSnapshot]
+    () => new Set([...(debugSnapshot?.dag.activeCommunicationDependencyIds ?? []),
+      ...(activeLogicalDependencyIds ?? [])]),
+    [debugSnapshot, activeLogicalDependencyIds]
   );
 
   const displayedEdges = useMemo(
