@@ -82,7 +82,7 @@ test("Round 4I C1000 records keyframe and cursor-sweep performance", () => {
 
   const cursorTimes = Array.from(
     { length: 257 },
-    (_, index) => index * 0.05
+    (_, index) => index * (result.metrics.makespanS / 256)
   );
   const cursorSamples = [];
   let lastSnapshot;
