@@ -1,13 +1,13 @@
 # Project State
 
-Updated: 2026-10-12
+Updated: 2026-10-13
 
 ## Current checkpoint — 2026-10-12 (supersedes 2026-10-02 onboarding status below)
 
 - **Canonical staging:** `agent/integration` feature-complete A–D; locked clean build at `736e0968ea6e49b24109726acd6697aae8b054d8`, CI `38337192791` SUCCESS (143/143 Node tests, TS, Vite). README/checklist updated. Frozen DES and actor projections remain authoritative.
-- **Current open gate:** Round 4L deployment read-only reconnaissance: existing Vercel production alias still points to historical `main@11b2928`; integration `fd8433f` preview is READY but **rendered content / root directory are unverified**. Project reports Node 24.x / framework null; Node 22 locked CI and same-source Chromium laboratory smoke passed. No production/deployment settings changed. See `RELEASE_ACCEPTANCE.md`.
+- **Current open gate:** Deadline prototype QA and QAMP milestone form. The separate Vercel project `quantum-hpc-workflow-explorer-next` is deployed from `agent/integration` (Node22/Vite, root `app/`), while historical production and `main` remain unchanged. Scenario C was corrected per D024 from five aggregate requests to **1,000 individual transfer-gated jobs and actor waits**, with synthetic per-instance arrival spacing. Complete live visual QA, screenshots and IBM form; no further architecture/FTQC feature scope.
 - **Resolved:** Scenario A quantum-dependent branch completes t=8 before independent background/makespan t=10, retaining restored full-actor work through t=7.
-- **Known release gates:** actual deployed-preview/browser acceptance under provider root `app/`, review B401 Advanced ~3s and clipping/coarse scrub UX, production navigation/refresh, final deployment config and `main` promotion. Clean npm-ci lockfile and model CI are resolved.
+- **Known release gates:** final Scenario C 1,000-job browser performance and one-by-one playback validation, Scenario D output review, IBM form/screenshot evidence, truthful deployed README/roadmap and eventual deliberate `main` promotion. Clean npm-ci, model tests and isolated app-root deployment are established.
 - **Invariant:** frozen v1 DES authoritative; `WorkflowDesign + RunConfiguration + SystemProfile` compiles to DES input; actor counts and Working/Blocked/Idle are derived above DES. Slurm scheduler-neutral export is post-prototype.
 - **Future scope (documentation only):** FTQC extension to hierarchical logical-QPU resource profiles, QEC/decoder and magic-state constraints, and cloud vs tightly integrated HPC–QPU tradeoffs. Outline: `docs/coordination/FTQC_EXTENSION_OUTLOOK.md`; no change to Round 4G tasks, schema, frozen DES, or prototype claims.
 
