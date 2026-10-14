@@ -18,7 +18,7 @@ The authoritative DES is `src/engine/runtime.mjs`. The compiler, actor projectio
 
 - **A:** 1,000 persistent ranks; local one-rank QPU request; 999 ranks work independently; QPU branch completes in 8 synthetic seconds, background in 10.
 - **B:** 1,000 ranks; 200 serialized quantum results; 3 logical/401 compiled tasks; complete-result global gate, not a resource-queue wall.
-- **C:** 1,000 ranks modeled as five 200-rank cohorts and five *aggregate quantum calls*; outbound/return transfer dominates; no global gate or queue saturation.
+- **C:** 1,000 independently Blocked ranks, 1,000 individual QPU jobs, and 2,000 outbound/return transfer dependencies. A declared synthetic 0.7-second per-instance *delivery stagger* makes each result return before the next quantum job reaches the QPU. Ranks resume one by one. No global barrier or backend backlog; the stagger is an input assumption, not a network-contention simulation.
 - **D:** 1,000 independent QPU requests; 3 logical/3,000 compiled tasks; single QPU lane with at most 50 admitted requests, including 1 executing + up to 49 resource-queued. The one-shot model finishes with 1,000 ranks Idle; a repeating all-Working phase must be authored, never fabricated.
 
 The Fe4S4 SQD preset is a **structural/synthetic reference**, not a run against hardware.
