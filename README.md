@@ -19,10 +19,10 @@ The original Hello HPC tutorial used static workflow scenarios to explain orches
 |---|---|---|
 | A · Local overlap | Local quantum wait, with the QPU branch off the critical path | 1,000 HPC actors, 4 logical tasks |
 | B · Synchronization wall | All-rank result dependency, not a resource-queue wall | 1,000 actors, 200 QPU evaluations |
-| C · Transfer wall | Positive communication delay and independent result return | 5 aggregate QPU requests representing five 200-rank actor cohorts |
+| C · Transfer wall | 1,000 outbound/return transfers and per-rank results; idle QPU between arrivals | 1,000 individual QPU requests with a **synthetic staggered delivery schedule** |
 | D · Throughput throttling | One QPU execution lane; 50 admitted, excess demand policy-held | 1,000 independent QPU requests, 3 logical / 3,000 expanded tasks |
 
-**Important:** Persistent actor count, the number of modeled QPU tasks, and QPU resource units are different quantities. C's five calls deliberately represent *cohorts*, whereas D models 1,000 calls individually. D's one-shot drain finishes with actors Idle; a further classical-work loop has not been fabricated.
+**Important:** Actor count, QPU jobs, resource units and dependency transfers are separate quantities. **C and D now both model 1,000 individual QPU requests.** C deliberately spaces outbound transfer *completions* using declared synthetic per-instance delays; each quantum result returns before the next quantum request arrives, and actors resume one by one. This does not simulate a contended physical network link. D instead illustrates QPU throughput/admission bottlenecks. D's one-shot drain finishes Idle; an additional work cycle is not fabricated.
 
 ## Technical status and evidence
 
