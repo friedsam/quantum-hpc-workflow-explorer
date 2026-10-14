@@ -346,7 +346,7 @@ test("Public Scenario C uses 1000 pairwise transfer-gated rank requests",async()
  const preset=await readFile(path.join(srcRoot,"presets","qamp-c-1000-demo.mjs"),"utf8");
  const presets=await readFile(path.join(srcRoot,"presets","presets.ts"),"utf8");
  const compiler=await readFile(path.join(srcRoot,"design","compiler.mjs"),"utf8");
- assert.match(logical,/qamp-c-1000-demo\\.mjs/);
+ assert.ok(logical.includes("qamp-c-1000-demo.mjs"));
  assert.match(preset,/const RANKS = 1000/);
  assert.match(preset,/instanceStaggerS: STAGGER_BETWEEN_ARRIVALS_S/);
  assert.match(preset,/one-per-instance/);
