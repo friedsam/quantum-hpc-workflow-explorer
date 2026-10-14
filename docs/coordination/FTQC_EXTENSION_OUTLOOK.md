@@ -35,15 +35,25 @@ The next-stage optimizer could search *application placement + FTQC configuratio
 
 Avoid replicating an established FTQC resource estimator: consider **import/adaptation of external resource estimates** (such as Microsoft's QRE) into a future `SystemProfile`/quantum-execution profile, and focus Explorer on cross-layer *visual causal debugging and tradeoff comparison*.
 
+## Near-term priority and first implementation boundary
+
+**Priority:** FTQC-aware resource modeling is a **near-term extension after the present QAMP prototype**, not a distant catch-all research possibility. The immediate deliverable is *not* to implement a quantum error-correction simulator or duplicate Microsoft's QRE. Instead:
+
+1. Define a provenance-bearing adapter for existing fault-tolerant estimator outputs (e.g. physical qubits, logical runtime, error budget, code/factory assumptions).
+2. Attach those estimates to the Explorer's logical QPU operations and HPC system profiles; keep cloud-service submission/delivery separate from on-system real-time QEC.
+3. Compare at least one modeled workflow across remote-cloud and tightly integrated HPC–QPU assumptions, including classical decoder/communication resource implications where justified.
+
+Only after that first adapter and comparative case are validated should detailed decoder/factory tuning or cross-layer optimization become an implementation target. [Microsoft's current QRE](https://learn.microsoft.com/en-us/azure/quantum/learn-how-the-resource-estimator-works) already supports composable application, hardware, QEC and factory models; the Explorer's proposed contribution is the **coupling to end-to-end HPC–QPU workflow orchestration**.
+
 ## Strict release boundary
 
 **Current prototype:** source-faithful A–D grouped workflows, immutable deterministic DES, Builder → Simulate → Explore → Compare, real browser acceptance, synthetic assumption labeling, dependency/deployment cleanup. No FTQC scheduling, internal QEC model, decoder, magic-state factories, hardware calibration, or automatic optimizer is implemented.
 
-**Future work only:** design the optional FTQC model contracts after the prototype; source/validate an estimator, define remote versus co-located machine profiles, and develop test workloads demonstrating a cross-layer tradeoff. Any expansion requires its own interface review and independent validation.
+**Near-term post-prototype work only:** design and validate an optional FTQC resource-estimator import/interface, define remote versus co-located architecture profiles, and demonstrate a reproducible cross-layer trade-off. Subsequent detailed QEC decoding/factory co-design remains conditional on validated data and interfaces. Every expansion requires separate interface review and independent validation.
 
 ## Suggested final project-description paragraph
 
-> The prototype focuses on explainable, pre-execution orchestration of hybrid HPC–quantum workflows. A future extension could model fault-tolerant quantum computing through hierarchical logical-QPU execution profiles, including error-correction and decoding constraints, magic-state resources, and architecture-dependent communication. This would enable exploration of tradeoffs between remote cloud access and tightly coupled HPC–QPU systems, potentially extending from application scheduling to cross-layer resource tuning. These FTQC capabilities are proposed directions, not features of the current prototype.
+> The prototype focuses on explainable, pre-execution orchestration of hybrid HPC–quantum workflows. A **near-term extension** will couple fault-tolerant quantum resource estimates—including logical execution time, error-correction overhead, decoder requirements and magic-state resources—to HPC scheduling and communication assumptions. This will support exploration of cloud-based versus tightly integrated HPC–QPU architectures. These FTQC capabilities are planned and are **not** features of the current prototype.
 
 ## Sources (primary, consulted 2026-10-12)
 

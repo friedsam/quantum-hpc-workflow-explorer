@@ -37,11 +37,15 @@ Investigate a versioned export/import boundary between an authored workflow and 
 
 **Completion criterion:** a documented schema and one small reproducible external-workflow/trace round trip. This would not turn the Explorer into a production scheduler.
 
-## Longer-term research — hierarchical FTQC models (deferred)
+## Near-term extension — FTQC-aware HPC–QPU resource modeling (planned)
 
-Future architectures may require coupling application-level scheduling with *logical* QPU execution-time/resource estimates: logical error budgets, code distance, QEC decoder throughput/feedback deadlines, magic-state factories and shared classical accelerators. Comparing cloud-managed quantum access with tightly coupled HPC–QPU systems would introduce a new cross-layer optimization problem.
+Connect fault-tolerant quantum resource estimates to the Explorer's application-level orchestration model. Microsoft's existing [Quantum Resource Estimator](https://learn.microsoft.com/en-us/azure/quantum/learn-how-the-resource-estimator-works) already estimates physical-qubit requirements, runtime, error budgets, QEC and magic-state factory trade-offs. **We do not need to rebuild that estimator.** Our distinct objective is to expose how those quantum requirements interact with HPC scheduling, decoder CPU/GPU demand, data movement and deployment topology.
 
-Use externally validated resource estimators where possible; keep real-time QEC constraints distinct from ordinary cloud round-trip latency. **None of this is available in the current prototype.** See [FTQC Extension Outlook](coordination/FTQC_EXTENSION_OUTLOOK.md).
+**First bounded deliverable:** a provenance-bearing import/adapter for an external FTQC resource-estimation result (e.g. estimated logical execution time, physical qubits, factory resources, error bounds), used as an explicit QPU profile in one end-to-end HPC–QPU workflow comparison. Contrast cloud-accessed and tightly integrated QPU deployments using documented hypothetical/estimated parameters rather than hardware-accuracy claims.
+
+**Follow-on research:** calibrated decoder throughput, low-latency feedback deadlines, factory allocation and jointly constrained scheduling. Those real-time details are not ordinary cloud transfer delays, and external access to hardware-specific controls cannot be assumed.
+
+**Completion criterion for first extension:** a reproducible FTQC-aware workflow example showing one cross-layer trade-off, with all quantum estimates/assumptions traceable to their source and no implied live FTQC execution. **None of this is implemented in the current prototype.** See [FTQC Extension Outlook](coordination/FTQC_EXTENSION_OUTLOOK.md).
 
 ## General principles
 

@@ -2,7 +2,7 @@
 
 **QAMP 2025 Hello HPC · Continued prototype development (October 2026)**
 
-[**Try the interactive prototype**](https://quantum-hpc-workflow-explorer-next.vercel.app/) · [QAMP Hello HPC tutorials](https://hpc-quantum.github.io/Documentation-website/) · [Development roadmap](docs/ROADMAP.md) · [FTQC future outlook](docs/coordination/FTQC_EXTENSION_OUTLOOK.md)
+[**Try the interactive prototype**](https://quantum-hpc-workflow-explorer-next.vercel.app/) · [QAMP Hello HPC tutorials](https://hpc-quantum.github.io/Documentation-website/) · [Development roadmap](docs/ROADMAP.md) · [Near-term FTQC extension](docs/coordination/FTQC_EXTENSION_OUTLOOK.md)
 
 The Workflow Explorer is a **pre-execution design-space simulator and visual debugger** for hybrid HPC–quantum workflows. It helps users investigate *why* a workflow spends time in useful classical work, waiting on quantum results, moving data, or awaiting QPU admission. It is **not** an HPC/quantum scheduler or a prediction of vendor performance.
 
@@ -47,6 +47,6 @@ The source remains under `app/` on `agent/integration`. The historical `main` br
 
 ## What's next?
 
-See the [milestone-based roadmap](docs/ROADMAP.md) for near-term usability/reproducibility, a measured reference-workflow validation, parameter sensitivity, and scheduler-neutral HPC interoperability. [Fault-tolerant quantum computing](docs/coordination/FTQC_EXTENSION_OUTLOOK.md)—including QEC/decoding, magic-state resources, and cloud versus tightly integrated HPC–QPU architectures—is a **long-term research extension**, not implemented today.
+See the [milestone-based roadmap](docs/ROADMAP.md) for reference-workflow validation, parameter sensitivity, Slurm-oriented HPC execution planning, and a **near-term FTQC-aware modeling extension**. The FTQC direction is to import or adapt quantum resource estimates (logical execution time, physical-qubit requirements, QEC and magic-state overhead) and connect them to HPC orchestration, classical decoding/communication constraints, and cloud-accessed versus tightly integrated HPC–QPU architectures. [Scope and technical outlook](docs/coordination/FTQC_EXTENSION_OUTLOOK.md). **FTQC support and Slurm export are planned, not implemented in this prototype.**
 
 **Model limitations:** The current engine uses deterministic service times, an expanded DAG, explicitly specified capacities, FIFO admission, and independently modeled transfer delays; it does not capture live provider queues, network contention, uncertain runtimes, physical device noise, or real-time fault correction.

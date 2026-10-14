@@ -43,4 +43,4 @@ npm run dev
 
 Simulation timings and cost rates are explicit synthetic/user inputs, not automatically measured hardware properties. DES assumes fixed constant durations, deterministic strict FIFO, already-expanded DAGs, explicit capacity and non-contended dependency transfers. No live provider queue, network-resource contention, real-time hardware/QEC/FTQC, or production scheduler is modeled.
 
-Potential future FTQC support is described in [FTQC_EXTENSION_OUTLOOK.md](../docs/coordination/FTQC_EXTENSION_OUTLOOK.md); no FTQC execution tuning is implemented.
+FTQC-aware resource estimation and cross-layer HPC–QPU modeling are a **near-term planned extension** described in [FTQC_EXTENSION_OUTLOOK.md](../docs/coordination/FTQC_EXTENSION_OUTLOOK.md). The first step is to integrate estimator outputs, not build a competing FTQC estimator. No FTQC tuning or execution is implemented yet.
