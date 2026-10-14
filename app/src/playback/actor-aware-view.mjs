@@ -239,6 +239,61 @@ export function attachActorStateToSystemSnapshot(
   });
 }
 
+/**
+ * Keep the first and last individual events visible, while sampling the long
+ * middle of exceptionally dense actor-changing traces. This never modifies
+ * the DES result; each retained snapshot is taken from an exact event boundary.
+ * Combined provenance spans cover every skipped source event.
+ */
+function boundedPresentationFrames(frames) {
+  const cap = 96;
+  if (frames.length <= 320) return frames;
+  const head = 20;
+  const tail = 8;
+  const middleEnd = frames.length - tail;
+  const middleChunk = Math.ceil((middleEnd - head) / (cap - head - tail));
+  const selections = [];
+
+  for (let i = 0; i < head; i += 1) {
+    selections.push([i, i]);
+  }
+  for (let i = head; i < middleEnd; i += middleChunk) {
+    selections.push([i, Math.min(middleEnd - 1, i + middleChunk - 1)]);
+  }
+  for (let i = middleEnd; i < frames.length; i += 1) {
+    selections.push([i, i]);
+  }
+
+  let presentationTimeMs = 0;
+  return selections.map(([start, end]) => {
+    const first = frames[start];
+    const last = frames[end];
+    const folded = end > start;
+    const dwellMs = folded ? 500 : last.dwellMs;
+    const frame = Object.freeze({
+      ...last,
+      presentationTimeMs,
+      dwellMs,
+      sourceEventSeqRange: Object.freeze([
+        first.sourceEventSeqRange[0], last.sourceEventSeqRange[1]
+      ]),
+      simTimeRangeS: Object.freeze([
+        first.simTimeRangeS[0], last.simTimeRangeS[1]
+      ]),
+      ...(folded
+        ? {
+            kind: "compressed",
+            repeatCount: 1,
+            patternLength: 1,
+            label: `Intermediate progress · ${end - start + 1} source moments`
+          }
+        : {})
+    });
+    presentationTimeMs += dwellMs;
+    return frame;
+  });
+}
+
 export function buildActorAwareVisualKeyframes(
   result,
   {
@@ -284,7 +339,7 @@ export function buildActorAwareVisualKeyframes(
   });
 
   return Object.freeze(
-    frames.map((frame) =>
+    boundedPresentationFrames(frames).map((frame) =>
       Object.freeze({
         ...frame,
         actors: Object.freeze({
