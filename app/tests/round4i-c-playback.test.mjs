@@ -37,7 +37,20 @@ test("Scenario C playback compresses raw events while preserving source-event ra
   });
 
   assert.ok(frames.length > 0);
+  assert.ok(frames.length <= 96, "dense C trace must be bounded in playback");
   assert.ok(frames.length < result.events.length);
+  assert.equal(frames[0].sourceEventSeqRange[0], result.events[0].seq);
+  assert.equal(frames.at(-1).sourceEventSeqRange[1], result.events.at(-1).seq);
+  for(let i=1; i<frames.length; i+=1) {
+    assert.equal(frames[i].sourceEventSeqRange[0],
+      frames[i-1].sourceEventSeqRange[1]+1,
+      "presentation must retain contiguous source-event provenance");
+  }
+  assert.ok(frames.some(frame=>Math.abs(frame.snapshot.simTimeS-5.5)<1e-8),
+    "first rank's individual return must remain an explicit frame");
+  assert.ok(frames.some(frame=>frame.actors.groups[0].working===1 &&
+    frame.actors.groups[0].blocked===999),
+    "playback must show exactly one returned rank");
 
   const eventSeqs = new Set(
     result.events.map((event) => event.seq)
