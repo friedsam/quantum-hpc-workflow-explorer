@@ -1244,3 +1244,67 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
   .dag-horizontal-navigation label,
   .dag-horizontal-navigation small { flex: 1 0 100%; }
 }
+
+
+/* Compact Explore: DAG/playback and actor/QPU state visible together.
+   Builder and large expanded diagnostics remain unchanged. */
+.simple-explorer {
+  grid-template-columns: minmax(0, 1.7fr) minmax(360px, 0.95fr);
+  gap: 11px 14px;
+  align-items: start;
+}
+.simple-explorer > .simple-explore-heading,
+.simple-explorer > .now-banner,
+.simple-explorer > .explore-advanced { grid-column: 1 / -1; }
+.simple-explorer > .simple-explore-heading h2 { font-size: clamp(1.4rem, 2.1vw, 1.9rem); }
+.simple-explorer > .simple-explore-heading p:not(.section-kicker) { font-size: 0.84rem; }
+.simple-explorer > .now-banner { padding: 12px 16px; }
+.simple-explorer > .now-banner h2 {
+  margin: 4px 0 5px;
+  max-width: none;
+  font-size: clamp(1.05rem, 1.65vw, 1.35rem);
+}
+.simple-explorer > .workflow-surface {
+  grid-column: 1; grid-row: 3; min-width: 0; padding: 14px;
+}
+.simple-explorer > .workflow-surface:not(.workflow-surface-expanded) .workflow-dag { height: 284px; }
+.simple-explorer > .workflow-surface .surface-heading { margin-bottom: 10px; }
+.simple-explorer > .simple-playback {
+  grid-column: 1; grid-row: 4; min-width: 0; padding: 10px 12px;
+}
+.simple-explorer > .simple-state-grid {
+  grid-column: 2; grid-row: 3 / span 2; grid-template-columns: 1fr;
+  gap: 10px; min-width: 0; align-content: start;
+}
+.simple-explorer > .simple-state-grid > .surface { padding: 12px; min-width: 0; }
+.simple-explorer .actor-state-card { padding: 9px; }
+.simple-explorer .actor-state-counts { margin-top: 7px; }
+.simple-explorer .actor-count { padding: 6px; }
+.simple-explorer .actor-count strong { font-size: 1.1rem; }
+.simple-explorer .actor-state-bar { height: 9px; margin-top: 7px; }
+.simple-explorer .actor-reasons { margin-top: 6px; }
+.simple-explorer .sync-callout { padding: 6px 8px; margin-top: 7px; }
+.simple-explorer .surface-heading.compact { margin-bottom: 10px; }
+.workflow-node-card .dag-debug-state {
+  width: fit-content; max-width: 100%; white-space: normal;
+  overflow-wrap: anywhere; line-height: 1.3;
+  border-radius: 8px; letter-spacing: 0;
+}
+@media (max-width: 1350px) {
+  .simple-explorer > .simple-playback { grid-template-columns: 1fr; }
+}
+@media (max-width: 1150px) {
+  .simple-explorer { grid-template-columns: 1fr; }
+  .simple-explorer > .simple-explore-heading,
+  .simple-explorer > .now-banner,
+  .simple-explorer > .explore-advanced,
+  .simple-explorer > .workflow-surface,
+  .simple-explorer > .simple-playback,
+  .simple-explorer > .simple-state-grid { grid-column: 1; grid-row: auto; }
+  .simple-explorer > .simple-state-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  }
+}
+@media (max-width: 760px) {
+  .simple-explorer > .simple-state-grid { grid-template-columns: 1fr; }
+}

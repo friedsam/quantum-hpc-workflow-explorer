@@ -67,7 +67,9 @@ function plainStateSentence(
         actorGroup.count +
         " " +
         actorGroup.label.toLowerCase() +
-        " blocked on authored waits."
+        (actorGroup.blockedReasonCounts["quantum-result"]
+          ? " blocked awaiting quantum results."
+          : " blocked on declared waits.")
       );
     }
     return "Authored actors are idle at this simulation time.";

@@ -41,7 +41,7 @@ export function WorkflowNode({ data, selected }: NodeProps) {
       ) : null}
       {nodeData.detail ? <span className="dag-node-detail">{nodeData.detail}</span> : null}
       {state && state !== "pending" ? (
-        <span className="dag-debug-state">
+        <span className="dag-debug-state" title={nodeData.statusText || stateLabels[state] || state}>
           {nodeData.statusText || stateLabels[state] || state}
         </span>
       ) : null}

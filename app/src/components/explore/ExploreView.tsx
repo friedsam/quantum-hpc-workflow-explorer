@@ -98,10 +98,11 @@ function SimulatedExplore({
         ? deriveLogicalDagRuntime(
             compilationContext.bundle.design,
             manifest,
-            genericSnapshot
+            genericSnapshot,
+            snapshot.actors
           )
         : undefined,
-    [compilationContext, manifest, genericSnapshot]
+    [compilationContext, manifest, genericSnapshot, snapshot.actors]
   );
 
   return (

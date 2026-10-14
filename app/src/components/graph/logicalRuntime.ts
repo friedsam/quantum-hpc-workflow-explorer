@@ -1,5 +1,6 @@
 import type { CompilationManifest, WorkflowDesign } from "../../design/types";
 import type { SystemStateSnapshot } from "../../causal/systemState.mjs";
+import type { ActorStateProjection } from "../../playback/actor-aware-view.mjs";
 import type { DagRuntimeState } from "./types";
 
 const stateLabels: Record<string, string> = {
@@ -23,7 +24,8 @@ const priority = [
 export function deriveLogicalDagRuntime(
   design: WorkflowDesign,
   manifest: CompilationManifest,
-  snapshot: SystemStateSnapshot
+  snapshot: SystemStateSnapshot,
+  actors?: ActorStateProjection
 ): Record<string, DagRuntimeState> {
   const compiledByDesign = new Map<string, string[]>();
   for (const [compiledTaskId, entry] of Object.entries(manifest.tasks)) {
@@ -52,7 +54,7 @@ export function deriveLogicalDagRuntime(
       : priority.find((candidate) => (counts.get(candidate) ?? 0) > 0) ??
         "pending";
 
-    const text = [
+    let text = [
       ...priority
         .filter((candidate) => (counts.get(candidate) ?? 0) > 0)
         .map(
@@ -60,6 +62,28 @@ export function deriveLogicalDagRuntime(
             (counts.get(candidate) ?? 0) + " " + stateLabels[candidate]
         )
     ].join(" · ");
+
+    // A collective is one task instance with all-rank participation.
+    if (task.semanticType === "collective-classical") {
+      const claim = task.actorParticipation?.find(
+        (p) => p.selection.kind === "all" && p.stateDuringTask === "working"
+      );
+      const group = claim
+        ? actors?.groups.find((g) => g.actorGroupId === claim.actorGroupId)
+        : undefined;
+      if (group) {
+        if (state === "dependency-gated") {
+          const blocked = group.blockedReasonCounts["global-synchronization"] ?? 0;
+          text = blocked > 0
+            ? `Collective waits · ${blocked} ranks blocked`
+            : "Collective awaits full result set";
+        } else if (state === "running") {
+          text = `Collective running · ${group.working} ranks working`;
+        } else if (state === "complete") {
+          text = "Collective complete";
+        }
+      }
+    }
 
     runtime[task.id] = { state, text };
   }
