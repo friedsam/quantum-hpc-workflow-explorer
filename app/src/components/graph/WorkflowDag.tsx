@@ -27,6 +27,48 @@ interface Props {
 
 const nodeTypes = { workflow: WorkflowNode };
 
+interface DagBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface DagViewport {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+const LONG_DAG_MIN_ZOOM = 0.85;
+const DAG_EDGE_MARGIN = 22;
+
+// ELK uses 210 x 144 for unmeasured workflow cards. Match those estimates
+// while deriving camera bounds, so the first row isn't hidden off-screen.
+function boundsForLayout(nodes: Node[]): DagBounds | null {
+  if (nodes.length === 0) return null;
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const node of nodes) {
+    const width = Number(node.measured?.width ?? node.width ?? 210);
+    const height = Number(node.measured?.height ?? node.height ?? 144);
+    left = Math.min(left, node.position.x);
+    top = Math.min(top, node.position.y);
+    right = Math.max(right, node.position.x + width);
+    bottom = Math.max(bottom, node.position.y + height);
+  }
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+function horizontalLimits(bounds: DagBounds, canvasWidth: number, zoom: number) {
+  return {
+    start: DAG_EDGE_MARGIN - bounds.x * zoom,
+    end: canvasWidth - DAG_EDGE_MARGIN - (bounds.x + bounds.width) * zoom
+  };
+}
+
 function isSimpleLinearDag(model: DagViewModel): boolean {
   if (model.nodes.length < 2) return false;
   if (model.edges.length !== model.nodes.length - 1) return false;
@@ -125,7 +167,13 @@ export function WorkflowDag({
   const [layoutError, setLayoutError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [layoutRevision, setLayoutRevision] = useState(0);
+  const [layoutBounds, setLayoutBounds] = useState<DagBounds | null>(null);
+  const [wideBounds, setWideBounds] = useState<DagBounds | null>(null);
+  const [horizontalPosition, setHorizontalPosition] = useState(0);
+  const graphRef = useRef<HTMLDivElement | null>(null);
   const fitViewRef = useRef<((maxZoom: number) => void) | null>(null);
+  const setViewportRef = useRef<((viewport: DagViewport) => void) | null>(null);
+  const getViewportRef = useRef<(() => DagViewport) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -136,12 +184,14 @@ export function WorkflowDag({
         if (cancelled) return;
         setNodes(layout.nodes);
         setEdges(layout.edges);
+        setLayoutBounds(boundsForLayout(layout.nodes));
         setLayoutRevision((revision) => revision + 1);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         setNodes(sourceNodes);
         setEdges(sourceEdges);
+        setLayoutBounds(null);
         setLayoutRevision((revision) => revision + 1);
         setLayoutError(
           error instanceof Error ? error.message : "ELK layout failed."
@@ -155,15 +205,37 @@ export function WorkflowDag({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topologyKey]);
 
-  // ELK resolves after React Flow mounts. Refit only after a new topology/layout,
-  // never in response to simulation-time or actor-status updates.
+  // ELK resolves after React Flow mounts. Wide chains need readable card size,
+  // so start at the first task rather than shrinking the entire chain.
+  // Other layouts keep the overview fit. Never refit during playback.
   useEffect(() => {
     if (!layoutRevision) return;
     const frame = window.requestAnimationFrame(() => {
-      fitViewRef.current?.(expanded ? 1.05 : 0.85);
+      const canvas = graphRef.current;
+      const bounds = layoutBounds;
+      const longHorizontal = Boolean(
+        canvas &&
+        bounds &&
+        bounds.width > bounds.height * 2 &&
+        bounds.width * LONG_DAG_MIN_ZOOM > canvas.clientWidth - 2 * DAG_EDGE_MARGIN
+      );
+      if (canvas && bounds && longHorizontal) {
+        setWideBounds(bounds);
+        setHorizontalPosition(0);
+        const zoom = LONG_DAG_MIN_ZOOM;
+        const horizontal = horizontalLimits(bounds, canvas.clientWidth, zoom);
+        setViewportRef.current?.({
+          x: horizontal.start,
+          y: canvas.clientHeight / 2 - (bounds.y + bounds.height / 2) * zoom,
+          zoom
+        });
+      } else {
+        setWideBounds(null);
+        fitViewRef.current?.(expanded ? 1.05 : 0.85);
+      }
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [layoutRevision, expanded]);
+  }, [layoutRevision, layoutBounds, expanded]);
 
   useEffect(() => {
     if (!expanded) return;
@@ -225,6 +297,35 @@ export function WorkflowDag({
     onConnectTasks(connection.source, connection.target);
   }
 
+  function navigateHorizontally(percent: number) {
+    if (!wideBounds || !graphRef.current) return;
+    const viewport = getViewportRef.current?.();
+    if (!viewport) return;
+    const limits = horizontalLimits(
+      wideBounds, graphRef.current.clientWidth, viewport.zoom
+    );
+    if (limits.end >= limits.start) return;
+    const x = limits.start + (limits.end - limits.start) * percent / 100;
+    setHorizontalPosition(percent);
+    setViewportRef.current?.({ ...viewport, x });
+  }
+
+  function recordViewport(viewport: DagViewport) {
+    if (!wideBounds || !graphRef.current) return;
+    const limits = horizontalLimits(
+      wideBounds, graphRef.current.clientWidth, viewport.zoom
+    );
+    const distance = limits.start - limits.end;
+    if (distance <= 0) {
+      setHorizontalPosition(0);
+      return;
+    }
+    const percent = Math.max(0, Math.min(100,
+      Math.round(100 * (limits.start - viewport.x) / distance)
+    ));
+    setHorizontalPosition((previous) => previous === percent ? previous : percent);
+  }
+
   return (
     <section
       className={expanded
@@ -264,7 +365,11 @@ export function WorkflowDag({
         <div className="notice error" role="status">{layoutError}</div>
       ) : null}
 
-      <div className="workflow-dag" aria-label="Workflow directed acyclic graph">
+      <div
+        className="workflow-dag"
+        aria-label="Workflow directed acyclic graph"
+        ref={graphRef}
+      >
         <ReactFlow
           nodes={displayedNodes}
           edges={displayedEdges}
@@ -279,7 +384,12 @@ export function WorkflowDag({
                 duration: 180
               });
             };
+            getViewportRef.current = () => instance.getViewport();
+            setViewportRef.current = (viewport) => {
+              void instance.setViewport(viewport, { duration: 0 });
+            };
           }}
+          onMoveEnd={(_, viewport) => recordViewport(viewport)}
           fitView
           fitViewOptions={{ padding: 0.14, minZoom: 0.1, maxZoom: 0.85 }}
           minZoom={0.1}
@@ -303,6 +413,27 @@ export function WorkflowDag({
           <Background gap={22} size={1} />
         </ReactFlow>
       </div>
+
+      {wideBounds ? (
+        <div className="dag-horizontal-navigation">
+          <label htmlFor="dag-horizontal-position">Scroll through workflow</label>
+          <span>Start</span>
+          <input
+            id="dag-horizontal-position"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={horizontalPosition}
+            aria-label="Horizontal diagram position"
+            onChange={(event) =>
+              navigateHorizontally(Number(event.target.value))
+            }
+          />
+          <span>End</span>
+          <small>Drag empty canvas to pan; use + / − to zoom</small>
+        </div>
+      ) : null}
 
       <div className="dag-help">
         {onConnectTasks

@@ -1213,3 +1213,34 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
   .workflow-surface-expanded { inset: 4px; padding: 10px; }
   .workflow-surface-expanded .surface-heading { gap: 8px; }
 }
+
+
+/* Wide/linear DAGs remain readable; horizontal navigation replaces tiny fit-all. */
+.dag-horizontal-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(10, 20, 31, 0.75);
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.dag-horizontal-navigation label { color: var(--text); font-weight: 750; }
+.dag-horizontal-navigation input[type="range"] {
+  flex: 1 1 220px;
+  width: min(460px, 100%);
+  min-height: 18px;
+  padding: 0;
+  border: 0;
+  accent-color: var(--accent);
+  cursor: ew-resize;
+}
+.dag-horizontal-navigation small { font-size: 0.7rem; }
+@media (max-width: 760px) {
+  .dag-horizontal-navigation label,
+  .dag-horizontal-navigation small { flex: 1 0 100%; }
+}

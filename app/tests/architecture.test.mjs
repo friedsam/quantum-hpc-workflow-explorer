@@ -420,3 +420,20 @@ test("Graph overview can expand for large C-class logical DAGs without trapping 
   assert.match(css, /\.workflow-surface-expanded\.workflow-surface \.workflow-dag/);
   assert.match(css, /position: fixed/);
 });
+
+
+test("Very wide DAGs retain readable initial zoom with horizontal navigation", async () => {
+  const dag = await readFile(
+    path.join(srcRoot, "components", "graph", "WorkflowDag.tsx"),
+    "utf8"
+  );
+  const css = await readFile(path.join(srcRoot, "styles.css"), "utf8");
+  assert.match(dag, /LONG_DAG_MIN_ZOOM = 0\.85/);
+  assert.match(dag, /bounds\.width > bounds\.height \* 2/);
+  assert.match(dag, /horizontalLimits\(bounds, canvas\.clientWidth, zoom\)/);
+  assert.match(dag, /navigateHorizontally\(Number\(event\.target\.value\)\)/);
+  assert.match(dag, /aria-label="Horizontal diagram position"/);
+  assert.match(dag, /zoomOnScroll=\{false\}/);
+  assert.match(dag, /preventScrolling=\{false\}/);
+  assert.match(css, /\.dag-horizontal-navigation input\[type="range"\]/);
+});
