@@ -6,6 +6,7 @@ import {
   deriveActorStateCountsAt
 } from "../src/design/actor-state.mjs";
 import { deriveSystemStateSnapshot } from "../src/causal/systemState.mjs";
+import { deriveActiveTransferSummary } from "../src/components/explore/simpleState.mjs";
 import { simulateWorkflow } from "../src/engine/runtime.mjs";
 import {
   qampScenarioC1000Compilation,
@@ -208,3 +209,31 @@ test("communication dominates service while QPU utilization remains low", () => 
     0
   );
 });
+
+test("Scenario C first stalls during outbound transfer before any quantum job starts", () => {
+  const { deriveActiveTransferSummary } = awaitImportTransferSummary();
+  const before = deriveSystemStateSnapshot(spec, result, 4.5);
+  const transfer = deriveActiveTransferSummary(spec, before);
+  assert.deepEqual(transfer, {
+    outbound: 5,
+    returning: 0,
+    other: 0,
+    total: 5,
+    beforeFirstQpuExecution: true
+  });
+
+  const during = deriveSystemStateSnapshot(spec, result, 5.25);
+  const duringTransfer = deriveActiveTransferSummary(spec, during);
+  assert.equal(duringTransfer.beforeFirstQpuExecution, false);
+  assert.equal(duringTransfer.outbound, 4);
+
+  const returning = deriveActiveTransferSummary(
+    spec, deriveSystemStateSnapshot(spec, result, 8.5)
+  );
+  assert.ok(returning.returning > 0);
+});
+
+// Static imported ES modules keep this source test dependency transparent.
+function awaitImportTransferSummary() {
+  return { deriveActiveTransferSummary };
+}

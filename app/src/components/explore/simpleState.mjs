@@ -24,6 +24,49 @@ function countState(snapshot, ids, state) {
   return ids.filter((id) => snapshot.dag.taskStateById[id] === state).length;
 }
 
+
+/**
+ * Source-faithful, event-derived transfer accounting; no network resource or
+ * quantum-provider queue is inferred. Each active dependency transfer counts
+ * once, even when its task represents an aggregated actor cohort.
+ */
+export function deriveActiveTransferSummary(spec, snapshot) {
+  const poolKind = new Map(spec.resources.map((pool) => [pool.id, pool.kind]));
+  const taskKind = new Map(spec.tasks.map(
+    (task) => [task.id, poolKind.get(task.resourcePoolId)]
+  ));
+  let outbound = 0;
+  let returning = 0;
+  let other = 0;
+
+  for (const transfer of snapshot.causal.activeCommunications) {
+    const source = taskKind.get(transfer.sourceTaskId);
+    const target = taskKind.get(transfer.targetTaskId);
+    if (target === "qpu" && source !== "qpu") {
+      outbound += 1;
+    } else if (source === "qpu" && target !== "qpu") {
+      returning += 1;
+    } else {
+      other += 1;
+    }
+  }
+
+  const anyQpuWorkBegun = spec.tasks.some((task) => {
+    if (taskKind.get(task.id) !== "qpu") return false;
+    return ["running", "queued", "complete"].includes(
+      snapshot.dag.taskStateById[task.id]
+    );
+  });
+
+  return Object.freeze({
+    outbound,
+    returning,
+    other,
+    total: outbound + returning + other,
+    beforeFirstQpuExecution: outbound > 0 && !anyQpuWorkBegun
+  });
+}
+
 export function deriveGenericProgress(
   design,
   manifest,

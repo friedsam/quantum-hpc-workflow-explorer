@@ -7,6 +7,7 @@ import type {
 import {
   deriveGenericProgress,
   deriveQpuSummary,
+  deriveActiveTransferSummary,
   globalSynchronizationIsActive,
   hasGlobalSynchronizationSemantics
 } from "./simpleState.mjs";
@@ -36,6 +37,7 @@ function plainStateSentence(
   snapshot: ActorAwareSystemStateSnapshot
 ): string {
   const actorGroup = snapshot.actors.groups[0];
+  const transfer = deriveActiveTransferSummary(spec, snapshot);
 
   if (actorGroup) {
     const sync = globalSynchronizationIsActive(snapshot.actors);
@@ -48,6 +50,27 @@ function plainStateSentence(
         " " +
         actorGroup.label.toLowerCase() +
         " blocked while the required result set completes."
+      );
+    }
+    if (transfer.beforeFirstQpuExecution && actorGroup.blocked > 0) {
+      return (
+        "Transfer wall — " +
+        actorGroup.blocked +
+        " / " +
+        actorGroup.count +
+        " ranks blocked while " +
+        transfer.outbound +
+        " outbound transfer" +
+        (transfer.outbound === 1 ? " is" : "s are") +
+        " in flight. QPU has not started."
+      );
+    }
+    if (transfer.returning > 0 && actorGroup.blocked > 0 &&
+        deriveQpuSummary(spec, snapshot).running.length === 0) {
+      return (
+        "Result transfer wall — " +
+        actorGroup.blocked +
+        " ranks still waiting for returned data while the QPU is idle."
       );
     }
     if (actorGroup.working > 0) {
@@ -205,6 +228,7 @@ export function SimpleExplorerSummary({
   snapshot
 }: Props) {
   const qpu = deriveQpuSummary(spec, snapshot);
+  const transfers = deriveActiveTransferSummary(spec, snapshot);
   const actorAware = snapshot.actors.mode === "actor-aware";
   const progress =
     !actorAware && bundle && manifest
@@ -287,6 +311,32 @@ export function SimpleExplorerSummary({
               <small>{compactTaskIds(qpu.policyHeld)}</small>
             </div>
           </div>
+
+          {transfers.total > 0 ? (
+            <div className="transfer-callout" role="status">
+              <strong>DATA TRANSFER ACTIVE</strong>
+              <span>
+                {transfers.outbound} outbound to QPU
+                {" · "}
+                {transfers.returning} returning to HPC
+                {transfers.other ? " · " + transfers.other + " other" : ""}
+              </span>
+              {transfers.beforeFirstQpuExecution ? (
+                <small>
+                  QPU idle: outbound payloads have not reached execution.
+                  Ranks may already be blocked.
+                </small>
+              ) : (
+                <small>
+                  Data movement can continue while the QPU executes or sits idle.
+                </small>
+              )}
+              <small>
+                Counts refer to modeled dependency transfers, not queued
+                quantum jobs or individual actor-rank payloads.
+              </small>
+            </div>
+          ) : null}
 
           <div
             className={

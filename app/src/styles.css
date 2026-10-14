@@ -1334,3 +1334,24 @@ textarea:focus-visible { outline: 3px solid rgba(123, 183, 255, 0.42); outline-o
   .simple-time-rail { grid-template-columns: auto minmax(120px, 1fr) auto; }
   .simple-time-entry { grid-column: 1 / -1; }
 }
+
+
+/* Explicitly reveal transfer-domain stalls in the first-screen QPU panel.
+   These are engine communication events, not fictitious QPU queue entries. */
+.transfer-callout {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 167, 100, 0.54);
+  border-radius: 10px;
+  background: rgba(255, 167, 100, 0.075);
+  color: var(--text);
+}
+.transfer-callout strong {
+  color: #ffc18b;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+}
+.transfer-callout span { font-size: 0.79rem; font-weight: 780; }
+.transfer-callout small { color: var(--muted); font-size: 0.7rem; line-height: 1.35; }

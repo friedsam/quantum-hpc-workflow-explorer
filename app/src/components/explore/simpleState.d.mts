@@ -37,3 +37,16 @@ export function hasGlobalSynchronizationSemantics(
 export function globalSynchronizationIsActive(
   actors: ActorStateProjection
 ): boolean;
+
+export interface ActiveTransferSummary {
+  outbound: number;
+  returning: number;
+  other: number;
+  total: number;
+  beforeFirstQpuExecution: boolean;
+}
+
+export function deriveActiveTransferSummary(
+  spec: WorkflowSpec,
+  snapshot: SystemStateSnapshot
+): ActiveTransferSummary;
