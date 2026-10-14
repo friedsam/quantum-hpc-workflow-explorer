@@ -92,6 +92,15 @@ function SimulatedExplore({
     [compilationContext]
   );
 
+  const activeLogicalDependencyIds = useMemo(
+    () => Array.from(new Set(
+      genericSnapshot.dag.activeCommunicationDependencyIds.map(
+        (id) => manifest?.dependencies[id]?.designDependencyId ?? id
+      )
+    )),
+    [genericSnapshot, manifest]
+  );
+
   const logicalRuntime = useMemo(
     () =>
       compilationContext && manifest
@@ -132,6 +141,7 @@ function SimulatedExplore({
           model={logicalDag}
           debugSnapshot={genericSnapshot}
           runtimeByNodeId={logicalRuntime}
+          activeLogicalDependencyIds={activeLogicalDependencyIds}
           heading="Logical workflow"
           logical
         />
