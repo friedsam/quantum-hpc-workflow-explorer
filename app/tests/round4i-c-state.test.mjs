@@ -1,243 +1,103 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-
-import {
-  deriveActorGroupSummaryAt,
-  deriveActorStateCountsAt
-} from "../src/design/actor-state.mjs";
+import { deriveActorGroupSummaryAt, deriveActorStateCountsAt } from "../src/design/actor-state.mjs";
 import { deriveSystemStateSnapshot } from "../src/causal/systemState.mjs";
-import { deriveActiveTransferSummary } from "../src/components/explore/simpleState.mjs";
 import { simulateWorkflow } from "../src/engine/runtime.mjs";
+import { deriveActiveTransferSummary } from "../src/components/explore/simpleState.mjs";
 import {
-  qampScenarioC1000Compilation,
-  qampScenarioC1000Design,
-  qampScenarioC1000RunConfiguration,
-  qampScenarioC1000WorkflowSpec
+ qampScenarioC1000Compilation as compiled,
+ qampScenarioC1000Design as design,
+ qampScenarioC1000RunConfiguration as config,
+ qampScenarioC1000Profile as profile,
+ qampScenarioC1000WorkflowSpec as spec
 } from "../src/presets/qamp-c-1000-demo.mjs";
 
-const compiled = qampScenarioC1000Compilation;
-const spec = qampScenarioC1000WorkflowSpec;
 const result = simulateWorkflow(spec);
-
-function approx(actual, expected, epsilon = 1e-9) {
-  assert.ok(
-    Math.abs(actual - expected) <= epsilon,
-    `expected ${actual} ≈ ${expected}`
-  );
+const approx = (x,y) => assert.ok(Math.abs(x-y)<1e-7,`expected ${x} ≈ ${y}`);
+const counts = t => deriveActorStateCountsAt(compiled.manifest,result,"ranks",t);
+const snapshot = t => deriveSystemStateSnapshot(spec,result,t);
+function event(type,taskId){
+ const e=result.events.find(e=>e.type===type && e.taskId===taskId);
+ assert.ok(e,`missing ${type} on ${taskId}`);
+ return e.simTimeS;
 }
-
-function actorCounts(simTimeS) {
-  return deriveActorStateCountsAt(
-    compiled.manifest,
-    result,
-    "ranks",
-    simTimeS
-  );
+function expectCounts(t,working,blocked,idle) {
+ assert.deepEqual(counts(t),{actorGroupId:"ranks",simTimeS:t,working,blocked,idle});
 }
-
-test("public C is a 1,000-actor five-cohort transfer model with QPU capacity one", () => {
-  assert.equal(qampScenarioC1000Design.tasks.length, 15);
-  assert.equal(spec.tasks.length, 15);
-  assert.equal(
-    qampScenarioC1000RunConfiguration.actorGroupCounts.ranks,
-    1000
-  );
-  assert.equal(
-    qampScenarioC1000RunConfiguration.resources.find(
-      (resource) => resource.kind === "qpu"
-    ).capacity,
-    1
-  );
-  assert.equal(
-    qampScenarioC1000RunConfiguration.policy
-      .maxInFlightQuantumByPool,
-    undefined
-  );
-
-  assert.deepEqual(actorCounts(3.5), {
-    actorGroupId: "ranks",
-    simTimeS: 3.5,
-    working: 200,
-    blocked: 800,
-    idle: 0
-  });
-
-  assert.deepEqual(actorCounts(4.5), {
-    actorGroupId: "ranks",
-    simTimeS: 4.5,
-    working: 0,
-    blocked: 1000,
-    idle: 0
-  });
+test("C has 1000 individual QPU jobs and 2000 transfer dependencies, not five aggregate jobs",()=>{
+ assert.equal(design.tasks.length,3);
+ assert.deepEqual(design.tasks.map(x=>x.multiplicity),[1000,1000,1000]);
+ assert.equal(spec.tasks.length,3000);
+ assert.equal(spec.dependencies.length,2000);
+ assert.equal(Object.keys(compiled.manifest.actorWaits).length,1000);
+ assert.equal(config.actorGroupCounts.ranks,1000);
+ assert.equal(config.resources.find(x=>x.kind==="qpu").capacity,1);
+ assert.equal(config.policy.maxInFlightQuantumByPool,undefined);
+ assert.equal(design.metadata.synchronization,"none");
+ assert.equal(design.metadata.requestGranularity,"individual-per-rank");
+ for(const [ordinal,expected] of [[1,5],[2,5.7],[1000,704.3]]){
+  const edge=spec.dependencies.find(d=>d.id===`prepare-quantum#${ordinal}`);
+  assert.ok(edge);
+  approx(edge.fixedLatencyS,expected);
+  assert.ok(!("instanceStaggerS" in edge));
+  assert.equal(compiled.manifest.dependencies[edge.id].communicationProvenance.kind,"synthetic");
+ }
 });
-
-test("transfer wall can block all actors while QPU is idle and queue-free", () => {
-  const snapshot = deriveSystemStateSnapshot(spec, result, 4.5);
-
-  assert.equal(snapshot.resources.qpuByPool.qpu.activeUnits, 0);
-  assert.equal(snapshot.resources.qpuByPool.qpu.queueDepth, 0);
-  assert.equal(
-    snapshot.causal.policyHeldQuantumTasks.length,
-    0
-  );
-  assert.equal(
-    snapshot.causal.activeCommunications.length,
-    5
-  );
-
-  assert.equal(result.metrics.queueWaitSecondsByPool.qpu, 0);
-  assert.equal(
-    result.metrics.admissionWaitSecondsByPool.qpu,
-    0
-  );
+test("1000 Blocked while all 1000 outbound transfers are in flight before QPU sees any job",()=>{
+ expectCounts(0.1,1000,0,0);
+ expectCounts(0.3,0,1000,0);
+ expectCounts(4.5,0,1000,0);
+ for(const time of [0.3,4.5]){
+  const ss=snapshot(time),summary=deriveActiveTransferSummary(spec,ss);
+  assert.equal(ss.resources.qpuByPool.qpu.activeUnits,0);
+  assert.equal(ss.resources.qpuByPool.qpu.queueDepth,0);
+  assert.equal(ss.causal.policyHeldQuantumTasks.length,0);
+  assert.equal(ss.causal.activeCommunications.length,1000);
+  assert.equal(ss.dag.activeCommunicationDependencyIds.length,1000);
+  assert.deepEqual(summary,{outbound:1000,returning:0,other:0,total:1000,beforeFirstQpuExecution:true});
+ }
+ assert.equal(result.metrics.queueWaitSecondsByPool.qpu,0);
+ assert.equal(result.metrics.admissionWaitSecondsByPool.qpu,0);
 });
-
-test("C has intermittent QPU execution and independent continuation before the final QPU result", () => {
-  const duringFirstQpu = deriveSystemStateSnapshot(
-    spec,
-    result,
-    5.25
-  );
-  assert.equal(
-    duringFirstQpu.resources.qpuByPool.qpu.activeUnits,
-    1
-  );
-  assert.equal(
-    duringFirstQpu.resources.qpuByPool.qpu.queueDepth,
-    0
-  );
-  assert.deepEqual(actorCounts(5.25), {
-    actorGroupId: "ranks",
-    simTimeS: 5.25,
-    working: 0,
-    blocked: 1000,
-    idle: 0
-  });
-
-  const resumed = deriveSystemStateSnapshot(spec, result, 8.5);
-  assert.equal(resumed.resources.qpuByPool.qpu.activeUnits, 0);
-  assert.equal(resumed.resources.qpuByPool.qpu.queueDepth, 0);
-  assert.ok(resumed.causal.activeCommunications.length > 0);
-  assert.deepEqual(actorCounts(8.5), {
-    actorGroupId: "ranks",
-    simTimeS: 8.5,
-    working: 200,
-    blocked: 800,
-    idle: 0
-  });
-
-  const firstConsumerStart = result.events.find(
-    (event) =>
-      event.type === "task_started" &&
-      event.taskId === "cohort-1-consumer"
-  ).simTimeS;
-  const finalQuantumComplete = result.events.find(
-    (event) =>
-      event.type === "task_completed" &&
-      event.taskId === "cohort-5-quantum"
-  ).simTimeS;
-
-  approx(firstConsumerStart, 8.3);
-  approx(finalQuantumComplete, 9.3);
-  assert.ok(firstConsumerStart < finalQuantumComplete);
+test("first result gets back and unblocks exactly one rank before second job arrives",()=>{
+ approx(event("task_started","quantum#1"),5.2);
+ approx(event("task_completed","quantum#1"),5.25);
+ approx(event("task_started","consumer#1"),5.5);
+ approx(event("task_completed","consumer#1"),5.8);
+ approx(event("task_started","quantum#2"),5.9);
+ expectCounts(5.22,0,1000,0);
+ expectCounts(5.6,1,999,0);
+ expectCounts(5.85,0,999,1);
+ assert.equal(snapshot(5.6).resources.qpuByPool.qpu.activeUnits,0);
+ assert.equal(snapshot(5.6).resources.qpuByPool.qpu.queueDepth,0);
+ assert.equal(deriveActiveTransferSummary(spec,snapshot(5.6)).outbound,999);
 });
-
-test("actor result wait releases at consumer start after positive return transfer", () => {
-  assert.deepEqual(actorCounts(8.299), {
-    actorGroupId: "ranks",
-    simTimeS: 8.299,
-    working: 0,
-    blocked: 1000,
-    idle: 0
-  });
-  assert.deepEqual(actorCounts(8.3), {
-    actorGroupId: "ranks",
-    simTimeS: 8.3,
-    working: 200,
-    blocked: 800,
-    idle: 0
-  });
-
-  const returnCompleted = result.events.find(
-    (event) =>
-      event.type === "communication_completed" &&
-      event.metadata?.dependencyId ===
-        "cohort-1-return-transfer"
-  );
-  const consumerReady = result.events.find(
-    (event) =>
-      event.type === "task_ready" &&
-      event.taskId === "cohort-1-consumer"
-  );
-  const consumerStarted = result.events.find(
-    (event) =>
-      event.type === "task_started" &&
-      event.taskId === "cohort-1-consumer"
-  );
-
-  approx(returnCompleted.simTimeS, 8.3);
-  approx(consumerReady.simTimeS, 8.3);
-  approx(consumerStarted.simTimeS, 8.3);
+test("all 1000 QPU jobs execute individually and all ranks resume independently",()=>{
+ for(const i of [1,2,3,150,500,999,1000]){
+  const start=event("task_started",`quantum#${i}`);
+  const resumed=event("task_started",`consumer#${i}`);
+  approx(start,5.2+(i-1)*0.7);
+  approx(resumed,start+0.05+0.25);
+  if(i<1000)assert.ok(resumed<5.2+i*0.7);
+ }
+ assert.equal(result.events.filter(e=>e.type==="task_started"&&e.taskId?.startsWith("quantum#")).length,1000);
+ assert.equal(result.events.filter(e=>e.type==="task_started"&&e.taskId?.startsWith("consumer#")).length,1000);
+ assert.ok(!design.actorWaits.some(w=>w.reason==="global-synchronization"));
+ assert.ok(result.metrics.utilizationByPool.qpu<0.1);
+ approx(result.metrics.makespanS,705.1);
+ expectCounts(705.1,0,0,1000);
 });
-
-test("communication dominates service while QPU utilization remains low", () => {
-  const serviceSeconds = spec.tasks.reduce(
-    (sum, task) => sum + task.serviceTime.seconds,
-    0
-  );
-
-  approx(result.metrics.makespanS, 12.8);
-  assert.ok(
-    result.metrics.aggregateCommunicationSeconds >
-      serviceSeconds
-  );
-  assert.ok(result.metrics.utilizationByPool.qpu < 0.05);
-
-  const summary = deriveActorGroupSummaryAt(
-    compiled.manifest,
-    result,
-    "ranks",
-    4.5
-  );
-  assert.equal(summary.blocked, 1000);
-  assert.equal(
-    summary.blockedReasonCounts["quantum-result"],
-    1000
-  );
-  assert.equal(
-    summary.blockedReasonCounts["global-synchronization"] ?? 0,
-    0
-  );
-});
-
-test("Scenario C first stalls during outbound transfer before any quantum job starts", () => {
-  const before = deriveSystemStateSnapshot(spec, result, 4.5);
-  const transfer = deriveActiveTransferSummary(spec, before);
-  assert.deepEqual(transfer, {
-    outbound: 5,
-    returning: 0,
-    other: 0,
-    total: 5,
-    beforeFirstQpuExecution: true
-  });
-
-  const during = deriveSystemStateSnapshot(spec, result, 5.25);
-  const duringTransfer = deriveActiveTransferSummary(spec, during);
-  assert.equal(duringTransfer.beforeFirstQpuExecution, false);
-  assert.equal(duringTransfer.outbound, 4);
-
-  const returning = deriveActiveTransferSummary(
-    spec, deriveSystemStateSnapshot(spec, result, 8.5)
-  );
-  assert.ok(returning.returning > 0);
-});
-
-
-test("Scenario C active outbound transfers map to visible logical dependency IDs", () => {
-  const snapshot = deriveSystemStateSnapshot(spec, result, 4.5);
-  const logicalIds = new Set(qampScenarioC1000Design.dependencies.map((dep) => dep.id));
-  assert.equal(snapshot.dag.activeCommunicationDependencyIds.length, 5);
-  for (const dependencyId of snapshot.dag.activeCommunicationDependencyIds) {
-    assert.ok(logicalIds.has(dependencyId), `logical edge not found: ${dependencyId}`);
-  }
+test("transfer wall is traceable to engine communication and authored per-rank waits",()=>{
+ const ss=snapshot(4.5),ids=new Set(spec.dependencies.map(d=>d.id));
+ for(const tr of ss.causal.activeCommunications){
+  assert.ok(ids.has(tr.dependencyId));
+  assert.ok(tr.targetTaskId.startsWith("quantum#"));
+ }
+ const summary=deriveActorGroupSummaryAt(compiled.manifest,result,"ranks",4.5);
+ assert.equal(summary.blockedReasonCounts["quantum-result"],1000);
+ assert.equal(summary.blockedReasonCounts["global-synchronization"]??0,0);
+ assert.ok(result.metrics.aggregateCommunicationSeconds>spec.tasks.reduce((n,t)=>n+t.serviceTime.seconds,0));
+ assert.equal(profile.dependencyCommunication["outbound-transfer"].value.instanceStaggerS,0.7);
+ assert.equal(profile.dependencyCommunication["outbound-transfer"].provenance.kind,"synthetic");
+ assert.match(profile.dependencyCommunication["outbound-transfer"].provenance.notes,/not a shared-network contention/i);
 });

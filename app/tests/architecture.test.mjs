@@ -341,31 +341,18 @@ test("Round 4H playback uses accepted indexed actor group summaries", async () =
 });
 
 
-test("Round 4I public Scenario C uses explicit five-cohort transfer aggregation", async () => {
-  const logical = await readFile(
-    path.join(srcRoot, "presets", "logical-presets.mjs"),
-    "utf8"
-  );
-  const preset = await readFile(
-    path.join(srcRoot, "presets", "qamp-c-1000-demo.mjs"),
-    "utf8"
-  );
-  const presets = await readFile(
-    path.join(srcRoot, "presets", "presets.ts"),
-    "utf8"
-  );
-
-  assert.match(logical, /qamp-c-1000-demo\.mjs/);
-  assert.match(logical, /qampScenarioC1000Design/);
-  assert.match(preset, /5 cohorts × 200 persistent actors/);
-  assert.match(preset, /QPU capacity remains one execution lane/);
-  assert.match(preset, /fixedLatencyS: OUTBOUND_LATENCY_S/);
-  assert.match(preset, /fixedLatencyS: RETURN_LATENCY_S/);
-  assert.doesNotMatch(preset, /maxInFlightQuantumByPool/);
-  assert.match(
-    presets,
-    /Synthetic 1,000-rank transfer wall using five staggered 200-rank cohorts/
-  );
+test("Public Scenario C uses 1000 pairwise transfer-gated rank requests",async()=>{
+ const logical=await readFile(path.join(srcRoot,"presets","logical-presets.mjs"),"utf8");
+ const preset=await readFile(path.join(srcRoot,"presets","qamp-c-1000-demo.mjs"),"utf8");
+ const presets=await readFile(path.join(srcRoot,"presets","presets.ts"),"utf8");
+ const compiler=await readFile(path.join(srcRoot,"design","compiler.mjs"),"utf8");
+ assert.match(logical,/qamp-c-1000-demo\\.mjs/);
+ assert.match(preset,/const RANKS = 1000/);
+ assert.match(preset,/instanceStaggerS: STAGGER_BETWEEN_ARRIVALS_S/);
+ assert.match(preset,/one-per-instance/);
+ assert.match(preset,/individual-per-rank/);
+ assert.match(compiler,/instanceStaggerS/);
+ assert.match(presets,/1,000 individually transferred QPU requests/);
 });
 
 test("Round 4I keeps accepted queued actor-wait support and D1000 regression", async () => {
