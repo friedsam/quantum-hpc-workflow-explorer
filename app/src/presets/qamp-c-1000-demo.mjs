@@ -1,232 +1,168 @@
 import { compileWorkflowDesignDetailed } from "../design/compiler.mjs";
 
-const COHORTS = Object.freeze([
-  { id: 1, start: 1, end: 200, prepSeconds: 0.2 },
-  { id: 2, start: 201, end: 400, prepSeconds: 1.2 },
-  { id: 3, start: 401, end: 600, prepSeconds: 2.2 },
-  { id: 4, start: 601, end: 800, prepSeconds: 3.2 },
-  { id: 5, start: 801, end: 1000, prepSeconds: 4.2 },
-]);
-
-const OUTBOUND_LATENCY_S = 5;
-const QPU_SERVICE_S = 0.1;
-const RETURN_LATENCY_S = 3;
-const CONTINUATION_S = 0.5;
+const RANKS = 1000;
+const PREPARATION_S = 0.2;
+const FIRST_OUTBOUND_LATENCY_S = 5;
+const STAGGER_BETWEEN_ARRIVALS_S = 0.7;
+const QPU_SERVICE_S = 0.05;
+const RETURN_LATENCY_S = 0.25;
+const CONTINUATION_S = 0.3;
 
 const synthetic = (notes) => ({
   kind: "synthetic",
-  source: "Round 4I public Scenario C 1000-rank cohort transfer-wall demo",
+  source: "QAMP Scenario C individual-request staggered-transfer prototype",
   notes,
 });
 
-const range = (startActorOrdinal, endActorOrdinal) => ({
-  kind: "range",
-  startActorOrdinal,
-  endActorOrdinal,
-});
-
-const cohortLabel = (cohort) =>
-  `Cohort ${cohort.id} · ranks ${cohort.start}–${cohort.end}`;
-
-const tasks = [];
-const dependencies = [];
-const actorWaits = [];
-const taskResources = {};
-const taskServiceTimes = {};
-const dependencyCommunication = {};
-
-for (const cohort of COHORTS) {
-  const prepareId = `cohort-${cohort.id}-prepare`;
-  const quantumId = `cohort-${cohort.id}-quantum`;
-  const consumerId = `cohort-${cohort.id}-consumer`;
-  const outboundId = `cohort-${cohort.id}-outbound-transfer`;
-  const returnId = `cohort-${cohort.id}-return-transfer`;
-
-  tasks.push(
+export const qampScenarioC1000Design = {
+  schemaVersion: 1,
+  id: "qamp-c-1000-individual-transfer-demo",
+  name: "QAMP C — 1,000-rank transfer-latency wall (individual requests)",
+  actorGroups: [
+    { id: "ranks", label: "HPC ranks", kind: "mpi-rank" }
+  ],
+  tasks: [
     {
-      id: prepareId,
-      label: `${cohortLabel(cohort)} preparation`,
-      timingKey: prepareId,
-      semanticType: "classical-preparation-cohort",
-      actorParticipation: [
-        {
-          actorGroupId: "ranks",
-          selection: range(cohort.start, cohort.end),
-          stateDuringTask: "working",
-        },
-      ],
-      metadata: {
-        aggregation: "synthetic-cohort",
-        representedActors: 200,
-      },
+      id: "prepare",
+      label: "All-rank concurrent preparation / off-load",
+      multiplicity: RANKS,
+      timingKey: "prepare",
+      semanticType: "quantum-preparation",
+      actorParticipation: [{
+        actorGroupId: "ranks",
+        selection: { kind: "one-per-instance" },
+        stateDuringTask: "working",
+      }],
     },
     {
-      id: quantumId,
-      label: `${cohortLabel(cohort)} aggregate quantum request`,
-      timingKey: quantumId,
-      semanticType: "quantum-evaluation-cohort",
-      metadata: {
-        aggregation: "synthetic-cohort-request",
-        representedActors: 200,
-      },
+      id: "quantum",
+      label: "Individually arriving quantum requests",
+      multiplicity: RANKS,
+      timingKey: "quantum",
+      semanticType: "quantum-evaluation",
     },
     {
-      id: consumerId,
-      label: `${cohortLabel(cohort)} independent continuation`,
-      timingKey: consumerId,
-      semanticType: "classical-continuation-cohort",
-      actorParticipation: [
-        {
-          actorGroupId: "ranks",
-          selection: range(cohort.start, cohort.end),
-          stateDuringTask: "working",
-        },
-      ],
-      metadata: {
-        aggregation: "synthetic-cohort",
-        representedActors: 200,
-      },
-    }
-  );
-
-  actorWaits.push({
-    id: `cohort-${cohort.id}-result-wait`,
+      id: "consumer",
+      label: "Independent per-rank classical continuation",
+      multiplicity: RANKS,
+      timingKey: "consumer",
+      semanticType: "classical-continuation",
+      actorParticipation: [{
+        actorGroupId: "ranks",
+        selection: { kind: "one-per-instance" },
+        stateDuringTask: "working",
+      }],
+    },
+  ],
+  actorWaits: [{
+    id: "per-rank-transfer-and-result-wait",
     actorGroupId: "ranks",
-    selection: range(cohort.start, cohort.end),
+    selection: { kind: "one-per-instance" },
     activation: {
       kind: "task-event",
-      taskId: prepareId,
+      taskId: "prepare",
       event: "completed",
-      instance: "any-instance",
+      instance: "matching-instance",
     },
     release: {
       kind: "task-event",
-      taskId: consumerId,
+      taskId: "consumer",
       event: "started",
-      instance: "any-instance",
+      instance: "matching-instance",
     },
     reason: "quantum-result",
-  });
-
-  dependencies.push(
+  }],
+  dependencies: [
     {
-      id: outboundId,
-      sourceTaskId: prepareId,
-      targetTaskId: quantumId,
+      id: "prepare-quantum",
+      sourceTaskId: "prepare",
+      targetTaskId: "quantum",
       communicationKey: "outbound-transfer",
+      instanceMapping: "pairwise",
     },
     {
-      id: returnId,
-      sourceTaskId: quantumId,
-      targetTaskId: consumerId,
+      id: "quantum-consumer",
+      sourceTaskId: "quantum",
+      targetTaskId: "consumer",
       communicationKey: "return-transfer",
-    }
-  );
-
-  taskResources[prepareId] = {
-    resourcePoolId: "cpu",
-    resourceCount: 200,
-  };
-  taskResources[quantumId] = {
-    resourcePoolId: "qpu",
-    resourceCount: 1,
-  };
-  taskResources[consumerId] = {
-    resourcePoolId: "cpu",
-    resourceCount: 200,
-  };
-
-  taskServiceTimes[prepareId] = {
-    value: { kind: "constant", seconds: cohort.prepSeconds },
-    provenance: synthetic(
-      `Staggered cohort preparation wall time; cohort ${cohort.id} represents 200 ranks and is not a per-rank timing measurement.`
-    ),
-  };
-  taskServiceTimes[quantumId] = {
-    value: { kind: "constant", seconds: QPU_SERVICE_S },
-    provenance: synthetic(
-      "Short aggregate QPU service chosen to keep transfer, not backend service or queueing, dominant."
-    ),
-  };
-  taskServiceTimes[consumerId] = {
-    value: { kind: "constant", seconds: CONTINUATION_S },
-    provenance: synthetic(
-      "Short independent classical continuation after the cohort result has returned."
-    ),
-  };
-}
-
-dependencyCommunication["outbound-transfer"] = {
-  value: { fixedLatencyS: OUTBOUND_LATENCY_S },
-  provenance: synthetic(
-    "Positive outbound transfer latency; no provider/backend queue delay is represented."
-  ),
-};
-
-dependencyCommunication["return-transfer"] = {
-  value: { fixedLatencyS: RETURN_LATENCY_S },
-  provenance: synthetic(
-    "Positive result-return transfer latency; actor waits release only when the consumer starts after this dependency completes."
-  ),
-};
-
-export const qampScenarioC1000Design = {
-  schemaVersion: 1,
-  id: "qamp-c-1000-cohort-transfer-demo",
-  name: "QAMP C — 1,000-rank transfer-dominated cohort demo",
-  actorGroups: [
-    {
-      id: "ranks",
-      label: "HPC ranks",
-      kind: "mpi-rank",
+      instanceMapping: "pairwise",
     },
   ],
-  tasks,
-  actorWaits,
-  dependencies,
   assumptions: [
-    "Synthetic public Scenario C using five explicitly declared 200-rank cohorts instead of 1,000 simultaneous QPU-ready requests.",
-    "Each cohort quantum task is an aggregate modeled request used to preserve the transfer-wall mechanism without inventing per-rank request timing.",
-    "Outbound and return dependency transfers dominate short QPU/classical service; no global synchronization or provider queue is modeled.",
-    "Cohort results release independent classical continuation as soon as their positive return-transfer dependency completes.",
+    "1,000 individual quantum requests, 1,000 outbound/return transfer pairs, and 1,000 per-rank waits compile from three logical tasks; there are no aggregated cohorts.",
+    "All ranks complete 0.2 s concurrent preparation, then become Blocked while 1,000 outbound transfers are in flight before any QPU task starts.",
+    "Synthetic transfer delivery schedule: request k reaches the QPU at t = 0.2 + 5 + (k - 1)*0.7 s.",
+    "Each quantum service lasts 0.05 s and return transfer lasts 0.25 s, so the preceding result arrives back before the next request reaches the QPU.",
+    "0.7 s synthetic per-instance spacing stands in for an assumed serialized delivery pattern; it is NOT an emulation of a contended network resource, transport queue or measured link latency.",
+    "Each rank resumes its own 0.3 s classical continuation after its returned result, without waiting for any other rank; no global barrier.",
+    "One QPU lane, no admission limit and no sustained QPU resource queue.",
   ],
   metadata: {
     synchronization: "none",
-    aggregation: "5 cohorts × 200 persistent actors",
-    tutorialSource:
-      "HPC-Quantum/Documentation-website/scenario-c.md",
+    requestGranularity: "individual-per-rank",
+    transferModel: "synthetic-staggered-dependency-latency",
+    tutorialSource: "HPC-Quantum/Documentation-website/scenario-c.md",
   },
 };
 
 export const qampScenarioC1000RunConfiguration = {
   schemaVersion: 1,
-  id: "qamp-c-1000-cohort-transfer-demo-run",
-  workflowId: "qamp-c-1000-cohort-transfer-demo-compiled",
+  id: "qamp-c-1000-individual-transfer-demo-run",
+  workflowId: "qamp-c-1000-individual-transfer-demo-compiled",
   resources: [
-    { id: "cpu", kind: "cpu", capacity: 1000 },
+    { id: "cpu", kind: "cpu", capacity: RANKS },
     { id: "qpu", kind: "qpu", capacity: 1 },
   ],
-  taskResources,
-  policy: {
-    allocation: "release-aware",
+  taskResources: {
+    prepare: { resourcePoolId: "cpu", resourceCount: 1 },
+    quantum: { resourcePoolId: "qpu", resourceCount: 1 },
+    consumer: { resourcePoolId: "cpu", resourceCount: 1 },
   },
-  actorGroupCounts: {
-    ranks: 1000,
-  },
+  policy: { allocation: "release-aware" },
+  actorGroupCounts: { ranks: RANKS },
   assumptions: [
-    "QPU capacity remains one execution lane as in the tutorial.",
-    "No max-in-flight admission policy is configured because Scenario C is not a throttling/admission bottleneck.",
+    "1,000 persistent ranks and 1,000 individual QPU task instances (rather than five cohort-level calls).",
+    "QPU capacity one, with no max-in-flight throttling because transfer—not QPU admission—is the wall.",
   ],
 };
 
 export const qampScenarioC1000Profile = {
   schemaVersion: 1,
-  id: "qamp-c-1000-cohort-transfer-demo-profile",
-  taskServiceTimes,
-  dependencyCommunication,
+  id: "qamp-c-1000-individual-transfer-demo-profile",
+  taskServiceTimes: {
+    prepare: {
+      value: { kind: "constant", seconds: PREPARATION_S },
+      provenance: synthetic("All 1,000 rank preparations execute concurrently for 0.2 s.")
+    },
+    quantum: {
+      value: { kind: "constant", seconds: QPU_SERVICE_S },
+      provenance: synthetic("A short 0.05 s per-rank quantum execution interval.")
+    },
+    consumer: {
+      value: { kind: "constant", seconds: CONTINUATION_S },
+      provenance: synthetic("A 0.3 s useful classical continuation for each independently returned result.")
+    },
+  },
+  dependencyCommunication: {
+    "outbound-transfer": {
+      value: {
+        fixedLatencyS: FIRST_OUTBOUND_LATENCY_S,
+        instanceStaggerS: STAGGER_BETWEEN_ARRIVALS_S,
+      },
+      provenance: synthetic(
+        "Synthetic staggered per-rank transfer deliveries: all transfers begin after preparation, but completion times are 0.7 s apart; not a shared-network contention/transport-queue model."
+      ),
+    },
+    "return-transfer": {
+      value: { fixedLatencyS: RETURN_LATENCY_S },
+      provenance: synthetic(
+        "Each quantum result incurs 0.25 s return delay, without a global barrier."
+      ),
+    },
+  },
   assumptions: [
-    "All numeric task and transfer times are synthetic and illustrative.",
-    "Transfer latency is a modeled dependency cost, not a network-resource or provider-queue model.",
+    "All timings are declared synthetic input assumptions, not inferred from measured network or provider hardware.",
+    "A per-instance effective outbound transfer latency schedules strictly separated arrivals. This does not model queueing or bandwidth contention on a shared physical transport.",
   ],
 };
 

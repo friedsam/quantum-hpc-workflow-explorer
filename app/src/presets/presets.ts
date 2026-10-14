@@ -88,7 +88,7 @@ export const presets: WorkflowPreset[] = [
   {
     key: "scenario-c",
     label: "Scenario C",
-    description: "Synthetic 1,000-rank transfer wall using five staggered 200-rank cohorts, low QPU load, and independent result return.",
+    description: "Synthetic 1,000 individually transferred QPU requests: all ranks block before QPU starts, then results return one rank at a time with no global barrier.",
     source: "design",
     designBundle: scenarioCLogicalBundle
   },
