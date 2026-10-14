@@ -85,7 +85,7 @@ test("all 1000 QPU jobs execute individually and all ranks resume independently"
  assert.ok(!design.actorWaits.some(w=>w.reason==="global-synchronization"));
  assert.ok(result.metrics.utilizationByPool.qpu<0.1);
  approx(result.metrics.makespanS,705.1);
- expectCounts(705.1,0,0,1000);
+ expectCounts(result.metrics.makespanS,0,0,1000);
 });
 test("transfer wall is traceable to engine communication and authored per-rank waits",()=>{
  const ss=snapshot(4.5),ids=new Set(spec.dependencies.map(d=>d.id));
