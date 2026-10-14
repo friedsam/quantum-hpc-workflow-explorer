@@ -37,7 +37,7 @@ function replaceTransferLatency(
     bundle.systemProfile.dependencyCommunication[key];
 
   bundle.systemProfile.dependencyCommunication[key] = {
-    value: { fixedLatencyS: seconds },
+    value: { ...current.value, fixedLatencyS: seconds },
     provenance: {
       kind: "user-entered",
       source: "Round 4I UI acceptance",
@@ -66,7 +66,7 @@ test("public C transfer edit preserves topology and reduces makespan/blocked dur
   replaceTransferLatency(
     editedBundle,
     "return-transfer",
-    1.5
+    0.1
   );
 
   const editedCompiled = compile(editedBundle);
@@ -78,8 +78,8 @@ test("public C transfer edit preserves topology and reduces makespan/blocked dur
     editedBundle.design,
     baselineBundle.design
   );
-  approx(baselineResult.metrics.makespanS, 12.8);
-  approx(editedResult.metrics.makespanS, 8.8);
+  approx(baselineResult.metrics.makespanS, 705.1);
+  approx(editedResult.metrics.makespanS, 702.45);
   assert.equal(editedResult.metrics.queueWaitSecondsByPool.qpu, 0);
   assert.equal(
     editedResult.metrics.admissionWaitSecondsByPool.qpu,
@@ -112,9 +112,9 @@ test("public C transfer edit preserves topology and reduces makespan/blocked dur
     {
       actorGroupId: "ranks",
       simTimeS: 5,
-      working: 0,
-      blocked: 800,
-      idle: 200
+      working: 1,
+      blocked: 996,
+      idle: 3
     }
   );
 });
@@ -135,7 +135,7 @@ test("C transfer edit stays comparable with provenance", () => {
   replaceTransferLatency(
     editedBundle,
     "return-transfer",
-    1.5
+    0.1
   );
 
   const baselineCompiled = compile(baselineBundle);
@@ -182,19 +182,13 @@ test("C transfer edit stays comparable with provenance", () => {
   approx(
     baselineRun.simulationResult.metrics.makespanS -
       editedRun.simulationResult.metrics.makespanS,
-    4
+    2.65
   );
 });
 
-test("public C preset declares synthetic cohort aggregation and transfer provenance", () => {
-  assert.equal(
-    qampScenarioC1000Design.metadata.synchronization,
-    "none"
-  );
-  assert.match(
-    qampScenarioC1000Design.metadata.aggregation,
-    /5 cohorts × 200/
-  );
+test("public C preset declares per-rank jobs and explicit transfer provenance", () => {
+  assert.equal(qampScenarioC1000Design.metadata.synchronization,"none");
+  assert.equal(qampScenarioC1000Design.metadata.requestGranularity,"individual-per-rank");
 
   for (const entry of Object.values(
     qampScenarioC1000Profile.taskServiceTimes
@@ -208,7 +202,16 @@ test("public C preset declares synthetic cohort aggregation and transfer provena
     assert.equal(entry.provenance.kind, "synthetic");
     assert.match(
       entry.provenance.source,
-      /Scenario C 1000-rank cohort transfer-wall/
+      /QAMP Scenario C individual-request staggered-transfer/
     );
   }
+});
+
+test("C editable baseline latency preserves 0.7-second per-request delivery spacing",()=>{
+ const b=structuredClone(logicalPresetBundles.C);
+ replaceTransferLatency(b,"outbound-transfer",3.5);
+ assert.equal(b.systemProfile.dependencyCommunication["outbound-transfer"].value.instanceStaggerS,0.7);
+ const spec=compile(b).workflowSpec;
+ assert.equal(spec.dependencies.find(x=>x.id==="prepare-quantum#1").fixedLatencyS,3.5);
+ assert.ok(Math.abs(spec.dependencies.find(x=>x.id==="prepare-quantum#2").fixedLatencyS-4.2)<1e-9);
 });
